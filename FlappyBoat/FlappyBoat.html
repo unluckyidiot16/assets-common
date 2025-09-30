@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Flappy Boat (난이도 최종 수정)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            touch-action: manipulation;
+            overflow: hidden;
+            background-color: #0c4a6e;
+        }
+        .game-container {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent; /* 탭 하이라이트 제거 */
+        }
+        canvas {
+            background: linear-gradient(to bottom, #7dd3fc, #0ea5e9);
+            display: block;
+            border-radius: 0.75rem;
+        }
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .btn-action {
+            transition: all 0.15s ease-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .btn-action:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .boat-select-btn {
+            transition: all 0.2s ease-in-out;
+            border: 4px solid transparent;
+        }
+        .boat-select-btn.selected {
+            border-color: #facc15; /* yellow-400 */
+            transform: scale(1.05);
+        }
+        .boat-select-btn.locked {
+            filter: grayscale(1) brightness(0.5);
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex items-center justify-center p-4">
+
+<div id="game-container" class="game-container relative w-full max-w-sm aspect-[9/16] bg-gray-900 rounded-xl shadow-2xl overflow-hidden">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- 점수 표시 -->
+    <div id="hud" class="absolute top-0 left-0 right-0 p-5 flex justify-center hidden">
+        <p id="score" class="text-6xl font-extrabold text-white text-shadow">0</p>
+    </div>
+
+    <!-- 시작 화면 -->
+    <div id="startScreen" class="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-4 overflow-y-auto">
+        <h1 class="text-5xl font-bold text-white text-shadow mb-2">플래피 보트</h1>
+        <p class="text-lg text-white/90 mb-4 text-shadow">보트를 선택하고 시작하세요</p>
+
+        <div id="boatSelection" class="w-full bg-slate-800/50 p-3 rounded-lg mb-4">
+            <div id="boatList" class="grid grid-cols-3 gap-2">
+            </div>
+        </div>
+
+        <button id="startButton" class="btn-action bg-cyan-500 text-white font-bold text-2xl py-3 px-10 rounded-full">시작</button>
+    </div>
+
+    <!-- 게임 오버 화면 -->
+    <div id="gameOverScreen" class="absolute inset-0 bg-black/70 flex-col items-center justify-center text-center p-6 hidden">
+        <h2 class="text-5xl font-bold text-red-500 text-shadow mb-4">게임 오버!</h2>
+        <p id="unlockNotification" class="text-yellow-300 text-lg mb-4 text-shadow hidden"></p>
+        <div class="bg-slate-800/70 p-4 rounded-lg w-full max-w-xs">
+            <div class="text-xl text-white mb-2">점수: <span id="finalScore" class="font-bold text-yellow-300">0</span></div>
+            <div class="text-xl text-white">최고점수: <span id="highScore" class="font-bold text-cyan-300">0</span></div>
+        </div>
+        <button id="restartButton" class="btn-action bg-green-500 text-white font-bold text-2xl py-3 px-8 rounded-full mt-8">새로운 게임</button>
+    </div>
+</div>
+
+<script type="module">
+    // --- DOM 요소 ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const hud = document.getElementById('hud');
+    const scoreEl = document.getElementById('score');
+    const startScreen = document.getElementById('startScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const startButton = document.getElementById('startButton');
+    const restartButton = document.getElementById('restartButton');
+    const finalScoreEl = document.getElementById('finalScore');
+    const highScoreEl = document.getElementById('highScore');
+    const boatListContainer = document.getElementById('boatList');
+    const unlockNotification = document.getElementById('unlockNotification');
+
+    // --- 보트 데이터 ---
+    const BOATS = [
+        { id: 'paperboat', name: '종이배', src: 'https://unluckyidiot16.github.io/assets-common/FlappyBoat/paperboat.png', unlockScore: 0, width: 60, height: 45 },
+        { id: 'woodship', name: '목선', src: 'https://unluckyidiot16.github.io/assets-common/FlappyBoat/woodship.png', unlockScore: 10, width: 65, height: 65 },
+        { id: 'sailboat', name: '요트', src: 'https://unluckyidiot16.github.io/assets-common/FlappyBoat/sailboat.png', unlockScore: 25, width: 65, height: 75 },
+        { id: 'boat', name: '크루즈', src: 'https://unluckyidiot16.github.io/assets-common/FlappyBoat/boat.png', unlockScore: 50, width: 60, height: 55 },
+        { id: 'bigship', name: '함선', src: 'https://unluckyidiot16.github.io/assets-common/FlappyBoat/bigship.png', unlockScore: 75, width: 70, height: 70 },
+    ];
+
+    // --- 게임 상태 변수 ---
+    let gameState = 'start';
+    let frame = 0, score = 0;
+    let highScore = localStorage.getItem('flappyBoatHighScore_v7') || 0;
+    let unlockedBoats = JSON.parse(localStorage.getItem('flappyBoatUnlocked_v7')) || ['paperboat'];
+    let selectedBoat = BOATS[0];
+    let boatImage = new Image();
+
+    // --- 게임 설정 (초기값) ---
+    const settings = {
+        gameSpeed: 2.0,
+        gravity: 0.12,
+        lift: -3.5,
+        pillarWidth: 70,
+        pillarGap: 300,     // 초기 간격을 300으로 대폭 증가
+        pillarFrequency: 100
+    };
+
+    let boat, water, pillars;
+    let lastDifficultyUpdateScore = 0;
+
+    function renderBoatSelection() {
+        boatListContainer.innerHTML = '';
+        BOATS.forEach(b => {
+            const isUnlocked = unlockedBoats.includes(b.id);
+            const isSelected = selectedBoat.id === b.id;
+
+            const button = document.createElement('button');
+            button.className = `boat-select-btn relative aspect-square bg-slate-700/50 rounded-lg p-1 ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'locked' : ''}`;
+            button.dataset.boatId = b.id;
+
+            let content = `<img src="${b.src}" class="w-full h-full object-contain"><p class="absolute bottom-0 left-0 right-0 text-white text-xs bg-black/50 py-0.5">${b.name}</p>`;
+            if (!isUnlocked) {
+                content += `<div class="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    <span class="text-white font-bold text-sm mt-1">${b.unlockScore}점</span>
+                                </div>`;
+            }
+            button.innerHTML = content;
+
+            if (isUnlocked) {
+                button.onclick = () => {
+                    selectedBoat = b;
+                    renderBoatSelection();
+                };
+            }
+            boatListContainer.appendChild(button);
+        });
+    }
+
+    function init() {
+        const container = document.getElementById('game-container');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+
+        // 난이도 설정 초기화
+        settings.gameSpeed = 2.0;
+        settings.pillarGap = 300; // 넓어진 간격으로 시작
+        lastDifficultyUpdateScore = 0;
+
+        boat = {
+            x: canvas.width / 3,
+            y: canvas.height / 2,
+            width: selectedBoat.width,
+            height: selectedBoat.height,
+            velocity: 0,
+            angle: 0,
+        };
+        water = { level: boat.y + boat.height, waveAmplitude: 5, waveFrequency: 0.03 };
+        pillars = [];
+        score = 0;
+        frame = 0;
+        gameState = 'playing';
+
+        hud.classList.remove('hidden');
+        startScreen.classList.add('hidden');
+        gameOverScreen.classList.add('hidden');
+        unlockNotification.classList.add('hidden');
+        updateScoreUI();
+    }
+
+    function gameLoop() {
+        if (gameState !== 'playing') return;
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+        frame++;
+        boat.velocity += settings.gravity;
+        boat.y += boat.velocity;
+        boat.angle = Math.min(Math.PI / 6, boat.velocity * 0.08);
+
+        const targetWaterLevel = boat.y + boat.height / 2;
+        water.level += (targetWaterLevel - water.level) * 0.1;
+
+        if (frame % settings.pillarFrequency === 0) spawnPillar();
+        updatePillars();
+        checkCollisions();
+    }
+
+    function updatePillars() {
+        for (let i = pillars.length - 1; i >= 0; i--) {
+            const p = pillars[i];
+            p.x -= settings.gameSpeed;
+            if (!p.passed && p.x + settings.pillarWidth < boat.x) {
+                p.passed = true;
+                score++;
+                updateScoreUI();
+                // 10점 마다 난이도 상승
+                if (score > 0 && score % 10 === 0) {
+                    updateDifficulty();
+                }
+            }
+            if (p.x < -settings.pillarWidth) pillars.splice(i, 1);
+        }
+    }
+
+    // --- 난이도 조절 함수 ---
+    function updateDifficulty() {
+        settings.gameSpeed += 0.1; // 속도 미세하게 증가
+        if (settings.pillarGap > 160) { // 최소 간격 160
+            settings.pillarGap -= 5; // 간격 5씩 감소
+        }
+    }
+
+    function checkCollisions() {
+        const boatRect = { top: boat.y - boat.height / 2.5, bottom: boat.y + boat.height / 2.5, left: boat.x - boat.width / 2.5, right: boat.x + boat.width / 2.5 };
+        if (boatRect.top < 0 || boatRect.bottom > canvas.height) endGame();
+
+        for (const p of pillars) {
+            if (boatRect.right > p.x && boatRect.left < p.x + settings.pillarWidth) {
+                if (boatRect.top < p.topHeight || boatRect.bottom > p.topHeight + settings.pillarGap) endGame();
+            }
+        }
+    }
+
+    function spawnPillar() {
+        const gapY = Math.random() * (canvas.height - settings.pillarGap - 200) + 100;
+        pillars.push({ x: canvas.width, topHeight: gapY, passed: false });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawWater();
+        drawPillars();
+        drawBoat();
+    }
+
+    function drawPillars() {
+        ctx.fillStyle = '#16a34a';
+        pillars.forEach(p => {
+            ctx.fillRect(p.x, 0, settings.pillarWidth, p.topHeight);
+            const bottomY = p.topHeight + settings.pillarGap;
+            ctx.fillRect(p.x, bottomY, settings.pillarWidth, canvas.height - bottomY);
+        });
+    }
+
+    function drawWater() {
+        ctx.fillStyle = '#0ea5e9';
+        ctx.beginPath();
+        ctx.moveTo(0, water.level);
+        for (let x = 0; x < canvas.width; x++) {
+            const yOffset = Math.sin(x * water.waveFrequency + frame * 0.05) * water.waveAmplitude;
+            ctx.lineTo(x, water.level + yOffset);
+        }
+        ctx.lineTo(canvas.width, canvas.height);
+        ctx.lineTo(0, canvas.height);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    function drawBoat() {
+        ctx.save();
+        ctx.translate(boat.x, boat.y);
+        ctx.rotate(boat.angle);
+        ctx.drawImage(boatImage, -boat.width / 2, -boat.height / 2, boat.width, boat.height);
+        ctx.restore();
+    }
+
+    function updateScoreUI() { scoreEl.textContent = score; }
+
+    function startGame() {
+        boatImage.src = selectedBoat.src;
+        boatImage.onload = () => {
+            init();
+            gameLoop();
+        };
+        if (boatImage.complete) boatImage.onload();
+    }
+
+    function endGame() {
+        if (gameState === 'gameOver') return;
+        gameState = 'gameOver';
+
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('flappyBoatHighScore_v7', highScore);
+        }
+
+        let newUnlock = false;
+        let unlockedBoatName = '';
+        BOATS.forEach(b => {
+            if (highScore >= b.unlockScore && !unlockedBoats.includes(b.id)) {
+                unlockedBoats.push(b.id);
+                newUnlock = true;
+                unlockedBoatName = b.name;
+            }
+        });
+        if (newUnlock) {
+            localStorage.setItem('flappyBoatUnlocked_v7', JSON.stringify(unlockedBoats));
+            unlockNotification.textContent = `🎉 '${unlockedBoatName}' 보트 잠금 해제! 🎉`;
+            unlockNotification.classList.remove('hidden');
+        }
+
+        finalScoreEl.textContent = score;
+        highScoreEl.textContent = highScore;
+        hud.classList.add('hidden');
+        gameOverScreen.classList.remove('hidden');
+    }
+
+    function backToMenu() {
+        gameState = 'start';
+        gameOverScreen.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+        renderBoatSelection();
+    }
+
+    function handleInput() { if (gameState === 'playing') boat.velocity = settings.lift; }
+
+    function initializeGame() {
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', backToMenu);
+        document.addEventListener('mousedown', handleInput);
+        document.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleInput();
+        });
+
+        highScoreEl.textContent = highScore;
+        const container = document.getElementById('game-container');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+
+        renderBoatSelection();
+        startScreen.classList.remove('hidden');
+    }
+
+    initializeGame();
+</script>
+</body>
+</html>
+
