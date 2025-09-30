@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문명 클리커 v4: 노동의 가치</title>
+    <title>문명 클리커 v7: 이미지 경로 수정</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -18,6 +18,7 @@
         .action-card, .upgrade-card { transition: transform 0.1s, box-shadow 0.1s; user-select: none; }
         .action-card.active, .upgrade-card:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .card-image { image-rendering: -webkit-optimize-contrast; } /* For pixel art */
+        .resource-icon { width: 1.125rem; height: 1.125rem; display: inline-block; vertical-align: middle; }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 flex items-center justify-center min-h-screen p-2">
@@ -25,13 +26,13 @@
 <div class="w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 md:p-6 space-y-4">
 
     <div id="visual-container" class="bg-gray-200 dark:bg-gray-700 rounded-lg h-40 flex items-center justify-center overflow-hidden">
-        <img id="era-image" src="" alt="Era Visual" class="w-full h-full object-cover">
+        <img id="era-image" src="" alt="Era Visual" class="w-auto h-full object-contain">
     </div>
 
     <div class="text-center">
         <h1 id="era-name" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400"></h1>
         <div class="mt-2 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-            <p id="resource-label" class="text-md font-semibold"></p>
+            <p id="resource-label" class="text-md font-semibold flex items-center justify-center"></p>
             <p id="resource-count" class="text-3xl font-bold"></p>
             <p id="rps-display" class="text-sm text-green-600 dark:text-green-400 font-medium">초당 +0</p>
         </div>
@@ -46,7 +47,6 @@
         <span class="text-sm text-yellow-800 dark:text-yellow-200">영입된 위인 없음</span>
     </div>
 
-    <!-- 메인 행동 카드 -->
     <div id="main-action-container"></div>
 
     <div class="flex border-b border-gray-200 dark:border-gray-700">
@@ -60,7 +60,7 @@
     </div>
 </div>
 
-<!-- 모달 -->
+<!-- Modal -->
 <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
     <div id="modal-content" class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center space-y-4">
         <div id="modal-image-container" class="hidden w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-yellow-400"><img id="modal-image" src="" class="w-full h-full object-cover"></div>
@@ -71,7 +71,6 @@
 </div>
 
 <script>
-    // --- DOM Elements ---
     const elements = {
         eraName: document.getElementById('era-name'), resourceLabel: document.getElementById('resource-label'), resourceCount: document.getElementById('resource-count'),
         rpsDisplay: document.getElementById('rps-display'), mainActionContainer: document.getElementById('main-action-container'),
@@ -85,39 +84,38 @@
         tabBuildings: document.getElementById('tab-buildings'), cardsContainer: document.getElementById('cards-container')
     };
 
-    // --- Game Data: Rebalanced for Automatic Production ---
     const eras = [
         {
-            name: "석기 시대", eraImage: "axe_5835763.png", resource: "식량", resourceEmoji: "🍖", goal: 500,
+            name: "석기 시대", eraImage: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/stoneage.png", resource: "식량", resourceImage: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/meat.png", goal: 500,
             clearMessage: "농경을 시작하며 식량을 안정적으로 확보했습니다. 이제 인류는 지식을 탐구하며 새로운 시대를 맞이합니다!",
-            mainAction: { name: '수렵/채집', image: 'egg-hunt_2663201.png' },
+            mainAction: { name: '수렵/채집', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/hunt.png' },
             upgrades: [
-                { id: 'stone_axe', name: "뗀석기", image: "arrowhead_1891899.png", cost: 30, effect: (s) => s.clickValue += 1, purchased: false },
-                { id: 'fire', name: "불의 발견", image: "https://placehold.co/64x64/f97316/ffffff?text=🔥", cost: 100, effect: (s) => s.clickValue += 3, purchased: false },
+                { id: 'stone_axe', name: "뗀석기", image: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/stoneaxe.png", cost: 30, effect: (s) => s.clickValue += 1, purchased: false },
+                { id: 'fire', name: "불의 발견", image: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/fire.png", cost: 100, effect: (s) => s.clickValue += 3, purchased: false },
             ],
             buildings: [
-                { id: 'hut', name: '움집', image: 'https://placehold.co/64x64/a16207/ffffff?text=Hut', baseCost: 25, rps: 1, count: 0 },
-                { id: 'tribe', name: '씨족 마을', image: 'https://placehold.co/64x64/854d0e/ffffff?text=Tribe', baseCost: 120, rps: 5, count: 0 }
+                { id: 'hut', name: '움집', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/hut.png', baseCost: 25, rps: 1, count: 0 },
+                { id: 'tribe', name: '씨족 마을', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/tribe.png', baseCost: 120, rps: 5, count: 0 }
             ],
             greatPeople: [
-                { id: 'hunter', name: '위대한 사냥꾼', description: '클릭 가치가 영구적으로 +5 증가합니다.', image: 'https://placehold.co/80x80/a16207/ffffff?text=Hunter', effect: (s) => s.clickValue += 5, acquired: false }
+                { id: 'hunter', name: '위대한 사냥꾼', description: '클릭 가치가 영구적으로 +5 증가합니다.', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/hunter.png', effect: (s) => s.clickValue += 5, acquired: false }
             ],
         },
         {
-            name: "고대 농경 시대", eraImage: "https://placehold.co/400x160/d4af37/ffffff?text=Ancient", resource: "지식", resourceEmoji: "📜", goal: 2500,
+            name: "고대 농경 시대", eraImage: "https://placehold.co/400x160/d4af37/ffffff?text=Ancient", resource: "지식", resourceImage: "https://placehold.co/32x32/4338ca/ffffff?text=📜", goal: 2500,
             clearMessage: "문자와 법전은 문명을 비약적으로 발전시켰습니다. 이제 증기기관의 발명과 함께 산업의 시대가 열립니다!",
             mainAction: { name: '연구', image: 'https://placehold.co/64x64/4338ca/ffffff?text=📜' },
             upgrades: [ { id: 'writing', name: "문자 발명", image: 'https://placehold.co/64x64/312e81/ffffff?text=Abc', cost: 200, effect: (s) => s.clickValue += 10, purchased: false }, { id: 'irrigation', name: "관계 수로", image: 'https://placehold.co/64x64/3b82f6/ffffff?text=💦', cost: 800, effect: (s) => s.clickValue += 25, purchased: false }, ],
-            buildings: [ { id: 'farm', name: '농장', image: 'https://placehold.co/64x64/16a34a/ffffff?text=Farm', baseCost: 150, rps: 12, count: 0 }, { id: 'library', name: '도서관', image: 'https://placehold.co/64x64/7c2d12/ffffff?text=Lib', baseCost: 1000, rps: 50, count: 0 } ]},
+            buildings: [ { id: 'farm', name: '농장', image: 'https://placehold.co/64x64/16a34a/ffffff?text=Farm', baseCost: 150, rps: 12, count: 0 }, { id: 'library', name: '도서관', image: 'https://placehold.co/64x64/7c2d12/ffffff?text=Lib', baseCost: 1000, rps: 50, count: 0 } ],
+            greatPeople: [ { id: 'archimedes', name: '아르키메데스', description: '모든 건물 생산량이 영구적으로 10% 증가합니다.', image: 'https://placehold.co/80x80/78716c/ffffff?text=Archi', effect: (s) => s.globalMultiplier *= 1.10, acquired: false } ],
+        },
     ];
 
-    // --- Game State ---
     let gameState = {
         currentEraIndex: 0, resourceCount: 0, clickValue: 1, resourcesPerSecond: 0,
         globalMultiplier: 1.0, clickBonusFromRps: 0,
     };
 
-    // --- Game Logic ---
     function updateUI() {
         const currentEra = eras[gameState.currentEraIndex];
         if (!currentEra) {
@@ -126,9 +124,9 @@
         }
 
         elements.eraName.textContent = currentEra.name;
-        elements.resourceLabel.textContent = `${currentEra.resource} ${currentEra.resourceEmoji}`;
+        elements.resourceLabel.innerHTML = `${currentEra.resource} <img src="${currentEra.resourceImage}" alt="${currentEra.resource}" class="resource-icon ml-1">`;
         elements.resourceCount.textContent = Math.floor(gameState.resourceCount).toLocaleString();
-        elements.rpsDisplay.textContent = `초당 +${(gameState.resourcesPerSecond).toFixed(1)} (x${gameState.globalMultiplier.toFixed(2)})`;
+        elements.rpsDisplay.textContent = `초당 +${(gameState.resourcesPerSecond).toFixed(1)}`;
         elements.eraImage.src = currentEra.eraImage;
 
         const progress = Math.min((gameState.resourceCount / currentEra.goal) * 100, 100);
@@ -147,7 +145,7 @@
                     <img src="${currentEra.mainAction.image}" class="w-16 h-16 rounded-md bg-indigo-500 p-1 card-image">
                     <div class="text-left">
                         <p class="text-xl font-bold">${currentEra.mainAction.name}</p>
-                        <p class="text-lg">+${gameState.clickValue.toLocaleString()} ${currentEra.resourceEmoji}</p>
+                        <div class="text-lg flex items-center">+${gameState.clickValue.toLocaleString()} <img src="${currentEra.resourceImage}" class="resource-icon ml-1"></div>
                     </div>
                 </button>
             `;
@@ -156,6 +154,7 @@
 
     function renderCardList(container, items, type) {
         container.innerHTML = '';
+        const currentEra = eras[gameState.currentEraIndex];
         items.forEach(item => {
             const isBuilding = type === 'building';
             const cost = isBuilding ? Math.floor(item.baseCost * Math.pow(1.15, item.count)) : item.cost;
@@ -163,24 +162,23 @@
             const canAfford = gameState.resourceCount >= cost;
 
             const card = document.createElement('button');
-            card.className = `upgrade-card w-full text-left p-2 rounded-lg flex flex-col justify-between h-36 ${
+            card.className = `upgrade-card w-full p-2 rounded-lg flex flex-col justify-between h-36 ${
                 isPurchased ? 'bg-green-100 dark:bg-green-900 ring-2 ring-green-400 cursor-not-allowed' :
                     canAfford ? 'bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-800 dark:hover:bg-yellow-700' :
                         'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
             }`;
             card.disabled = isPurchased || !canAfford;
 
-            let content = `
-                    <div class="flex items-center space-x-2">
-                        <img src="${item.image}" class="w-8 h-8 rounded-md card-image bg-white/20 p-0.5">
-                        <p class="font-bold text-sm">${item.name} ${isBuilding ? `(Lv.${item.count})` : ''}</p>
+            card.innerHTML = `
+                    <div class="flex flex-col items-center flex-grow justify-center pt-2">
+                        <img src="${item.image}" class="w-14 h-14 rounded-md card-image">
+                        <p class="font-bold text-sm text-center mt-1">${item.name} ${isBuilding ? `<span class="font-normal">(Lv.${item.count})</span>` : ''}</p>
                     </div>
                     <div class="text-right">
                         ${isBuilding ? `<p class="text-xs text-green-700 dark:text-green-300 font-semibold">+${item.rps} RPS</p>` : ''}
-                        <p class="font-bold text-md">${cost.toLocaleString()} ${eras[gameState.currentEraIndex].resourceEmoji}</p>
+                        <div class="font-bold text-md flex items-center justify-end">${cost.toLocaleString()} <img src="${currentEra.resourceImage}" class="resource-icon ml-1"></div>
                     </div>
                 `;
-            card.innerHTML = content;
             card.onclick = () => {
                 if(isBuilding) buyBuilding(item);
                 else buyUpgrade(item);
@@ -191,10 +189,8 @@
 
     function mainActionClick(event) {
         if (!eras[gameState.currentEraIndex]) return;
-        let bonus = gameState.clickBonusFromRps > 0 ? gameState.resourcesPerSecond * gameState.clickBonusFromRps : 0;
-        gameState.resourceCount += gameState.clickValue + bonus;
+        gameState.resourceCount += gameState.clickValue;
         checkEraCompletion();
-        // No need to call updateUI() here, gameLoop does it.
     }
 
     function buyUpgrade(upgrade) {
@@ -215,7 +211,8 @@
 
     function checkEraCompletion() {
         const currentEra = eras[gameState.currentEraIndex];
-        if (currentEra && gameState.resourceCount >= currentEra.goal) {
+        if (currentEra && gameState.resourceCount >= currentEra.goal && !currentEra.completed) {
+            currentEra.completed = true; // Prevent multiple modal triggers
             showModal('era');
         }
     }
@@ -228,20 +225,18 @@
                 currentRPS += building.rps * building.count;
             });
             gameState.resourcesPerSecond = currentRPS * gameState.globalMultiplier;
-            gameState.resourceCount += gameState.resourcesPerSecond / 10; // Update 10 times per second
+            gameState.resourceCount += gameState.resourcesPerSecond / 10;
         } else {
             gameState.resourcesPerSecond = 0;
         }
-        if (Math.random() < 1 / 600) spawnGreatPerson(); // 1 per minute on average
+        if (Math.random() < 1 / 600) spawnGreatPerson();
         checkEraCompletion();
         updateUI();
     }
 
-    // --- Event Listeners and Init ---
     function init() {
-        // Spacebar click
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
+            if (e.code === 'Space' && !e.repeat) {
                 e.preventDefault();
                 mainActionClick(e);
                 const actionCard = elements.mainActionContainer.querySelector('.action-card');
@@ -250,7 +245,6 @@
             }
         });
 
-        // Tab switching
         elements.tabUpgrades.addEventListener('click', () => {
             elements.tabUpgrades.classList.add('active');
             elements.tabBuildings.classList.remove('active');
@@ -265,11 +259,11 @@
         });
 
         elements.tabUpgrades.click();
-        setInterval(gameLoop, 100); // Game loop runs faster for smoother counter
+        setInterval(gameLoop, 100);
         updateUI();
     }
 
-    // --- Simplified modal and great person logic ---
+    // --- Modal and Great Person Logic ---
     function showModal(type, data) {
         const currentEra = eras[gameState.currentEraIndex];
         elements.modalImageContainer.classList.add('hidden');
@@ -299,10 +293,11 @@
     function advanceEra() {
         hideModal();
         gameState.currentEraIndex++;
-        if (gameState.currentEraIndex < eras.length) {
+        const newEra = eras[gameState.currentEraIndex];
+        if (newEra) {
+            newEra.completed = false;
             gameState.resourceCount = 0;
             gameState.clickValue = 1;
-            // great people effects are permanent and not reset
         }
         updateUI();
     }
