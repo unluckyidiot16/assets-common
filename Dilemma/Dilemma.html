@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나의 선택은?</title>
+  <!-- Tailwind CSS for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for radar chart results -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts for better typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Applying a clean, readable font */
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    /* Custom animation for screen transitions */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+<div id="app" class="w-full max-w-2xl mx-auto">
+  <!-- Start Screen -->
+  <div id="start-screen" class="bg-white p-8 rounded-2xl shadow-lg text-center fade-in">
+    <h1 class="text-4xl font-bold text-blue-600 mb-4">나의 선택은?</h1>
+    <p class="text-gray-700 mb-8">점수나 순위는 없어요.<br>정답이 없는 질문들을 통해 나의 생각 경향을 알아보세요.</p>
+    <div class="mb-6">
+      <label for="grade-select" class="block text-lg font-medium text-gray-700 mb-2">학년을 선택해주세요</label>
+      <select id="grade-select" class="w-full max-w-xs mx-auto p-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <option value="3">초등학교 3학년</option>
+        <option value="4">초등학교 4학년</option>
+        <option value="5">초등학교 5학년</option>
+        <option value="6">초등학교 6학년</option>
+      </select>
+    </div>
+    <button id="start-button" class="w-full max-w-xs mx-auto bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+      시작하기
+    </button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="hidden">
+    <!-- Progress Bar -->
+    <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+      <div id="progress-bar" class="bg-green-500 h-4 rounded-full transition-all duration-300 ease-in-out" style="width: 0%"></div>
+    </div>
+    <!-- Question Card -->
+    <div id="question-card" class="bg-white p-8 rounded-2xl shadow-lg w-full fade-in">
+      <div class="flex justify-between items-start">
+        <p id="question-text" class="text-2xl font-medium mb-8 leading-relaxed"></p>
+        <button id="glossary-button" class="text-2xl text-blue-500 hover:text-blue-700">ⓘ</button>
+      </div>
+      <div id="choices-container" class="space-y-4">
+        <!-- Choices will be injected here by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div id="result-screen" class="hidden bg-white p-8 rounded-2xl shadow-lg w-full text-center fade-in">
+    <h2 class="text-3xl font-bold text-blue-600 mb-4">나의 생각 경향은?</h2>
+    <div class="w-full max-w-md mx-auto mb-6">
+      <canvas id="result-chart"></canvas>
+    </div>
+    <div class="text-left bg-gray-50 p-6 rounded-lg mb-6">
+      <p id="result-summary" class="text-lg leading-relaxed"></p>
+    </div>
+    <div class="text-left bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg mb-8">
+      <h3 class="font-bold">응답 일관성</h3>
+      <p id="consistency-summary"></p>
+    </div>
+    <button id="restart-button" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+      다시하기
+    </button>
+  </div>
+
+  <!-- Glossary Modal -->
+  <div id="glossary-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full fade-in">
+      <h3 class="text-2xl font-bold mb-4">낱말 사전</h3>
+      <div id="glossary-content" class="space-y-3"></div>
+      <button id="close-glossary-button" class="mt-6 w-full bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-400">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Game data containing all questions
+  const gameData = [
+    {
+      "id": "G3_01", "grade": 3, "pair_id": "P1a", "type": "standard",
+      "text": "쿠키가 1봉지 남았어요. 친구 둘이 먹고 싶어 해요. 어떻게 할까요?",
+      "choices": [
+        {"id":"A", "label":"가위바위보로 정한다", "weights":{"공평":1, "결과":1}},
+        {"id":"B", "label":"더 배고파 보이는 친구에게 준다", "weights":{"형평":1, "배려":1}}
+      ],
+      "glossary": ["공평", "형평", "배려", "결과"]
+    },
+    {
+      "id": "G3_01_mirror", "grade": 3, "pair_id": "P1b", "type": "standard",
+      "text": "귤이 1개 남았는데, 친구 둘이 원해요. 어떻게 할까요?",
+      "choices": [
+        {"id":"A", "label":"똑같이 나눠 함께 먹자고 한다", "weights":{"공평":1, "공동체":1}},
+        {"id":"B", "label":"감기 기운이 있는 친구에게 준다", "weights":{"형평":1, "배려":1}}
+      ],
+      "glossary": ["공평", "형평", "배려", "공동체"]
+    },
+    {
+      "id": "G3_02", "grade": 3, "pair_id": null, "type": "standard",
+      "text": "간식 줄을 서 있는데, 친한 친구가 “오늘만 새치기하게 해줘”라고 부탁해요.",
+      "choices": [
+        {"id":"A", "label":"“규칙은 지켜야 해”라고 말한다", "weights":{"규칙":1, "공동체":1}},
+        {"id":"B", "label":"“알았어, 오늘만이야”라며 자리를 내준다", "weights":{"관계배려":1, "배려":1}}
+      ],
+      "glossary": ["규칙", "관계배려", "배려", "공동체"]
+    },
+    {
+      "id": "G3_03", "grade": 3, "pair_id": null, "type": "standard",
+      "text": "친구가 실수로 과자를 바닥에 쏟았어요. 친구는 당황해서 가만히 있어요.",
+      "choices": [
+        {"id":"A", "label":"선생님께 바로 알려서 함께 치우자고 한다", "weights":{"정직":1, "공동체":1}},
+        {"id":"B", "label":"친구가 스스로 말할 수 있도록 조용히 기다려준다", "weights":{"관계배려":1, "개인":1}}
+      ],
+      "glossary": ["정직", "공동체", "관계배려", "개인"]
+    },
+    {
+      "id": "G3_04", "grade": 3, "pair_id": null, "type": "standard",
+      "text": "체육 시간 후 선생님이 ‘아이스크림 쿠폰’ 1장을 주셨어요. 누구에게 주는 게 좋을까요?",
+      "choices": [
+        {"id":"A", "label":"오늘 가장 열심히 뛴 친구에게 준다", "weights":{"결과":1, "개인":1}},
+        {"id":"B", "label":"지난번에 간식을 못 받았던 친구에게 준다", "weights":{"형평":1, "배려":1}}
+      ],
+      "glossary": ["결과", "개인", "형평", "배려"]
+    },
+    {
+      "id": "G3_ATN", "grade": 3, "pair_id": null, "type": "attention",
+      "text": "이 문항은 안내입니다. 아래에서 ‘넘어가요’를 선택해 주세요.",
+      "choices": [
+        {"id":"A", "label":"넘어가요", "weights":{}},
+        {"id":"B", "label":"다른 선택지", "weights":{}}
+      ]
+    },
+    {
+      "id": "G4_01", "grade": 4, "pair_id": "P2a", "type": "standard",
+      "text": "반 피자 파티에서 피자 2조각이 남았는데, 3명이 먹고 싶어 해요.",
+      "choices": [
+        {"id":"A", "label":"남은 조각을 더 작게 잘라 셋이 나눠 먹는다", "weights":{"공평":1, "공동체":1}},
+        {"id":"B", "label":"오늘 점심을 거의 못 먹었다는 두 친구에게 준다", "weights":{"형평":1, "배려":1}},
+        {"id":"C", "label":"가위바위보로 두 명을 정해서 준다", "weights":{"공평":1, "결과":1}}
+      ],
+      "glossary": ["공평", "공동체", "형평", "배려", "결과"]
+    },
+    {
+      "id": "G4_01_mirror", "grade": 4, "pair_id": "P2b", "type": "standard",
+      "text": "맛있는 도넛 2개가 남았는데, 3명이 원해요.",
+      "choices": [
+        {"id":"A", "label":"도넛을 3등분해서 모두 똑같이 맛본다", "weights":{"공평":1, "공동체":1}},
+        {"id":"B", "label":"체육대회 준비로 가장 고생한 두 친구에게 준다", "weights":{"형평":1, "결과":1}},
+        {"id":"C", "label":"제비뽑기로 두 명을 정한다", "weights":{"공평":1, "결과":1}}
+      ],
+      "glossary": ["공평", "공동체", "형평", "결과"]
+    },
+    {
+      "id": "G4_02", "grade": 4, "pair_id": null, "type": "standard",
+      "text": "도서관에서 조용히 책을 읽는데, 친구가 다가와 계속 말을 걸어요.",
+      "choices": [
+        {"id":"A", "label":"“조용히 해야 하는 곳이야”라고 말하고 책을 계속 읽는다", "weights":{"규칙":1, "정직":1}},
+        {"id":"B", "label":"이야기할 수 있는 휴게실로 함께 가서 이야기한다", "weights":{"관계배려":1, "결과":1}}
+      ],
+      "glossary": ["규칙", "정직", "관계배려", "결과"]
+    },
+    {
+      "id": "G4_03", "grade": 4, "pair_id": null, "type": "standard",
+      "text": "복도에서 주인이 없는 ‘간식 교환 쿠폰’ 1장을 주웠어요.",
+      "choices": [
+        {"id":"A", "label":"바로 선생님께 가져다 드린다", "weights":{"규칙":1, "공동체":1}},
+        {"id":"B", "label":"주변에 있는 친구들에게 먼저 물어보고, 주인이 없으면 선생님께 드린다", "weights":{"결과":1, "개인":1}}
+      ],
+      "glossary": ["규칙", "공동체", "결과", "개인"]
+    },
+    {
+      "id": "G4_04", "grade": 4, "pair_id": null, "type": "standard",
+      "text": "오늘은 내가 청소 당번인데, 마침 교실 밖에서 재미있는 간식 시식 행사를 하고 있어요.",
+      "choices": [
+        {"id":"A", "label":"내 책임이니까 청소를 먼저 끝내고 가본다", "weights":{"규칙":1, "공동체":1}},
+        {"id":"B", "label":"다른 친구에게 잠깐만 부탁하고 빨리 다녀온다", "weights":{"관계배려":1, "개인":1}}
+      ],
+      "glossary": ["규칙", "공동체", "관계배려", "개인"]
+    },
+    {
+      "id": "G4_ATN", "grade": 4, "pair_id": null, "type": "attention",
+      "text": "이번에도 안내 문항입니다. ‘넘어가요’를 선택해 주세요.",
+      "choices": [
+        {"id":"A", "label":"다른 선택지", "weights":{}},
+        {"id":"B", "label":"넘어가요", "weights":{}}
+      ]
+    },
+    {
+      "id": "G5_01", "grade": 5, "pair_id": null, "type": "standard",
+      "text": "체육대회 달리기 선수로 실력은 내가 더 좋지만, 친한 친구가 자기가 꼭 뛰고 싶다고 부탁해요.",
+      "choices": [
+        {"id":"A", "label":"우리 반의 승리를 위해 내가 선수로 뛴다", "weights":{"결과":1, "공동체":1}},
+        {"id":"B", "label":"친구의 마음을 생각해 이번 한 번은 양보한다", "weights":{"배려":1, "관계배려":1}},
+        {"id":"C", "label":"선생님께 말씀드려 번갈아 뛸 수 있는지 물어본다", "weights":{"공평":1, "규칙":1}}
+      ],
+      "glossary": ["결과", "공동체", "배려", "관계배려", "공평", "규칙"]
+    },
+    {
+      "id": "G5_02", "grade": 5, "pair_id": "P3a", "type": "standard",
+      "text": "특별 간식으로 나온 과일컵은 3개인데, 먹고 싶은 사람은 4명이에요.",
+      "choices": [
+        {"id":"A", "label":"추첨으로 공평하게 3명을 정한다", "weights":{"공평":1, "결과":1}},
+        {"id":"B", "label":"점심을 급하게 먹어 배고프다는 친구에게 먼저 준다", "weights":{"형평":1, "배려":1}},
+        {"id":"C", "label":"이번에 못 먹는 친구는 다음 간식 때 1순위로 주기로 약속하고 정한다", "weights":{"규칙":1, "공동체":1}}
+      ],
+      "glossary": ["공평", "결과", "형평", "배려", "규칙", "공동체"]
+    },
+    {
+      "id": "G5_02_mirror", "grade": 5, "pair_id": "P3b", "type": "standard",
+      "text": "인기 있는 스티커가 3장 있는데, 갖고 싶은 사람은 4명이에요.",
+      "choices": [
+        {"id":"A", "label":"제비뽑기로 3명을 정한다", "weights":{"공평":1, "결과":1}},
+        {"id":"B", "label":"가장 필요한 준비물을 잘 챙겨온 친구들에게 상으로 준다", "weights":{"결과":1, "규칙":1}},
+        {"id":"C", "label":"이번에 못 받은 친구의 이름을 적어두고, 다음 기회에 먼저 주기로 한다", "weights":{"규칙":1, "공동체":1}}
+      ],
+      "glossary": ["공평", "결과", "규칙", "공동체"]
+    },
+    {
+      "id": "G5_03", "grade": 5, "pair_id": null, "type": "standard",
+      "text": "조별 과제를 하는데, 인터넷에서 찾은 좋은 자료를 그대로 써도 아무도 모를 것 같아요.",
+      "choices": [
+        {"id":"A", "label":"출처를 정확히 밝히고, 내 생각으로 바꾸어 정리한다", "weights":{"정직":1, "규칙":1}},
+        {"id":"B", "label":"시간이 부족하니 들키지 않게 일부 단어만 살짝 바꿔서 낸다", "weights":{"결과":1, "개인":1}},
+        {"id":"C", "label":"팀원들과 상의해서 더 안전하고 좋은 다른 자료를 찾아본다", "weights":{"공동체":1, "규칙":1}}
+      ],
+      "glossary": ["정직", "규칙", "결과", "개인", "공동체"]
+    },
+    {
+      "id": "G5_04", "grade": 5, "pair_id": "P4a", "type": "standard",
+      "text": "학급 축제 예산이 부족해요. 모두가 좋아하는 인기 간식 부스에 집중 투자할까요, 아니면 여러 체험 부스에 조금씩 나눠줄까요?",
+      "choices": [
+        {"id":"A", "label":"모두의 만족도를 위해 인기 많은 간식 부스에 집중한다", "weights":{"결과":1, "개인":1}},
+        {"id":"B", "label":"모든 부스가 운영될 수 있도록 예산을 고르게 나눈다", "weights":{"공평":1, "공동체":1}},
+        {"id":"C", "label":"준비가 특히 부족한 부스에 예산을 더 지원해준다", "weights":{"형평":1, "배려":1}}
+      ],
+      "glossary": ["결과", "개인", "공평", "공동체", "형평", "배려"]
+    },
+    {
+      "id": "G5_ATN", "grade": 5, "pair_id": null, "type": "attention",
+      "text": "집중력 테스트! ‘넘어가요’를 눌러주세요.",
+      "choices": [
+        {"id":"A", "label":"넘어가요", "weights":{}},
+        {"id":"B", "label":"계속하기", "weights":{}}
+      ]
+    },
+    {
+      "id": "G6_01", "grade": 6, "pair_id": null, "type": "standard",
+      "text": "우리 반은 지각 규칙이 엄격해요. 하지만 늘 성실하던 친구가 집안에 급한 일이 생겨 딱 한 번 늦었어요.",
+      "choices": [
+        {"id":"A", "label":"규칙은 예외가 없으므로 똑같이 지각 처리한다", "weights":{"규칙":1, "공평":1}},
+        {"id":"B", "label":"친구의 상황과 평소의 태도를 고려해 이번만 눈감아 준다", "weights":{"배려":1, "의도":1}},
+        {"id":"C", "label":"다른 친구들과의 합의를 통해 이런 경우의 규칙을 새로 정한다", "weights":{"공동체":1, "규칙":1}}
+      ],
+      "glossary": ["규칙", "공평", "배려", "의도", "공동체"]
+    },
+    {
+      "id": "G6_02", "grade": 6, "pair_id": "P4b", "type": "standard",
+      "text": "축제 예산을 배분해야 해요. 행사를 화려하게 보이게 할 장식에 집중할까요, 아니면 잘 보이지 않는 청소나 안전 물품을 먼저 챙길까요?",
+      "choices": [
+        {"id":"A", "label":"축제의 즐거움을 위해 눈에 띄는 장식에 집중한다", "weights":{"결과":1, "개인":1}},
+        {"id":"B", "label":"모두의 안전과 쾌적함을 위해 안전/청소 물품을 우선 확보한다", "weights":{"공동체":1, "형평":1}},
+        {"id":"C", "label":"안전/청소 필수품을 먼저 사고, 남은 돈으로 장식을 산다", "weights":{"규칙":1, "공동체":1}}
+      ],
+      "glossary": ["결과", "개인", "공동체", "형평", "규칙"]
+    },
+    {
+      "id": "G6_03", "grade": 6, "pair_id": null, "type": "standard",
+      "text": "학급 간식을 공동으로 구매하려고 해요. 어떤 방식이 우리 반에 더 도움이 될까요?",
+      "choices": [
+        {"id":"A", "label":"양이 더 많은 대용량 포장 제품을 사서 비용을 아낀다", "weights":{"결과":1, "공동체":1}},
+        {"id":"B", "label":"쓰레기가 덜 나오는 친환경 개별 포장 제품을 산다", "weights":{"공동체":1, "의도":1}},
+        {"id":"C", "label":"두 가지 방안의 장단점을 팀원들과 토의하여 결정한다", "weights":{"공동체":1, "규칙":1}}
+      ],
+      "glossary": ["결과", "공동체", "의도", "규칙"]
+    },
+    {
+      "id": "G6_04", "grade": 6, "pair_id": null, "type": "standard",
+      "text": "봉사활동이 끝나고 간식이 조금 남았어요. 어떻게 나누는 것이 좋을까요?",
+      "choices": [
+        {"id":"A", "label":"가장 늦게까지 남아 궂은일을 한 친구들에게 먼저 준다", "weights":{"형평":1, "결과":1}},
+        {"id":"B", "label":"집이 멀어 일찍 가야 하는 친구들에게 먼저 챙겨준다", "weights":{"형평":1, "배려":1}},
+        {"id":"C", "label":"남은 사람 모두가 동의하는 방식으로 정한다(예: 추첨)", "weights":{"공평":1, "공동체":1}}
+      ],
+      "glossary": ["형평", "결과", "배려", "공평", "공동체"]
+    },
+    {
+      "id": "G6_05", "grade": 6, "pair_id": "P5a", "type": "standard",
+      "text": "인기 스낵바의 줄이 너무 길어요. 앞쪽에 있는 친구가 자기 자리에 끼워주겠다고 해요.",
+      "choices": [
+        {"id":"A", "label":"“그건 새치기야. 규칙대로 기다리자”라고 거절한다", "weights":{"규칙":1, "정직":1}},
+        {"id":"B", "label":"고맙다고 하고 합류한 뒤, 다른 친구들 자리를 맡아준다", "weights":{"관계배려":1, "개인":1}},
+        {"id":"C", "label":"주변 사람들에게 양해를 구하고, 동의하면 합류한다", "weights":{"공동체":1, "관계배려":1}}
+      ],
+      "glossary": ["규칙", "정직", "관계배려", "개인", "공동체"]
+    },
+    {
+      "id": "G6_05_mirror_rev", "grade": 6, "pair_id": "P5b", "type": "standard",
+      "text": "내가 줄 앞쪽에 서 있는데, 뒤에 있는 친구가 화장실 때문에 잠깐만 자리를 맡아달라고 부탁해요.",
+      "choices": [
+        {"id":"A", "label":"“규칙이라 안 돼”라고 말해준다", "weights":{"규칙":1, "정직":1}},
+        {"id":"B", "label":"“물론이지”라며 자리를 지켜준다", "weights":{"관계배려":1, "배려":1}},
+        {"id":"C", "label":"주변 사람들에게 친구의 상황을 설명하고 양해를 구한다", "weights":{"공동체":1, "관계배려":1}}
+      ],
+      "glossary": ["규칙", "정직", "관계배려", "배려", "공동체"]
+    }
+  ];
+
+  // Definitions for glossary terms
+  const glossaryDict = {
+    "공평": "모두에게 똑같은 기회나 몫을 주는 것.",
+    "형평": "사람마다 다른 상황을 고려해서, 더 필요한 사람에게 더 많이 도와주는 것.",
+    "배려": "다른 사람의 마음이나 상황을 먼저 생각하고 도와주는 따뜻한 마음.",
+    "규칙": "모두가 안전하고 편안하게 지내기 위해 함께 정한 약속.",
+    "의도": "어떤 행동을 할 때 마음속으로 가졌던 원래 생각이나 목적.",
+    "결과": "어떤 일이 일어난 뒤에 나타난 모습이나 상태.",
+    "공동체": "우리 반, 우리 학교처럼 함께 생활하고 목표를 이루는 우리 모두.",
+    "개인": "다른 사람이 아닌 나 자신.",
+    "정직": "거짓말이나 숨기는 것 없이 사실대로 말하고 행동하는 것.",
+    "관계배려": "규칙보다 친구나 다른 사람과의 좋은 관계를 먼저 생각하는 것."
+  };
+
+  // DOM Elements
+  const startScreen = document.getElementById('start-screen');
+  const gameScreen = document.getElementById('game-screen');
+  const resultScreen = document.getElementById('result-screen');
+  const gradeSelect = document.getElementById('grade-select');
+  const startButton = document.getElementById('start-button');
+  const restartButton = document.getElementById('restart-button');
+  const questionText = document.getElementById('question-text');
+  const choicesContainer = document.getElementById('choices-container');
+  const progressBar = document.getElementById('progress-bar');
+  const resultSummary = document.getElementById('result-summary');
+  const consistencySummary = document.getElementById('consistency-summary');
+  const glossaryButton = document.getElementById('glossary-button');
+  const glossaryModal = document.getElementById('glossary-modal');
+  const glossaryContent = document.getElementById('glossary-content');
+  const closeGlossaryButton = document.getElementById('close-glossary-button');
+
+  // Game State
+  let currentQuestions = [];
+  let currentQuestionIndex = 0;
+  let scores = {};
+  let pairedAnswers = {};
+  let resultChart = null;
+
+  // Maps individual traits to their corresponding axis and identifies the 'positive' pole for scoring
+  const AXIS_MAP = {
+    "배려": "배려-규칙", "규칙": "배려-규칙",
+    "결과": "결과-의도", "의도": "결과-의도",
+    "개인": "개인-공동체", "공동체": "개인-공동체",
+    "형평": "공평-형평", "공평": "공평-형평",
+    "관계배려": "정직-관계배려", "정직": "정직-관계배려"
+  };
+  const POSITIVE_POLES = ["배려", "결과", "개인", "형평", "관계배려"];
+
+  function initializeScores() {
+    scores = {
+      "배려-규칙": 0, "결과-의도": 0, "개인-공동체": 0,
+      "공평-형평": 0, "정직-관계배려": 0
+    };
+    pairedAnswers = {};
+    currentQuestionIndex = 0;
+  }
+
+  function startGame() {
+    const selectedGrade = parseInt(gradeSelect.value);
+    const questionsForGrade = gameData.filter(q => q.grade === selectedGrade);
+
+    // Separate attention check to show it first
+    const attentionChecks = questionsForGrade.filter(q => q.type === 'attention');
+    const standardQuestions = questionsForGrade.filter(q => q.type !== 'attention');
+
+    // Shuffle standard questions
+    for (let i = standardQuestions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [standardQuestions[i], standardQuestions[j]] = [standardQuestions[j], standardQuestions[i]];
+    }
+
+    // Set question order: attention check first, then shuffled standard questions
+    currentQuestions = [...attentionChecks, ...standardQuestions];
+
+    initializeScores();
+
+    startScreen.classList.add('hidden');
+    resultScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+
+    displayQuestion();
+  }
+
+  function displayQuestion() {
+    const question = currentQuestions[currentQuestionIndex];
+
+    if (question.type === 'attention') {
+      const correctChoice = question.choices.find(c => c.label === '넘어가요');
+      if(correctChoice) { correctChoice.isCorrect = true; }
+    }
+
+    questionText.textContent = question.text;
+    choicesContainer.innerHTML = '';
+
+    question.choices.forEach(choice => {
+      const button = document.createElement('button');
+      button.textContent = choice.label;
+      button.className = "w-full text-left p-4 border-2 border-gray-300 rounded-lg text-lg hover:bg-blue-100 hover:border-blue-500 transition-all duration-200";
+      button.onclick = () => selectAnswer(choice, question);
+      choicesContainer.appendChild(button);
+    });
+
+    glossaryButton.onclick = () => showGlossary(question.glossary);
+    glossaryButton.classList.toggle('hidden', !question.glossary || question.glossary.length === 0);
+
+    updateProgressBar();
+  }
+
+  function selectAnswer(choice, question) {
+    if(question.type !== 'attention'){
+      Object.entries(choice.weights).forEach(([key, value]) => {
+        const axis = AXIS_MAP[key];
+        const direction = POSITIVE_POLES.includes(key) ? 1 : -1;
+        scores[axis] += value * direction;
+      });
+    } else {
+      if (!choice.isCorrect) {
+        scores['attention_fails'] = (scores['attention_fails'] || 0) + 1;
+      }
+    }
+
+    if (question.pair_id) {
+      pairedAnswers[question.pair_id] = choice.weights;
+    }
+
+    currentQuestionIndex++;
+    if (currentQuestionIndex < currentQuestions.length) {
+      displayQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function updateProgressBar() {
+    // Attention checks are part of the progress
+    const progress = (currentQuestionIndex / currentQuestions.length) * 100;
+    progressBar.style.width = `${progress}%`;
+  }
+
+
+  function showResults() {
+    gameScreen.classList.add('hidden');
+    resultScreen.classList.remove('hidden');
+
+    generateResultSummary();
+    calculateConsistency();
+    renderResultChart();
+  }
+
+  function generateResultSummary() {
+    let summaryParts = [];
+
+    if (scores['공평-형평'] > 0) summaryParts.push("상황에 따라 더 필요한 사람을 돕는 **따뜻한 마음(형평)**을 중요하게 여겨요.");
+    else if (scores['공평-형평'] < 0) summaryParts.push("모두에게 똑같이 적용되는 **공평함**을 중요하게 생각하는 경향이 있어요.");
+    else summaryParts.push("상황에 따라 공평함과 필요성을 모두 고려하며 균형을 찾으려 해요.");
+
+    if (scores['배려-규칙'] > 0) summaryParts.push("정해진 규칙보다는 다른 사람을 **배려**하는 마음을 조금 더 우선하는 편이에요.");
+    else if (scores['배려-규칙'] < 0) summaryParts.push("모두를 위한 **약속과 규칙**을 굳건히 지키는 것을 더 중요하게 생각해요.");
+
+    if (scores['정직-관계배려'] > 0) summaryParts.push("친구와의 관계도 중요하지만, **솔직하고 정직**하게 말하는 것을 선호해요.");
+    else if (scores['정직-관계배려'] < 0) summaryParts.push("때로는 친구와의 관계를 위해 사실을 부드럽게 표현하는 **관계 존중**을 선호해요.");
+
+    if (scores['결과-의도'] > 0) summaryParts.push("어떤 마음으로 시작했는지(의도)보다는 어떤 일이 일어났는지(**결과**)를 더 고려하는 경향이 있어요.");
+    else if (scores['결과-의도'] < 0) summaryParts.push("나타난 결과보다는 그 행동에 담긴 좋은 **의도와 마음**을 더 깊이 헤아리는 편이에요.");
+
+    if (scores['개인-공동체'] > 0) summaryParts.push("우리 모두(**공동체**)의 화합과 이익을 개인의 선택보다 중요하게 생각하는 마음을 가지고 있어요.");
+    else if (scores['개인-공동체'] < 0) summaryParts.push("공동체도 중요하지만, **개인의 자유로운 선택과 책임**을 존중하는 경향이 있어요.");
+
+    resultSummary.innerHTML = summaryParts.map(part => part.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-600">$1</strong>')).join(" ");
+  }
+
+  function calculateConsistency() {
+    const pairs = new Set(Object.keys(pairedAnswers).map(p => p.slice(0, -1)));
+    if (pairs.size === 0) {
+      consistencySummary.textContent = "이번 테스트에는 일관성 확인 문항이 포함되지 않았어요.";
+      return;
+    }
+
+    let score = 0;
+    pairs.forEach(pairPrefix => {
+      const answerA = pairedAnswers[pairPrefix + 'a'];
+      const answerB = pairedAnswers[pairPrefix + 'b'];
+      if (answerA && answerB) {
+        const keysA = Object.keys(answerA);
+        const keysB = Object.keys(answerB);
+        if (keysA.length > 0 && keysB.length > 0) {
+          const axisA = AXIS_MAP[keysA[0]];
+          const axisB = AXIS_MAP[keysB[0]];
+          if (axisA === axisB) {
+            const dirA = POSITIVE_POLES.includes(keysA[0]) ? 1 : -1;
+            const dirB = POSITIVE_POLES.includes(keysB[0]) ? 1 : -1;
+            if(dirA === dirB) score++;
+          }
+        }
+      }
+    });
+
+    const percentage = Math.round((score / pairs.size) * 100);
+    let summaryText = `결과: ${percentage}% (유사한 질문에 일관적으로 답변했어요.)`;
+    if (percentage < 70) {
+      summaryText = `결과: ${percentage}% (상황에 따라 생각이 조금씩 달라지는 유연한 모습을 보여요. 혹은, 문항을 조금 더 천천히 읽어보는 것도 좋아요.)`;
+    }
+    consistencySummary.textContent = summaryText;
+  }
+
+  function renderResultChart() {
+    const ctx = document.getElementById('result-chart').getContext('2d');
+    const data = {
+      labels: ['형평', '배려', '결과', '개인', '관계배려'],
+      datasets: [{
+        label: '나의 생각 경향',
+        // Map scores to a 0-10 range for the chart. 5 is neutral.
+        data: [
+          5 + scores['공평-형평'],
+          5 + scores['배려-규칙'],
+          5 + scores['결과-의도'],
+          5 + scores['개인-공동체'],
+          5 + scores['정직-관계배려']
+        ].map(d => Math.max(0, Math.min(10, d))),
+        fill: true,
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgb(54, 162, 235)',
+        pointBackgroundColor: 'rgb(54, 162, 235)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgb(54, 162, 235)'
+      }]
+    };
+
+    if (resultChart) { resultChart.destroy(); }
+
+    resultChart = new Chart(ctx, {
+      type: 'radar',
+      data: data,
+      options: {
+        scales: {
+          r: {
+            angleLines: { display: true },
+            suggestedMin: 0,
+            suggestedMax: 10,
+            ticks: { display: false },
+            pointLabels: { font: { size: 16, weight: 'bold' } }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function showGlossary(terms) {
+    glossaryContent.innerHTML = '';
+    if (terms) {
+      terms.forEach(term => {
+        const definition = glossaryDict[term];
+        if (definition) {
+          const p = document.createElement('p');
+          p.innerHTML = `<strong class="font-bold text-blue-600">${term}</strong>: ${definition}`;
+          glossaryContent.appendChild(p);
+        }
+      });
+    }
+    glossaryModal.classList.remove('hidden');
+  }
+
+  function hideGlossary() {
+    glossaryModal.classList.add('hidden');
+  }
+
+  function resetGame() {
+    resultScreen.classList.add('hidden');
+    gameScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+  }
+
+  // Event Listeners
+  startButton.addEventListener('click', startGame);
+  restartButton.addEventListener('click', resetGame);
+  closeGlossaryButton.addEventListener('click', hideGlossary);
+  glossaryModal.addEventListener('click', (e) => {
+    if (e.target === glossaryModal) { hideGlossary(); }
+  });
+</script>
+</body>
+</html>
