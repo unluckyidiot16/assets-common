@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>클린 스테어 히트 (Clean Stair Hit)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; touch-action: manipulation; }
+    .card { box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+    .card:hover { transform: translateY(-8px) scale(1.05); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+    .card.selected { transform: translateY(-12px) scale(1.1); box-shadow: 0 0 20px rgba(66, 153, 225, 0.8); border-color: #4299e1; }
+    .target-display { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    .is-pattern-card { border-color: #10B981; background: linear-gradient(145deg, #f0fdf4, #d1fae5); }
+    .hint-arrow-right { animation: glow-right 2s infinite; }
+    .hint-arrow-left { animation: glow-left 2s infinite; }
+    @keyframes glow-right { 0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0); } 50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); } }
+    @keyframes glow-left { 0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0); } 50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); } }
+    .particle { position: absolute; border-radius: 50%; animation: pop 1s ease-out forwards; }
+    @keyframes pop { from { transform: scale(1); opacity: 1; } to { transform: scale(0) translateY(-100px); opacity: 0; } }
+    .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #4ade80; }
+    input:checked + .slider:before { transform: translateX(22px); }
+  </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+<div id="game-container" class="w-full max-w-5xl mx-auto p-4 md:p-6 bg-gray-200 rounded-2xl shadow-lg relative overflow-hidden">
+  <!-- 상단 정보 패널 -->
+  <div id="info-panel" class="mb-4 p-3 bg-white/80 backdrop-blur-sm rounded-xl shadow grid grid-cols-3 md:grid-cols-5 gap-3 text-center">
+    <div> <p class="text-sm text-gray-500">스테이지</p> <p id="stage-display" class="font-bold text-lg">-</p> </div>
+    <div> <p class="text-sm text-gray-500">총 점수</p> <p id="total-score-display" class="font-bold text-lg">-</p> </div>
+    <div> <p class="text-sm text-gray-500">사용/기준 턴</p> <p id="turns-display" class="font-bold text-lg">-/-</p> </div>
+    <div> <p class="text-sm text-gray-500">목표 카드(n)</p> <p id="target-n-display" class="font-bold text-lg">-</p> </div>
+    <div id="multiplier-container"> <p class="text-sm text-gray-500">점수 배수</p> <p id="multiplier-display" class="font-bold text-lg text-yellow-600">-</p> </div>
+    <div class="col-span-full mt-2">
+      <div class="w-full bg-gray-300 rounded-full h-2.5">
+        <div id="progress-bar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+      <div class="flex justify-between text-xs mt-1">
+        <span id="current-sum-display">현재 합: -</span> <span id="target-sum-display">목표 합: -</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 중앙 게임 영역 -->
+  <div class="flex justify-between items-center space-x-4 my-6 md:my-10">
+    <div id="left-pile" class="w-24 h-32 md:w-32 md:h-44 flex flex-col items-center justify-center bg-red-200 rounded-lg shadow-inner text-center p-2 cursor-pointer">
+      <p class="font-bold text-red-800 text-lg">◀ 작아지는 곳</p> <p class="text-xs text-red-600 mt-1">버린 값보다<br>작은 카드 등장</p>
+    </div>
+    <div class="flex flex-col items-center">
+      <p class="text-lg font-bold mb-2">목표 합계</p>
+      <div id="target-display-area" class="bg-yellow-200 border-4 border-yellow-400 rounded-full w-32 h-32 md:w-40 md:h-40 flex items-center justify-center shadow-lg target-display">
+        <span id="target-number-big" class="font-bold text-5xl md:text-6xl text-yellow-800"></span>
+      </div>
+    </div>
+    <div id="right-pile" class="w-24 h-32 md:w-32 md:h-44 flex flex-col items-center justify-center bg-blue-200 rounded-lg shadow-inner text-center p-2 cursor-pointer">
+      <p class="font-bold text-blue-800 text-lg">커지는 곳 ▶</p> <p class="text-xs text-blue-600 mt-1">버린 값보다<br>큰 카드 등장</p>
+    </div>
+  </div>
+
+  <!-- 손패 및 클리어 버튼 영역 -->
+  <div class="mt-4 min-h-[220px] md:min-h-[250px] flex flex-col">
+    <p class="text-center font-bold text-lg mb-3">내 손패</p>
+    <div id="hand-container" class="flex justify-center items-end space-x-2 md:space-x-4 min-h-[144px] md:min-h-[176px]"></div>
+    <div id="clear-button-container" class="text-center mt-4 h-12"></div>
+  </div>
+
+  <div id="overlay" class="absolute inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div id="modal-content" class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-lg w-full"></div>
+  </div>
+</div>
+
+<script>
+  // DOM 요소
+  const gameContainer = document.getElementById('game-container');
+  const infoPanel = {
+    stage: document.getElementById('stage-display'),
+    totalScore: document.getElementById('total-score-display'),
+    turns: document.getElementById('turns-display'),
+    targetN: document.getElementById('target-n-display'),
+    multiplier: document.getElementById('multiplier-display'),
+    multiplierContainer: document.getElementById('multiplier-container'),
+    progressBar: document.getElementById('progress-bar'),
+    currentSum: document.getElementById('current-sum-display'),
+    targetSum: document.getElementById('target-sum-display'),
+  };
+  const targetNumberBig = document.getElementById('target-number-big');
+  const handContainer = document.getElementById('hand-container');
+  const clearButtonContainer = document.getElementById('clear-button-container');
+  const leftPile = document.getElementById('left-pile');
+  const rightPile = document.getElementById('right-pile');
+  const overlay = document.getElementById('overlay');
+  const modalContent = document.getElementById('modal-content');
+
+  // 게임 설정
+  const CONFIG = {
+    easy:   { k: 3, nRange: [10, 20], name: '쉬움', startPar: 6, parDecrementStage: 3, minPar: 3 },
+    normal: { k: 4, nRange: [20, 40], name: '보통', startPar: 8, parDecrementStage: 3, minPar: 4 },
+    hard:   { k: 6, nRange: [30, 60], name: '어려움', startPar: 10, parDecrementStage: 3, minPar: 5 }
+  };
+  const CASUAL_CONFIG = {
+    totalStages: 10, limitTurnBonus: 2, stairBonusMultiplier: 2, cleanMultiplier: 2,
+    handicapMultipliers: { progressGuaranteeOff: 0.5, windowedRangeOff: 0.5 }
+  };
+
+  // 게임 상태
+  let state = {};
+
+  function resetState() {
+    state = {
+      difficulty: 'normal', k: 0, n: 0, hand: [], selectedCardIndex: null,
+      gameState: 'menu', gameMode: 'casual',
+      stage: 0, totalScore: 0, stageHistory: [],
+      parTurns: 0, limitTurns: 0, usedTurns: 0,
+      initialSumDifference: 1, scoreMultiplier: 1.0,
+      settings: { progressGuarantee: true, windowedRange: true },
+      recommendedCards: [], choseRecommendedCard: false,
+    };
+  }
+
+  // 유틸리티 함수
+  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+  const shuffle = (array) => { array.sort(() => Math.random() - 0.5); return array; };
+
+  // 게임 로직
+  function startGame(difficulty, mode) {
+    resetState();
+    state.difficulty = difficulty;
+    state.gameMode = mode;
+    state.stage = 1;
+    state.k = CONFIG[difficulty].k;
+
+    if (mode === 'challenge') {
+      state.settings.progressGuarantee = document.getElementById('pg-toggle').checked;
+      state.settings.windowedRange = document.getElementById('wr-toggle').checked;
+      let multiplier = 1.0;
+      if (!state.settings.progressGuarantee) multiplier += CASUAL_CONFIG.handicapMultipliers.progressGuaranteeOff;
+      if (!state.settings.windowedRange) multiplier += CASUAL_CONFIG.handicapMultipliers.windowedRangeOff;
+      state.scoreMultiplier = multiplier;
+    } else {
+      state.settings.progressGuarantee = true;
+      state.settings.windowedRange = true;
+      state.scoreMultiplier = 1.0;
+    }
+    startStage();
+  }
+
+  function startStage() {
+    const conf = CONFIG[state.difficulty];
+    state.parTurns = Math.max(conf.minPar, conf.startPar - Math.floor((state.stage - 1) / conf.parDecrementStage));
+    if (state.settings.windowedRange) {
+      state.parTurns = Math.max(conf.minPar, state.parTurns - 1);
+    }
+    state.limitTurns = state.parTurns + CASUAL_CONFIG.limitTurnBonus;
+    state.usedTurns = 0;
+    state.gameState = 'playing';
+    state.selectedCardIndex = null;
+    state.choseRecommendedCard = false;
+    state.n = randInt(conf.nRange[0], conf.nRange[1]);
+    state.hand = Array.from({length: state.k}, () => Math.max(10, Math.min(99, randInt(state.n - 15, state.n + 15))));
+    state.initialSumDifference = Math.abs(state.hand.reduce((a, b) => a + b, 0) - (state.k * state.n)) || 50;
+    overlay.classList.add('hidden');
+    updateUI();
+  }
+
+  function selectCard(index) {
+    if (state.gameState !== 'playing') return;
+    state.selectedCardIndex = (state.selectedCardIndex === index) ? null : index;
+    updateUI();
+  }
+
+  function chooseDirection(side) {
+    if (state.gameState !== 'playing' || state.selectedCardIndex === null) { showTemporaryMessage("카드를 먼저 선택해주세요!"); return; }
+    const discardedValue = state.hand[state.selectedCardIndex];
+    if ((side === 'left' && discardedValue <= 10) || (side === 'right' && discardedValue >= 99)) { showTemporaryMessage("더 이상 교체할 카드가 없습니다."); return; }
+    state.gameState = 'market';
+    showMarketModal(generateMarketCandidates(side, discardedValue), side);
+  }
+
+  function generateMarketCandidates(side, discardedValue) {
+    const { settings, n, k, hand } = state;
+    const T = k * n;
+    const S = hand.reduce((a, b) => a + b, 0);
+    const fullRange = Array.from({length: (side === 'left' ? discardedValue - 10 : 99 - discardedValue)}, (_, i) => side === 'left' ? i + 10 : i + discardedValue + 1);
+    if (fullRange.length === 0) return [];
+
+    let pool = fullRange;
+    if (settings.windowedRange) {
+      const D = T - S;
+      const W = clamp(Math.abs(D) / 2, 5, 12);
+      const t = discardedValue + clamp(D, -W, W);
+      const R = Math.max(10, 44 - (state.stage * 3));
+      pool = pool.filter(c => c >= t - R && c <= t + R);
+    }
+    if (pool.length === 0) pool = fullRange;
+
+    state.recommendedCards = [];
+    if (settings.progressGuarantee) {
+      const v = discardedValue;
+      const currentCardDist = Math.abs(v - n);
+      const currentSumDist = Math.abs(T - S);
+
+      let cleanCandidate = null;
+      const cleanCandidates = pool.filter(c => Math.abs(c - n) < currentCardDist).sort((a, b) => Math.abs(a - n) - Math.abs(b - n));
+      if (cleanCandidates.length > 0) cleanCandidate = cleanCandidates[0];
+
+      let sumCandidate = null;
+      const sumCandidates = pool.filter(c => Math.abs(T - (S - v + c)) < currentSumDist).sort((a, b) => Math.abs(T - (S - v + a)) - Math.abs(T - (S - v + b)));
+      if (sumCandidates.length > 0) sumCandidate = sumCandidates[0];
+
+      if (cleanCandidate !== null) state.recommendedCards.push(cleanCandidate);
+      if (sumCandidate !== null && sumCandidate !== cleanCandidate) state.recommendedCards.push(sumCandidate);
+    }
+
+    let finalCandidates = [...new Set(state.recommendedCards)];
+    let wildPool = pool.filter(c => !finalCandidates.includes(c));
+
+    while (finalCandidates.length < 3 && wildPool.length > 0) {
+      const randomIndex = randInt(0, wildPool.length - 1);
+      finalCandidates.push(wildPool.splice(randomIndex, 1)[0]);
+    }
+
+    while (finalCandidates.length < 3 && pool.length > 0) {
+      const wildCard = pool[randInt(0, pool.length - 1)];
+      if(!finalCandidates.includes(wildCard)) finalCandidates.push(wildCard);
+      else pool = pool.filter(c => c !== wildCard);
+    }
+
+    return shuffle(finalCandidates);
+  }
+
+  function selectMarketCard(chosenValue) {
+    if (state.gameState !== 'market') return;
+    if (state.recommendedCards.includes(chosenValue)) state.choseRecommendedCard = true;
+    state.hand[state.selectedCardIndex] = chosenValue;
+    state.selectedCardIndex = null;
+    state.usedTurns++;
+    state.gameState = 'playing';
+    overlay.classList.add('hidden');
+    updateUI();
+    if (state.usedTurns > state.limitTurns) endStage(state.limitTurns + 1, 'fail');
+  }
+
+  function checkClearConditions() {
+    if (state.hand.reduce((a, b) => a + b, 0) !== state.k * state.n) return { clear: false };
+    const sorted = [...state.hand].sort((a, b) => a - b);
+    if (sorted.every(c => c === state.n)) return { clear: true, pattern: 'clean' };
+    if (sorted.every((c, i) => i === 0 || c === sorted[i-1] + 1)) return { clear: true, pattern: 'stair' };
+    return { clear: true, pattern: 'hit' };
+  }
+
+  function endStage(usedTurns, pattern) {
+    state.gameState = 'stage_end';
+    const { stage, parTurns, choseRecommendedCard, gameMode } = state;
+    let baseScore = (parTurns - usedTurns) * stage;
+    let stageScore = baseScore, patternBonus = '히트';
+
+    if (gameMode === 'challenge' && choseRecommendedCard && (pattern === 'stair' || pattern === 'clean')) {
+      patternBonus = '보정 카드 사용 (보너스 없음)';
+    } else if (pattern === 'stair') {
+      const bonus = CASUAL_CONFIG.stairBonusMultiplier * stage;
+      stageScore += bonus;
+      patternBonus = `스테어 (+${bonus})`;
+    } else if (pattern === 'clean') {
+      stageScore = Math.max(0, baseScore) * CASUAL_CONFIG.cleanMultiplier;
+      patternBonus = `클린 (×${CASUAL_CONFIG.cleanMultiplier})`;
+    } else if (pattern === 'fail') patternBonus = '실패';
+
+    state.totalScore += stageScore;
+    state.stageHistory.push({ stage, usedTurns, parTurns, baseScore, pattern: patternBonus, stageScore });
+    showStageResultModal();
+  }
+
+  function nextStage() {
+    if (state.stage >= CASUAL_CONFIG.totalStages) showFinalScoreboardModal();
+    else { state.stage++; startStage(); }
+  }
+
+  function updateUI() {
+    renderInfoPanel();
+    renderTargetDisplay();
+    renderHand();
+    updateClearButton();
+    updateHints();
+  }
+
+  function renderInfoPanel() {
+    const sum = state.hand.reduce((a, b) => a + b, 0);
+    const targetSum = state.k * state.n;
+    infoPanel.stage.textContent = `${state.stage} / ${CASUAL_CONFIG.totalStages}`;
+    infoPanel.totalScore.textContent = state.totalScore;
+    infoPanel.turns.textContent = `${state.usedTurns}/${state.parTurns}(${state.limitTurns})`;
+    infoPanel.targetN.textContent = state.n;
+    infoPanel.multiplier.textContent = `x${state.scoreMultiplier.toFixed(1)}`;
+    infoPanel.multiplierContainer.style.display = state.gameMode === 'challenge' ? 'block' : 'none';
+    infoPanel.currentSum.textContent = `현재 합: ${sum || '-'}`;
+    infoPanel.targetSum.textContent = `목표 합: ${targetSum || '-'}`;
+    const progress = 100 - (Math.abs(sum - targetSum) / state.initialSumDifference * 100);
+    infoPanel.progressBar.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+    infoPanel.progressBar.classList.toggle('bg-red-500', state.usedTurns > state.parTurns);
+    infoPanel.progressBar.classList.toggle('bg-blue-500', state.usedTurns <= state.parTurns);
+  }
+
+  function renderTargetDisplay() { targetNumberBig.textContent = state.k * state.n || '-'; }
+
+  function renderHand() {
+    handContainer.innerHTML = '';
+    if (!state.hand.length) return;
+    const { pattern } = checkClearConditions();
+    state.hand.forEach((val, i) => {
+      let classes = 'cursor-pointer';
+      if (i === state.selectedCardIndex) classes += ' selected';
+      if (pattern && pattern !== 'hit') classes += ' is-pattern-card';
+      const cardEl = document.createElement('div');
+      cardEl.innerHTML = createCardHTML(val, classes, 'lg');
+      cardEl.firstElementChild.onclick = () => selectCard(i);
+      handContainer.appendChild(cardEl.firstElementChild);
+    });
+  }
+
+  function createCardHTML(value, extraClasses = '', size = 'lg') {
+    const sizeClasses = size === 'lg' ? 'w-28 h-40 md:w-32 md:h-44 text-5xl' : 'w-24 h-36 text-4xl';
+    return `<div class="card bg-white rounded-lg border-2 border-gray-300 flex items-center justify-center relative ${sizeClasses} ${extraClasses}">
+                        <span class="font-bold text-gray-800">${value}</span>
+                    </div>`;
+  }
+
+  function updateClearButton() {
+    clearButtonContainer.innerHTML = '';
+    const { clear, pattern } = checkClearConditions();
+    if (clear) {
+      const btn = document.createElement('button');
+      btn.className = 'bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform hover:scale-105 animate-pulse';
+      btn.textContent = `스테이지 클리어! (${{stair:'스테어', clean:'클린'}[pattern] || '히트'})`;
+      btn.onclick = () => endStage(state.usedTurns, pattern);
+      clearButtonContainer.appendChild(btn);
+    }
+  }
+
+  function updateHints() {
+    leftPile.classList.remove('hint-arrow-left'); rightPile.classList.remove('hint-arrow-right');
+    if (state.gameState === 'playing' && state.selectedCardIndex !== null) {
+      if (state.hand.reduce((a,b)=>a+b,0)/state.k > state.n) leftPile.classList.add('hint-arrow-left'); else rightPile.classList.add('hint-arrow-right');
+    }
+  }
+
+  function showStartModal() {
+    resetState();
+    overlay.classList.remove('hidden');
+    modalContent.innerHTML = `
+                <h2 class="text-3xl font-bold mb-4">클린 스테어 히트</h2>
+                <p class="text-gray-600 mb-6">플레이할 모드를 선택하세요.</p>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <button onclick="showModeSelection('casual')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-lg">
+                        <h3 class="text-xl font-bold">캐주얼 모드</h3>
+                        <p class="font-normal text-sm">보정 기능과 함께 편안하게 즐기세요.</p>
+                    </button>
+                    <button onclick="showModeSelection('challenge')" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-4 rounded-lg">
+                        <h3 class="text-xl font-bold">도전 모드</h3>
+                        <p class="font-normal text-sm">핸디캡을 걸고 점수 배수를 노리세요!</p>
+                    </button>
+                </div>`;
+  }
+
+  function showModeSelection(mode) {
+    const isChallenge = mode === 'challenge';
+    modalContent.innerHTML = `
+                <h2 class="text-3xl font-bold mb-2">${isChallenge ? '도전' : '캐주얼'} 모드</h2>
+                <p class="text-gray-600 mb-4">${isChallenge ? '핸디캡을 선택하고 고득점에 도전하세요!' : '난이도를 선택해 게임을 시작하세요.'}</p>
+                ${isChallenge ? `
+                <div class="space-y-3 text-left mb-6 bg-gray-100 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label for="pg-toggle" class="font-bold text-gray-700">진행 보장 <span class="text-red-500">(끄면 x1.5)</span></label>
+                            <p class="text-xs text-gray-500">'추천 카드' 등장 기능을 비활성화합니다.</p>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="pg-toggle"><span class="slider"></span></label>
+                    </div>
+                    <div class="flex items-center justify-between mt-3">
+                        <div>
+                            <label for="wr-toggle" class="font-bold text-gray-700">창 제한 <span class="text-red-500">(끄면 x1.5)</span></label>
+                            <p class="text-xs text-gray-500">무관한 카드 필터링 기능을 비활성화합니다.</p>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="wr-toggle"><span class="slider"></span></label>
+                    </div>
+                </div>` :
+            `<div class="text-sm mb-4 bg-gray-100 p-3 rounded-lg">ℹ️ 캐주얼 모드에서는 진행 보장과 창 제한 기능이 항상 활성화됩니다.</div>`}
+                <div class="space-y-3">
+                    <button onclick="startGame('easy', '${mode}')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg">쉬움 (카드 3장)</button>
+                    <button onclick="startGame('normal', '${mode}')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">보통 (카드 4장)</button>
+                    <button onclick="startGame('hard', '${mode}')" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg">어려움 (카드 6장)</button>
+                </div>
+                <button onclick="showStartModal()" class="text-sm text-gray-500 mt-4 hover:underline">뒤로가기</button>`;
+  }
+
+  function showMarketModal(candidates, side) {
+    overlay.classList.remove('hidden');
+    let candidateHTML = candidates.map(val => `<div onclick="selectMarketCard(${val})">${createCardHTML(val, 'cursor-pointer', 'sm')}</div>`).join('')
+            || `<p class="col-span-full text-gray-600">교체할 카드가 없습니다!</p>`;
+    modalContent.innerHTML = `
+                <h2 class="text-2xl font-bold mb-4 text-${side==='left'?'red':'blue'}-600">카드 선택</h2>
+                <div class="flex justify-center items-center space-x-4">${candidateHTML}</div>
+                ${state.gameMode === 'challenge' && state.choseRecommendedCard ? `<p class="text-xs text-gray-500 mt-4">도전 모드: 보정된 카드를 선택하면 패턴 보너스가 비활성화될 수 있습니다.</p>` : ''}
+                ${candidates.length === 0 ? `<button onclick="cancelMarket()" class="mt-4 bg-gray-400 text-white font-bold py-2 px-6 rounded-lg">돌아가기</button>` : ''}`;
+  }
+
+  function cancelMarket() {
+    state.gameState = 'playing'; state.selectedCardIndex = null; overlay.classList.add('hidden'); updateUI();
+  }
+
+  function showStageResultModal() {
+    createWinParticles();
+    const res = state.stageHistory[state.stageHistory.length - 1];
+    const scoreColor = res.stageScore >= 0 ? 'text-blue-600' : 'text-red-600';
+    modalContent.innerHTML = `
+                <h2 class="text-3xl font-bold mb-2">스테이지 ${res.stage} 결과</h2>
+                <div class="text-left space-y-1 bg-gray-100 p-4 rounded-lg mb-4">
+                   <p>기본 점수: (${res.parTurns} - ${res.usedTurns}) × ${res.stage} = <span class="font-bold">${res.baseScore}점</span></p>
+                   <p>달성 패턴: <span class="font-bold">${res.pattern}</span></p>
+                   <p class="text-xl border-t pt-2 mt-2">스테이지 점수: <span class="font-bold ${scoreColor}">${res.stageScore}점</span></p>
+                </div>
+                <p class="text-lg mb-4">누적 점수: <span class="font-bold">${state.totalScore}점</span></p>
+                <button onclick="nextStage()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">
+                    ${state.stage >= CASUAL_CONFIG.totalStages ? '최종 결과 보기' : '다음 스테이지'}
+                </button>`;
+    overlay.classList.remove('hidden');
+  }
+
+  function showFinalScoreboardModal() {
+    const finalScore = Math.round(state.totalScore * state.scoreMultiplier);
+    modalContent.innerHTML = `
+                <h2 class="text-3xl font-bold mb-4">최종 결과</h2>
+                <div class="max-h-60 overflow-y-auto bg-gray-100 p-2 rounded-lg mb-4 text-sm">
+                    <div class="grid grid-cols-4 gap-2 font-bold text-center border-b pb-1 mb-1">
+                        <span>스테이지</span><span>점수</span><span>패턴</span><span>누계</span>
+                    </div>
+                    ${state.stageHistory.map((res, i) => {
+      const cumScore = state.stageHistory.slice(0, i + 1).reduce((acc, curr) => acc + curr.stageScore, 0);
+      return `<div class="grid grid-cols-4 gap-2 text-center py-1 items-center">
+                                    <span>${res.stage}</span><span class="font-semibold ${res.stageScore>=0?'text-blue-600':'text-red-600'}">${res.stageScore}</span>
+                                    <span class="text-xs">${res.pattern}</span><span class="font-bold">${cumScore}</span>
+                                </div>`;
+    }).join('')}
+                </div>
+                <div class="text-xl space-y-1 p-4 rounded-lg mb-4">
+                    <p>기본 점수: <span class="font-bold">${state.totalScore}점</span></p>
+                    ${state.scoreMultiplier > 1.0 ? `<p class="text-yellow-600">도전 배수: <span class="font-bold">x${state.scoreMultiplier.toFixed(1)}</span></p>` : ''}
+                    <p class="text-2xl font-bold border-t pt-2 mt-2">최종 점수: <span class="text-blue-600">${finalScore}점</span></p>
+                </div>
+                <button onclick="showStartModal()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg">새 게임 시작</button>`;
+    overlay.classList.remove('hidden');
+  }
+
+  function showTemporaryMessage(message) {
+    const el = document.createElement('div');
+    el.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-6 py-3 rounded-lg z-50';
+    el.textContent = message;
+    gameContainer.appendChild(el);
+    setTimeout(() => { el.remove(); }, 1500);
+  }
+
+  function createWinParticles() {
+    for (let i = 0; i < 30; i++) {
+      const p = document.createElement('div'); p.className = 'particle';
+      const size = Math.random()*15+5; p.style.width=`${size}px`; p.style.height=`${size}px`;
+      p.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+      p.style.left = `${Math.random()*100}%`; p.style.top = `${Math.random()*100}%`;
+      p.style.animationDelay = `${Math.random()*0.5}s`;
+      gameContainer.appendChild(p); setTimeout(() => p.remove(), 1500);
+    }
+  }
+
+  // 이벤트 리스너 및 초기화
+  leftPile.addEventListener('click', () => chooseDirection('left'));
+  rightPile.addEventListener('click', () => chooseDirection('right'));
+  showStartModal();
+</script>
+</body>
+</html>
