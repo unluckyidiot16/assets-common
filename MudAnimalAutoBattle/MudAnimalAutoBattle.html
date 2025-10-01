@@ -93,7 +93,6 @@
       <div id="life-counter"></div>
     </div>
     <div class="text-2xl font-bold" id="environment-indicator"></div>
-    <div><span class="font-bold">골드:</span> <span id="gold-counter">10</span> 💰</div>
   </div>
 
   <!-- 선택 정보 -->
@@ -123,19 +122,22 @@
   </div>
 
   <!-- 상점 -->
-  <div id="shop-area" class="bg-[#6B9080]/80 p-4 rounded-xl shadow-lg">
+  <div id="shop-area" class="bg-[#6B9080]/80 p-4 rounded-xl shadow-lg relative">
     <div class="flex justify-between items-center mb-4">
       <div class="flex space-x-2">
         <h2 class="text-2xl font-bold text-white">상점</h2>
       </div>
       <div class="flex items-center space-x-2">
-        <button id="roll-button" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">리롤 (1 골드)</button>
+        <button id="roll-button" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">리롤 (1G)</button>
         <button id="end-turn-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">턴 종료</button>
       </div>
     </div>
     <div class="flex justify-center space-x-4">
       <div id="shop-units" class="flex justify-start items-center space-x-2"></div>
       <div id="shop-foods" class="flex justify-start items-center space-x-2"></div>
+    </div>
+    <div id="shop-gold-display" class="absolute bottom-4 right-6 text-white text-xl font-bold">
+      <span id="gold-counter">10</span> G
     </div>
   </div>
 
@@ -159,31 +161,39 @@
     LOW_TIDE: { name: '썰물', color: '#b08968' },
   };
 
+  // NEW: Tier-based colors
+  const TIER_COLORS = {
+    1: 'bg-stone-100', 2: 'bg-green-100', 3: 'bg-blue-100',
+    4: 'bg-purple-100', 5: 'bg-yellow-100', 6: 'bg-red-100',
+    'T': 'bg-gray-200'
+  };
+
+  // NEW: Added power scores for AI balancing
   const UNIT_DATA = {
-    bajirak: { name: '바지락', tier: 1, atk: 3, hp: 2, trigger: 'hurt', desc: '피격: 자신 공격력 +1.', level2: { atk: 6, hp: 4, desc: '피격: 자신 공격력 +2.' } },
-    mudworm: { name: '갯지렁이', tier: 1, atk: 2, hp: 2, trigger: 'faint', desc: '퇴장: 1/1 벌레 소환.', level2: { atk: 4, hp: 4, desc: '퇴장: 2/2 벌레 2마리 소환.' } },
-    mudSnail: { name: '갯벌 달팽이', tier: 1, atk: 1, hp: 3, trigger: 'buy', desc: '구매: 무작위 아군 체력 +1.', level2: { atk: 2, hp: 6, desc: '구매: 무작위 아군 둘 체력 +1.' } },
-    smallCrab: { name: '작은 게', tier: 1, atk: 3, hp: 2, trigger: 'startOfBattle', desc: '시작: 뒤 친구 공격력 +1.', level2: { atk: 6, hp: 4, desc: '시작: 뒤 친구 공격력 +2.' } },
-    daehap: { name: '대합', tier: 2, atk: 2, hp: 4, trigger: 'startOfBattle', desc: '시작: 뒤 친구 +1/+1.', level2: { atk: 4, hp: 8, desc: '시작: 뒤 친구 +2/+2.' } },
-    ppulsora: { name: '뿔소라', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '시작: 전열이면 회피 1회.', level2: { atk: 6, hp: 6, desc: '시작: 전열이면 회피 2회.' } },
-    mangdungeo: { name: '망둥어', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '시작: 무작위 아군 공격력 +1.', level2: { atk: 6, hp: 6, desc: '시작: 무작위 아군 둘 공격력 +1.' } },
-    nongge: { name: '농게', tier: 2, atk: 4, hp: 2, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 1 피해.', level2: { atk: 8, hp: 4, desc: '공격 전: 앞 적에게 2 피해.' } },
-    honghap: { name: '홍합', tier: 3, atk: 4, hp: 3, trigger: 'hurt', desc: '피격: 앞 적 공격력 -1.', level2: { atk: 8, hp: 6, desc: '피격: 앞 적 공격력 -2.' } },
-    garibi: { name: '가리비', tier: 3, atk: 5, hp: 3, trigger: 'faint', desc: '퇴장: 2/2 가리비 2마리 소환.', level2: { atk: 10, hp: 6, desc: '퇴장: 4/4 가리비 2마리 소환.' } },
-    jjangddungeo: { name: '짱뚱어', tier: 3, atk: 5, hp: 3, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 2 피해.', level2: { atk: 10, hp: 6, desc: '공격 전: 앞 적에게 4 피해.' } },
-    chilmyeoncho: { name: '칠면초', tier: 3, atk: 3, hp: 5, trigger: 'startOfBattle', desc: '시작: 뒤 친구 +1/+1.', level2: { atk: 6, hp: 10, desc: '시작: 뒤 친구 +2/+2.' } },
-    haehongnamul: { name: '해홍나물', tier: 4, atk: 2, hp: 8, trigger: 'startOfBattle', desc: '시작: 모든 아군 체력 +1.', level2: { atk: 4, hp: 16, desc: '시작: 모든 아군 체력 +2.' } },
-    sora: { name: '소라', tier: 4, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '시작: 뒤 친구 공격력 +2.', level2: { atk: 12, hp: 6, desc: '시작: 뒤 친구 공격력 +4.' } },
-    kkotge: { name: '꽃게', tier: 4, atk: 5, hp: 4, trigger: 'beforeAttack', desc: '공격 전: 앞 둘에게 1 피해.', level2: { atk: 10, hp: 8, desc: '공격 전: 앞 둘에게 2 피해.' } },
-    chilge: { name: '칠게', tier: 4, atk: 4, hp: 7, trigger: 'startOfBattle', desc: '시작: 받는 피해 -2.', level2: { atk: 8, hp: 14, desc: '시작: 받는 피해 -4.' } },
-    nakji: { name: '낙지', tier: 5, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '시작: 후열 이동. 첫 피격 -2.', level2: { atk: 12, hp: 6, desc: '시작: 후열 이동. 첫 피격 -4.' } },
-    bigSnail: { name: '큰 달팽이', tier: 5, atk: 4, hp: 9, trigger: 'startOfBattle', desc: '시작: 모든 아군 받는 피해 -1.', level2: { atk: 8, hp: 18, desc: '시작: 모든 아군 받는 피해 -2.' } },
-    muneo: { name: '문어', tier: 5, atk: 6, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 앞 적 1 피해, 뒤 친구 공+1.', level2: { atk: 12, hp: 10, desc: '공격 전: 앞 적 2 피해, 뒤 친구 공+2.' } },
-    sungeo: { name: '숭어', tier: 5, atk: 7, hp: 6, trigger: 'startOfBattle', desc: '시작: 무작위 아군 공+2.', level2: { atk: 14, hp: 12, desc: '시작: 무작위 아군 둘 공+2.' } },
-    doyosae: { name: '도요새', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '시작: 앞 적에게 2 피해.', level2: { atk: 16, hp: 16, desc: '시작: 앞 적에게 4 피해.' } },
-    galmaegi: { name: '갈매기', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '시작: 모든 아군 공+1.', level2: { atk: 16, hp: 16, desc: '시작: 모든 아군 공+2.' } },
-    waegari: { name: '왜가리', tier: 6, atk: 9, hp: 9, trigger: 'startOfBattle', desc: '시작: 뒤 친구 +2/+2.', level2: { atk: 18, hp: 18, desc: '시작: 뒤 친구 +4/+4.' } },
-    daewangjogae: { name: '대왕조개', tier: 6, atk: 10, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 관통 1 피해.', level2: { atk: 20, hp: 10, desc: '공격 전: 관통 2 피해.' } },
+    bajirak: { name: '바지락', tier: 1, atk: 3, hp: 2, trigger: 'hurt', desc: '피격: 자신 공격력 +1.', score: 3, level2: { atk: 6, hp: 4, desc: '피격: 자신 공격력 +2.', score: 11 } },
+    mudworm: { name: '갯지렁이', tier: 1, atk: 2, hp: 2, trigger: 'faint', desc: '퇴장: 1/1 벌레 소환.', score: 4, level2: { atk: 4, hp: 4, desc: '퇴장: 2/2 벌레 2마리 소환.', score: 14 } },
+    mudSnail: { name: '갯벌 달팽이', tier: 1, atk: 1, hp: 3, trigger: 'buy', desc: '구매: 무작위 아군 체력 +1.', score: 3, level2: { atk: 2, hp: 6, desc: '구매: 무작위 아군 둘 체력 +1.', score: 11 } },
+    smallCrab: { name: '작은 게', tier: 1, atk: 3, hp: 2, trigger: 'startOfBattle', desc: '시작: 뒤 친구 공격력 +1.', score: 4, level2: { atk: 6, hp: 4, desc: '시작: 뒤 친구 공격력 +2.', score: 14 } },
+    daehap: { name: '대합', tier: 2, atk: 2, hp: 4, trigger: 'startOfBattle', desc: '시작: 뒤 친구 +1/+1.', score: 6, level2: { atk: 4, hp: 8, desc: '시작: 뒤 친구 +2/+2.', score: 21 } },
+    ppulsora: { name: '뿔소라', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '시작: 전열이면 회피 1회.', score: 6, level2: { atk: 6, hp: 6, desc: '시작: 전열이면 회피 2회.', score: 21 } },
+    mangdungeo: { name: '망둥어', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '시작: 무작위 아군 공격력 +1.', score: 5, level2: { atk: 6, hp: 6, desc: '시작: 무작위 아군 둘 공격력 +1.', score: 18 } },
+    nongge: { name: '농게', tier: 2, atk: 4, hp: 2, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 1 피해.', score: 7, level2: { atk: 8, hp: 4, desc: '공격 전: 앞 적에게 2 피해.', score: 25 } },
+    honghap: { name: '홍합', tier: 3, atk: 4, hp: 3, trigger: 'hurt', desc: '피격: 앞 적 공격력 -1.', score: 8, level2: { atk: 8, hp: 6, desc: '피격: 앞 적 공격력 -2.', score: 28 } },
+    garibi: { name: '가리비', tier: 3, atk: 5, hp: 3, trigger: 'faint', desc: '퇴장: 2/2 가리비 2마리 소환.', score: 10, level2: { atk: 10, hp: 6, desc: '퇴장: 4/4 가리비 2마리 소환.', score: 35 } },
+    jjangddungeo: { name: '짱뚱어', tier: 3, atk: 5, hp: 3, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 2 피해.', score: 9, level2: { atk: 10, hp: 6, desc: '공격 전: 앞 적에게 4 피해.', score: 32 } },
+    chilmyeoncho: { name: '칠면초', tier: 3, atk: 3, hp: 5, trigger: 'startOfBattle', desc: '시작: 뒤 친구 +1/+1.', score: 8, level2: { atk: 6, hp: 10, desc: '시작: 뒤 친구 +2/+2.', score: 28 } },
+    haehongnamul: { name: '해홍나물', tier: 4, atk: 2, hp: 8, trigger: 'startOfBattle', desc: '시작: 모든 아군 체력 +1.', score: 11, level2: { atk: 4, hp: 16, desc: '시작: 모든 아군 체력 +2.', score: 39 } },
+    sora: { name: '소라', tier: 4, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '시작: 뒤 친구 공격력 +2.', score: 10, level2: { atk: 12, hp: 6, desc: '시작: 뒤 친구 공격력 +4.', score: 35 } },
+    kkotge: { name: '꽃게', tier: 4, atk: 5, hp: 4, trigger: 'beforeAttack', desc: '공격 전: 앞 둘에게 1 피해.', score: 12, level2: { atk: 10, hp: 8, desc: '공격 전: 앞 둘에게 2 피해.', score: 42 } },
+    chilge: { name: '칠게', tier: 4, atk: 4, hp: 7, trigger: 'startOfBattle', desc: '시작: 받는 피해 -2.', score: 11, level2: { atk: 8, hp: 14, desc: '시작: 받는 피해 -4.', score: 39 } },
+    nakji: { name: '낙지', tier: 5, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '시작: 후열 이동. 첫 피격 -2.', score: 13, level2: { atk: 12, hp: 6, desc: '시작: 후열 이동. 첫 피격 -4.', score: 46 } },
+    bigSnail: { name: '큰 달팽이', tier: 5, atk: 4, hp: 9, trigger: 'startOfBattle', desc: '시작: 모든 아군 받는 피해 -1.', score: 14, level2: { atk: 8, hp: 18, desc: '시작: 모든 아군 받는 피해 -2.', score: 49 } },
+    muneo: { name: '문어', tier: 5, atk: 6, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 앞 적 1 피해, 뒤 친구 공+1.', score: 13, level2: { atk: 12, hp: 10, desc: '공격 전: 앞 적 2 피해, 뒤 친구 공+2.', score: 46 } },
+    sungeo: { name: '숭어', tier: 5, atk: 7, hp: 6, trigger: 'startOfBattle', desc: '시작: 무작위 아군 공+2.', score: 13, level2: { atk: 14, hp: 12, desc: '시작: 무작위 아군 둘 공+2.', score: 46 } },
+    doyosae: { name: '도요새', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '시작: 앞 적에게 2 피해.', score: 16, level2: { atk: 16, hp: 16, desc: '시작: 앞 적에게 4 피해.', score: 56 } },
+    galmaegi: { name: '갈매기', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '시작: 모든 아군 공+1.', score: 17, level2: { atk: 16, hp: 16, desc: '시작: 모든 아군 공+2.', score: 60 } },
+    waegari: { name: '왜가리', tier: 6, atk: 9, hp: 9, trigger: 'startOfBattle', desc: '시작: 뒤 친구 +2/+2.', score: 17, level2: { atk: 18, hp: 18, desc: '시작: 뒤 친구 +4/+4.', score: 60 } },
+    daewangjogae: { name: '대왕조개', tier: 6, atk: 10, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 관통 1 피해.', score: 16, level2: { atk: 20, hp: 10, desc: '공격 전: 관통 2 피해.', score: 56 } },
     smallWorm: { name: '작은 벌레', tier: 'T', atk: 1, hp: 1, isToken: true, desc: '' },
     level2Worm: { name: '벌레', tier: 'T', atk: 2, hp: 2, isToken: true, desc: '' },
     smallScallop: { name: '작은 가리비', tier: 'T', atk: 2, hp: 2, isToken: true, desc: '' },
@@ -213,10 +223,10 @@
   }
 
   const $ = (selector) => document.querySelector(selector);
-  const $$ = (selector) => document.querySelectorAll(selector);
 
   function renderUnit(unit, index, teamType) {
     const isEmpty = !unit;
+    const tierColor = unit ? TIER_COLORS[unit.tier] : '';
     const baseClasses = `unit-card w-32 h-36 rounded-lg p-2 flex flex-col justify-between items-center relative flex-shrink-0`;
     if (isEmpty) {
       return `<div class="${baseClasses} border-2 border-dashed border-gray-400/50" data-team="${teamType}" data-index="${index}"></div>`;
@@ -227,7 +237,7 @@
     const imageURL = `https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/${unit.id}.png`;
     const stars = '★'.repeat(unit.level);
     return `
-        <div id="unit-${unit.instanceId}" class="${baseClasses} bg-white ${selectedClass}" data-team="${teamType}" data-index="${index}" data-id="${unit.id}" data-instance-id="${unit.instanceId}">
+        <div id="unit-${unit.instanceId}" class="${baseClasses} ${tierColor} ${selectedClass}" data-team="${teamType}" data-index="${index}" data-id="${unit.id}" data-instance-id="${unit.instanceId}">
             ${sellButton}${costText}
             <div class="text-xs font-bold text-center mt-2">${unit.name} <span class="text-yellow-400">${stars}</span></div>
             <img src="${imageURL}" alt="${unit.name}" class="my-1 w-20 h-20 object-contain" onerror="this.style.display='none'">
@@ -244,10 +254,10 @@
     if (!food) return `<div class="w-24 h-24 border-2 border-dashed border-gray-400/50 rounded-lg"></div>`;
     const selectedClass = gameState.selectedItem?.type === 'food' && gameState.selectedItem.index === index ? 'selected' : '';
     return `
-        <div class="unit-card w-24 h-24 bg-green-100 rounded-lg p-2 flex flex-col justify-center items-center text-center ${selectedClass}" data-type="food" data-index="${index}">
+        <div class="unit-card w-24 h-24 bg-green-200/80 rounded-lg p-2 flex flex-col justify-center items-center text-center ${selectedClass}" data-type="food" data-index="${index}">
             <div class="text-sm font-bold">${food.name}</div>
             <div class="text-xs mt-1">${food.desc}</div>
-            <div class="font-bold mt-1 text-yellow-600">${food.cost} 골드</div>
+            <div class="font-bold mt-1 text-yellow-600">${food.cost} G</div>
         </div>
      `;
   }
@@ -304,9 +314,10 @@
     const availableUnits = getAvailableUnits(maxTier);
     gameState.shop.units = [];
     for(let i=0; i<3; i++) {
-      if (availableUnits.length === 0) continue;
-      const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
-      gameState.shop.units.push(createUnitInstance(randomId));
+      if (availableUnits.length > 0) {
+        const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
+        gameState.shop.units.push(createUnitInstance(randomId));
+      }
     }
     const availableFoods = Object.keys(FOOD_DATA);
     gameState.shop.foods = [];
@@ -374,6 +385,7 @@
     renderAll();
   }
 
+  // Battle logic...
   async function startBattle() {
     gameState.phase = 'battle';
     generateEnemyTeam();
@@ -487,20 +499,42 @@
     damageNumber.textContent = `-${damage}`;
     $(`#unit-${target.instanceId} .damage-text-container`)?.appendChild(damageNumber);
     target.hp -= damage;
-    log(`[${source.name}] 효과로 ${target.name}이(가) ${damage}의 피해를 입었습니다.`);
+    log(`[${source.name}] 효과로 ${target.name}이(가) ${damage}의 피해를 입혔습니다.`);
+  }
+  // AI Generation Logic
+  function calculateTeamScore(team) {
+    return team.reduce((total, unit) => {
+      if (!unit) return total;
+      return total + (unit.level === 2 ? unit.level2.score : unit.score);
+    }, 0);
   }
   function generateEnemyTeam() {
-    gameState.enemyTeam = [];
-    const enemyUnitCount = Math.min(5, Math.floor(gameState.turn / 2) + 2);
+    const playerTeamScore = calculateTeamScore([...gameState.playerTeam, ...gameState.benchTeam]);
+    const targetScore = playerTeamScore > 0 ? playerTeamScore * (Math.random() * 0.4 + 0.9) : gameState.turn * 5; // Base score for early turns
     const maxTier = Math.min(6, Math.floor((gameState.turn - 1) / 2) + 1);
     const availableUnits = getAvailableUnits(maxTier);
-    for (let i=0; i<enemyUnitCount; i++) {
-      if (availableUnits.length === 0) continue;
-      const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
-      const unit = createUnitInstance(randomId);
-      if (gameState.turn > 5 && Math.random() < 0.2) levelUp(unit);
-      gameState.enemyTeam.push(unit);
+
+    let enemyTeam = [];
+    let currentScore = 0;
+
+    while(currentScore < targetScore && enemyTeam.length < 5 && availableUnits.length > 0) {
+      const shouldTryLevel2 = Math.random() < 0.25 && gameState.turn > 3;
+      let chosenUnit;
+
+      if (shouldTryLevel2) {
+        const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
+        chosenUnit = createUnitInstance(randomId, 2);
+      } else {
+        const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
+        chosenUnit = createUnitInstance(randomId, 1);
+      }
+
+      if (chosenUnit) {
+        enemyTeam.push(chosenUnit);
+        currentScore += (chosenUnit.level === 2 ? chosenUnit.level2.score : chosenUnit.score);
+      }
     }
+    gameState.enemyTeam = enemyTeam;
   }
   async function resolveTriggers(trigger, actors, actorTeam, enemyTeam, log) {
     for (const actor of actors) {
@@ -589,8 +623,8 @@
   function showModal(title, text) { $('#modal-title').textContent = title; $('#modal-text').textContent = text; $('#modal').classList.remove('hidden'); }
 
   function addClickListeners() {
-    $$('.unit-card').forEach(card => card.addEventListener('click', e => { e.stopPropagation(); handleCardClick(card.dataset); }));
-    $$('.sell-button').forEach(button => button.addEventListener('click', e => { e.stopPropagation(); sellUnit(button.dataset.team, parseInt(button.dataset.index)); }));
+    document.querySelectorAll('.unit-card').forEach(card => card.addEventListener('click', e => { e.stopPropagation(); handleCardClick(card.dataset); }));
+    document.querySelectorAll('.sell-button').forEach(button => button.addEventListener('click', e => { e.stopPropagation(); sellUnit(button.dataset.team, parseInt(button.dataset.index)); }));
   }
 
   function handleCardClick(dataset) {
