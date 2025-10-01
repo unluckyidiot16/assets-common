@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문명 클리커 v8: 버그 수정</title>
+    <title>문명 클리커 v13: 문법 오류 수정</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -17,7 +17,7 @@
         .progress-bar-fill { transition: width 0.5s ease-in-out; }
         .action-card, .upgrade-card { transition: transform 0.1s, box-shadow 0.1s; user-select: none; }
         .action-card.active, .upgrade-card:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .card-image { image-rendering: -webkit-optimize-contrast; } /* For pixel art */
+        .card-image { image-rendering: -webkit-optimize-contrast; pointer-events: none; } /* For pixel art */
         .resource-icon { width: 1.125rem; height: 1.125rem; display: inline-block; vertical-align: middle; }
     </style>
 </head>
@@ -102,12 +102,18 @@
             ],
         },
         {
-            name: "고대 농경 시대", eraImage: "https://placehold.co/400x160/d4af37/ffffff?text=Ancient", resource: "지식", resourceImage: "https://placehold.co/32x32/4338ca/ffffff?text=📜", goal: 2500,
+            name: "고대 농경 시대", eraImage: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png", resource: "지식", resourceImage: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png", goal: 2500,
             clearMessage: "문자와 법전은 문명을 비약적으로 발전시켰습니다. 이제 증기기관의 발명과 함께 산업의 시대가 열립니다!",
-            mainAction: { name: '연구', image: 'https://placehold.co/64x64/4338ca/ffffff?text=📜' },
-            upgrades: [ { id: 'writing', name: "문자 발명", image: 'https://placehold.co/64x64/312e81/ffffff?text=Abc', cost: 200, effect: (s) => s.clickValue += 10, purchased: false }, { id: 'irrigation', name: "관계 수로", image: 'https://placehold.co/64x64/3b82f6/ffffff?text=💦', cost: 800, effect: (s) => s.clickValue += 25, purchased: false }, ],
-            buildings: [ { id: 'farm', name: '농장', image: 'https://placehold.co/64x64/16a34a/ffffff?text=Farm', baseCost: 150, rps: 12, count: 0 }, { id: 'library', name: '도서관', image: 'https://placehold.co/64x64/7c2d12/ffffff?text=Lib', baseCost: 1000, rps: 50, count: 0 } ],
-            greatPeople: [ { id: 'archimedes', name: '아르키메데스', description: '모든 건물 생산량이 영구적으로 10% 증가합니다.', image: 'https://placehold.co/80x80/78716c/ffffff?text=Archi', effect: (s) => s.globalMultiplier *= 1.10, acquired: false } ],
+            mainAction: { name: '연구', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png' },
+            upgrades: [
+                { id: 'writing', name: "문자 발명", image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png', cost: 200, effect: (s) => s.clickValue += 10, purchased: false },
+                { id: 'irrigation', name: "관계 수로", image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png', cost: 800, effect: (s) => s.clickValue += 25, purchased: false },
+            ],
+            buildings: [
+                { id: 'farm', name: '농장', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png', baseCost: 150, rps: 12, count: 0 },
+                { id: 'library', name: '도서관', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png', baseCost: 1000, rps: 50, count: 0 }
+            ],
+            greatPeople: [ { id: 'archimedes', name: '아르키메데스', description: '모든 건물 생산량이 영구적으로 10% 증가합니다.', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png', effect: (s) => s.globalMultiplier *= 1.10, acquired: false } ],
         },
     ];
 
@@ -160,13 +166,19 @@
             const isPurchased = !isBuilding && item.purchased;
             const canAfford = gameState.resourceCount >= cost;
 
-            const card = document.createElement('button');
+            const card = document.createElement('div'); // Changed to div to handle events on the container
             card.className = `upgrade-card w-full p-2 rounded-lg flex flex-col justify-between h-36 ${
-                isPurchased ? 'bg-green-100 dark:bg-green-900 ring-2 ring-green-400 cursor-not-allowed' :
-                    canAfford ? 'bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-800 dark:hover:bg-yellow-700' :
-                        'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                isPurchased ? 'bg-green-100 dark:bg-green-900 ring-2 ring-green-400' :
+                    canAfford ? 'bg-yellow-100 dark:bg-yellow-800' :
+                        'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
             }`;
-            card.disabled = isPurchased || !canAfford;
+            card.dataset.id = item.id;
+            card.dataset.type = type;
+            if (!isPurchased && canAfford) {
+                card.classList.add('cursor-pointer', 'hover:bg-yellow-200', 'dark:hover:bg-yellow-700');
+            } else {
+                card.classList.add('cursor-not-allowed');
+            }
 
             card.innerHTML = `
                     <div class="flex flex-col items-center flex-grow justify-center pt-2">
@@ -178,15 +190,11 @@
                         <div class="font-bold text-md flex items-center justify-end">${cost.toLocaleString()} <img src="${currentEra.resourceImage}" class="resource-icon ml-1"></div>
                     </div>
                 `;
-            card.onclick = () => {
-                if(isBuilding) buyBuilding(item);
-                else buyUpgrade(item);
-            };
             container.appendChild(card);
         });
     }
 
-    function mainActionClick(event) {
+    function mainActionClick() {
         if (!eras[gameState.currentEraIndex]) return;
         gameState.resourceCount += gameState.clickValue;
         checkEraCompletion();
@@ -234,27 +242,45 @@
     }
 
     function init() {
-        // *** BUG FIX: Using event delegation for reliable clicks ***
-        elements.mainActionContainer.addEventListener('click', (e) => {
-            const actionCard = e.target.closest('.action-card');
+        const performMainAction = (event) => {
+            event.preventDefault();
+            const actionCard = elements.mainActionContainer.querySelector('.action-card');
             if (actionCard) {
-                mainActionClick(e);
+                mainActionClick();
                 actionCard.classList.add('active');
                 setTimeout(() => actionCard.classList.remove('active'), 100);
             }
-        });
+        };
+
+        elements.mainActionContainer.addEventListener('mousedown', performMainAction);
+        elements.mainActionContainer.addEventListener('touchstart', performMainAction, { passive: false });
 
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && !e.repeat) {
-                e.preventDefault();
-                mainActionClick(e);
-                const actionCard = elements.mainActionContainer.querySelector('.action-card');
-                if (actionCard) {
-                    actionCard.classList.add('active');
-                    setTimeout(() => actionCard.classList.remove('active'), 100);
-                }
+                performMainAction(e);
             }
         });
+
+        const handleCardPurchase = (e) => {
+            const card = e.target.closest('.upgrade-card');
+            if (card && !card.classList.contains('cursor-not-allowed')) {
+                e.preventDefault();
+                const cardId = card.dataset.id;
+                const cardType = card.dataset.type;
+                const currentEra = eras[gameState.currentEraIndex];
+
+                if (cardType === 'upgrade') {
+                    const upgrade = currentEra.upgrades.find(u => u.id === cardId);
+                    if (upgrade) buyUpgrade(upgrade);
+                } else if (cardType === 'building') {
+                    const building = currentEra.buildings.find(b => b.id === cardId);
+                    if (building) buyBuilding(building);
+                }
+            }
+        };
+
+        elements.cardsContainer.addEventListener('mousedown', handleCardPurchase);
+        elements.cardsContainer.addEventListener('touchstart', handleCardPurchase, { passive: false });
 
         elements.tabUpgrades.addEventListener('click', () => {
             elements.tabUpgrades.classList.add('active');
