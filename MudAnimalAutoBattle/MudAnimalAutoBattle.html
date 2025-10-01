@@ -111,9 +111,15 @@
   </div>
 
   <!-- 플레이어 팀 -->
-  <div id="player-team-area" class="mb-4 min-h-[160px]">
-    <h2 class="text-center text-xl font-bold text-gray-600 mb-2">나의 팀 (클릭하여 조작)</h2>
+  <div id="player-team-area" class="mb-2 min-h-[160px]">
+    <h2 class="text-center text-xl font-bold text-gray-600 mb-2">나의 팀</h2>
     <div id="player-team" class="team-board flex justify-center items-start space-x-2 p-4 rounded-lg"></div>
+  </div>
+
+  <!-- 플레이어 벤치 -->
+  <div id="player-bench-area" class="mb-4 min-h-[160px]">
+    <h2 class="text-center text-lg font-semibold text-gray-500 mb-2">벤치</h2>
+    <div id="player-bench" class="team-board flex justify-center items-start space-x-2 p-4 rounded-lg bg-black/5"></div>
   </div>
 
   <!-- 상점 -->
@@ -128,17 +134,13 @@
       </div>
     </div>
     <div class="flex justify-center space-x-4">
-      <!-- 상점 유닛 -->
       <div id="shop-units" class="flex justify-start items-center space-x-2"></div>
-      <!-- 상점 음식 -->
       <div id="shop-foods" class="flex justify-start items-center space-x-2"></div>
     </div>
   </div>
 
   <!-- 승리 트로피 바 -->
-  <div id="win-trophy-bar" class="mt-4 bg-[#A4C3B2] p-3 rounded-lg shadow-md flex justify-center items-center space-x-2 h-16">
-    <!-- Trophies will be rendered here by JavaScript -->
-  </div>
+  <div id="win-trophy-bar" class="mt-4 bg-[#A4C3B2] p-3 rounded-lg shadow-md flex justify-center items-center space-x-2 h-16"></div>
 </div>
 
 <!-- 게임 오버/승리 모달 -->
@@ -153,105 +155,86 @@
 <script type="module">
   // --- 게임 데이터 정의 ---
   const ENVIRONMENTS = {
-    HIGH_TIDE: { name: '밀물', color: '#a2d2ff' }, // 하늘색
-    LOW_TIDE: { name: '썰물', color: '#b08968' },  // 황토색
+    HIGH_TIDE: { name: '밀물', color: '#a2d2ff' },
+    LOW_TIDE: { name: '썰물', color: '#b08968' },
   };
 
   const UNIT_DATA = {
-    // T1
-    bajirak: { name: '바지락', tier: 1, atk: 3, hp: 2, trigger: 'hurt', desc: '피격: 자신 공격력 +1(전투).' },
-    mudworm: { name: '갯지렁이', tier: 1, atk: 2, hp: 2, trigger: 'faint', desc: '퇴장: 1/1 작은 벌레 1마리 소환.' },
-    mudSnail: { name: '갯벌 달팽이', tier: 1, atk: 1, hp: 3, trigger: 'buy', desc: '구매: 무작위 아군 체력 +1(영구).' },
-    smallCrab: { name: '작은 게', tier: 1, atk: 3, hp: 2, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 공격력 +1(전투).' },
-    // T2
-    daehap: { name: '대합', tier: 2, atk: 2, hp: 4, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 +1/+1(전투).' },
-    ppulsora: { name: '뿔소라', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '전투 시작: 전열이면 회피 1회.' },
-    mangdungeo: { name: '망둥어', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '전투 시작: 무작위 아군 공격력 +1(전투).' },
-    nongge: { name: '농게', tier: 2, atk: 4, hp: 2, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 1 피해.' },
-    // T3
-    honghap: { name: '홍합', tier: 3, atk: 4, hp: 3, trigger: 'hurt', desc: '피격: 앞 적 공격력 -1(전투).' },
-    garibi: { name: '가리비', tier: 3, atk: 5, hp: 3, trigger: 'faint', desc: '퇴장: 2/2 작은 가리비 2마리 소환.' },
-    jjangddungeo: { name: '짱뚱어', tier: 3, atk: 5, hp: 3, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 2 피해.' },
-    chilmyeoncho: { name: '칠면초', tier: 3, atk: 3, hp: 5, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 +1/+1(전투).' },
-    // T4
-    haehongnamul: { name: '해홍나물', tier: 4, atk: 2, hp: 8, trigger: 'startOfBattle', desc: '전투 시작: 모든 아군 체력 +1(전투).' },
-    sora: { name: '소라', tier: 4, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 공격력 +2(전투).' },
-    kkotge: { name: '꽃게', tier: 4, atk: 5, hp: 4, trigger: 'beforeAttack', desc: '공격 전: 앞 적과 그 뒤 적에게 각각 1 피해.' },
-    chilge: { name: '칠게', tier: 4, atk: 4, hp: 7, trigger: 'startOfBattle', desc: '전투 시작: 이 전투 동안 자신이 받는 피해 -2.' },
-    // T5
-    nakji: { name: '낙지', tier: 5, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '전투 시작: 후열로 이동. 첫 피격 피해 -2.' },
-    bigSnail: { name: '큰 달팽이', tier: 5, atk: 4, hp: 9, trigger: 'startOfBattle', desc: '전투 시작: 모든 아군이 받는 피해 -1(이 전투 동안).' },
-    muneo: { name: '문어', tier: 5, atk: 6, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 1 피해. 뒤 친구 공격력 +1(전투).' },
-    sungeo: { name: '숭어', tier: 5, atk: 7, hp: 6, trigger: 'startOfBattle', desc: '전투 시작: 무작위 아군 공격력 +2(전투).' },
-    // T6
-    doyosae: { name: '도요새', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '전투 시작: 앞 적에게 2 피해.' },
-    galmaegi: { name: '갈매기', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '전투 시작: 모든 아군 공격력 +1(전투).' },
-    waegari: { name: '왜가리', tier: 6, atk: 9, hp: 9, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 +2/+2(전투).' },
-    daewangjogae: { name: '대왕조개', tier: 6, atk: 10, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 관통 1 피해(뒤 적 1 전이).' },
-    // Tokens
+    bajirak: { name: '바지락', tier: 1, atk: 3, hp: 2, trigger: 'hurt', desc: '피격: 자신 공격력 +1.', level2: { atk: 6, hp: 4, desc: '피격: 자신 공격력 +2.' } },
+    mudworm: { name: '갯지렁이', tier: 1, atk: 2, hp: 2, trigger: 'faint', desc: '퇴장: 1/1 벌레 소환.', level2: { atk: 4, hp: 4, desc: '퇴장: 2/2 벌레 2마리 소환.' } },
+    mudSnail: { name: '갯벌 달팽이', tier: 1, atk: 1, hp: 3, trigger: 'buy', desc: '구매: 무작위 아군 체력 +1.', level2: { atk: 2, hp: 6, desc: '구매: 무작위 아군 둘 체력 +1.' } },
+    smallCrab: { name: '작은 게', tier: 1, atk: 3, hp: 2, trigger: 'startOfBattle', desc: '시작: 뒤 친구 공격력 +1.', level2: { atk: 6, hp: 4, desc: '시작: 뒤 친구 공격력 +2.' } },
+    daehap: { name: '대합', tier: 2, atk: 2, hp: 4, trigger: 'startOfBattle', desc: '시작: 뒤 친구 +1/+1.', level2: { atk: 4, hp: 8, desc: '시작: 뒤 친구 +2/+2.' } },
+    ppulsora: { name: '뿔소라', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '시작: 전열이면 회피 1회.', level2: { atk: 6, hp: 6, desc: '시작: 전열이면 회피 2회.' } },
+    mangdungeo: { name: '망둥어', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '시작: 무작위 아군 공격력 +1.', level2: { atk: 6, hp: 6, desc: '시작: 무작위 아군 둘 공격력 +1.' } },
+    nongge: { name: '농게', tier: 2, atk: 4, hp: 2, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 1 피해.', level2: { atk: 8, hp: 4, desc: '공격 전: 앞 적에게 2 피해.' } },
+    honghap: { name: '홍합', tier: 3, atk: 4, hp: 3, trigger: 'hurt', desc: '피격: 앞 적 공격력 -1.', level2: { atk: 8, hp: 6, desc: '피격: 앞 적 공격력 -2.' } },
+    garibi: { name: '가리비', tier: 3, atk: 5, hp: 3, trigger: 'faint', desc: '퇴장: 2/2 가리비 2마리 소환.', level2: { atk: 10, hp: 6, desc: '퇴장: 4/4 가리비 2마리 소환.' } },
+    jjangddungeo: { name: '짱뚱어', tier: 3, atk: 5, hp: 3, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 2 피해.', level2: { atk: 10, hp: 6, desc: '공격 전: 앞 적에게 4 피해.' } },
+    chilmyeoncho: { name: '칠면초', tier: 3, atk: 3, hp: 5, trigger: 'startOfBattle', desc: '시작: 뒤 친구 +1/+1.', level2: { atk: 6, hp: 10, desc: '시작: 뒤 친구 +2/+2.' } },
+    haehongnamul: { name: '해홍나물', tier: 4, atk: 2, hp: 8, trigger: 'startOfBattle', desc: '시작: 모든 아군 체력 +1.', level2: { atk: 4, hp: 16, desc: '시작: 모든 아군 체력 +2.' } },
+    sora: { name: '소라', tier: 4, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '시작: 뒤 친구 공격력 +2.', level2: { atk: 12, hp: 6, desc: '시작: 뒤 친구 공격력 +4.' } },
+    kkotge: { name: '꽃게', tier: 4, atk: 5, hp: 4, trigger: 'beforeAttack', desc: '공격 전: 앞 둘에게 1 피해.', level2: { atk: 10, hp: 8, desc: '공격 전: 앞 둘에게 2 피해.' } },
+    chilge: { name: '칠게', tier: 4, atk: 4, hp: 7, trigger: 'startOfBattle', desc: '시작: 받는 피해 -2.', level2: { atk: 8, hp: 14, desc: '시작: 받는 피해 -4.' } },
+    nakji: { name: '낙지', tier: 5, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '시작: 후열 이동. 첫 피격 -2.', level2: { atk: 12, hp: 6, desc: '시작: 후열 이동. 첫 피격 -4.' } },
+    bigSnail: { name: '큰 달팽이', tier: 5, atk: 4, hp: 9, trigger: 'startOfBattle', desc: '시작: 모든 아군 받는 피해 -1.', level2: { atk: 8, hp: 18, desc: '시작: 모든 아군 받는 피해 -2.' } },
+    muneo: { name: '문어', tier: 5, atk: 6, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 앞 적 1 피해, 뒤 친구 공+1.', level2: { atk: 12, hp: 10, desc: '공격 전: 앞 적 2 피해, 뒤 친구 공+2.' } },
+    sungeo: { name: '숭어', tier: 5, atk: 7, hp: 6, trigger: 'startOfBattle', desc: '시작: 무작위 아군 공+2.', level2: { atk: 14, hp: 12, desc: '시작: 무작위 아군 둘 공+2.' } },
+    doyosae: { name: '도요새', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '시작: 앞 적에게 2 피해.', level2: { atk: 16, hp: 16, desc: '시작: 앞 적에게 4 피해.' } },
+    galmaegi: { name: '갈매기', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '시작: 모든 아군 공+1.', level2: { atk: 16, hp: 16, desc: '시작: 모든 아군 공+2.' } },
+    waegari: { name: '왜가리', tier: 6, atk: 9, hp: 9, trigger: 'startOfBattle', desc: '시작: 뒤 친구 +2/+2.', level2: { atk: 18, hp: 18, desc: '시작: 뒤 친구 +4/+4.' } },
+    daewangjogae: { name: '대왕조개', tier: 6, atk: 10, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 관통 1 피해.', level2: { atk: 20, hp: 10, desc: '공격 전: 관통 2 피해.' } },
     smallWorm: { name: '작은 벌레', tier: 'T', atk: 1, hp: 1, isToken: true, desc: '' },
+    level2Worm: { name: '벌레', tier: 'T', atk: 2, hp: 2, isToken: true, desc: '' },
     smallScallop: { name: '작은 가리비', tier: 'T', atk: 2, hp: 2, isToken: true, desc: '' },
+    level2Scallop: { name: '가리비', tier: 'T', atk: 4, hp: 4, isToken: true, desc: '' },
   };
 
   const FOOD_DATA = {
-    plankton: { name: '플랑크톤', tier: 1, cost: 3, desc: '유닛에게 영구 +1/+1 부여.', effect: (unit) => { unit.atk += 1; unit.hp += 1; } },
-    shell: { name: '껍질 강화', tier: 2, cost: 3, desc: '유닛에게 멜론 아머(피해 7 흡수) 부여.', effect: (unit) => { unit.effects.armorType = 'melon'; unit.effects.armorValue = 7; } },
-    mudCoating: { name: '갯벌 홈', tier: 3, cost: 3, desc: '유닛에게 갈릭 아머(받는 피해 -2) 부여.', effect: (unit) => { unit.effects.armorType = 'garlic'; unit.effects.armorValue = 2; } },
+    plankton: { name: '플랑크톤', cost: 3, desc: '유닛에게 영구 +1/+1 부여.', effect: (unit) => { unit.atk += 1; unit.hp += 1; } },
+    pincer: { name: '집게 강화', cost: 3, desc: '유닛에게 영구 공격력 +2 부여.', effect: (unit) => { unit.atk += 2; } },
+    shell: { name: '껍질 강화', cost: 3, desc: '유닛에게 영구 체력 +2 부여.', effect: (unit) => { unit.hp += 2; } },
   };
 
-  // --- 게임 상태 관리 ---
   let gameState = {};
 
   function createUnitInstance(id, level = 1) {
     const data = UNIT_DATA[id];
-    return {
-      id: id,
-      ...data,
-      instanceId: crypto.randomUUID(),
-      atk: data.atk + (level - 1),
-      hp: data.hp + (level - 1),
-      level: level,
-      exp: 0,
-      battleAtk: 0,
-      battleHp: 0,
-      effects: {
-        evade: 0,
-        armorType: null,
-        armorValue: 0,
-        damageReduction: 0,
-        firstHitTaken: false,
-      }
+    let unit = {
+      id, ...data, instanceId: crypto.randomUUID(),
+      atk: data.atk, hp: data.hp, level,
+      battleAtk: 0, battleHp: 0,
+      effects: { evade: 0, damageReduction: 0, firstHitTaken: false }
     };
+    if (level === 2) {
+      Object.assign(unit, data.level2);
+    }
+    return unit;
   }
 
-  // --- UI 렌더링 ---
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => document.querySelectorAll(selector);
 
   function renderUnit(unit, index, teamType) {
-    const isShop = teamType === 'shop';
     const isEmpty = !unit;
     const baseClasses = `unit-card w-32 h-36 rounded-lg p-2 flex flex-col justify-between items-center relative flex-shrink-0`;
-
     if (isEmpty) {
-      return `<div class="${baseClasses} border-2 border-dashed border-gray-400/50" data-team="player" data-index="${index}"></div>`;
+      return `<div class="${baseClasses} border-2 border-dashed border-gray-400/50" data-team="${teamType}" data-index="${index}"></div>`;
     }
-
     const selectedClass = gameState.selectedItem?.instanceId === unit.instanceId ? 'selected' : '';
-    const costText = isShop ? `<div class="absolute -bottom-1 w-full bg-blue-500 text-white text-xs py-1 rounded-b-lg">구매 (3)</div>` : '';
-    const sellButton = teamType === 'player' && gameState.phase === 'shop' ? `<button class="sell-button absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs z-10" data-index="${index}">판매</button>` : '';
+    const costText = teamType === 'shop' ? `<div class="absolute -top-2 -left-2 bg-yellow-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center z-10 font-bold shadow-md">3</div>` : '';
+    const sellButton = (teamType === 'player' || teamType === 'bench') && gameState.phase === 'shop' ? `<button class="sell-button absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs z-10 shadow-md" data-team="${teamType}" data-index="${index}">판매</button>` : '';
     const imageURL = `https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/${unit.id}.png`;
-
+    const stars = '★'.repeat(unit.level);
     return `
-        <div id="unit-${unit.instanceId}" class="${baseClasses} bg-white ${selectedClass}" data-team="${teamType}" data-index="${index}" data-id="${unit.id}" data-instance-id="${unit.instanceId}" title="${unit.desc}">
-            ${sellButton}
-            <div class="text-xs font-bold text-center">${unit.name} (L${unit.level})</div>
+        <div id="unit-${unit.instanceId}" class="${baseClasses} bg-white ${selectedClass}" data-team="${teamType}" data-index="${index}" data-id="${unit.id}" data-instance-id="${unit.instanceId}">
+            ${sellButton}${costText}
+            <div class="text-xs font-bold text-center mt-2">${unit.name} <span class="text-yellow-400">${stars}</span></div>
             <img src="${imageURL}" alt="${unit.name}" class="my-1 w-20 h-20 object-contain" onerror="this.style.display='none'">
             <div class="text-center text-lg">
                 <span class="text-red-500 font-bold">${unit.atk + unit.battleAtk}</span> / 
                 <span class="text-blue-500 font-bold">${unit.hp + unit.battleHp}</span>
             </div>
-            ${costText}
             <div class="damage-text-container absolute inset-0"></div>
         </div>
     `;
@@ -271,98 +254,60 @@
 
   function renderAll() {
     $('#turn-counter').textContent = gameState.turn;
-    $('#life-counter').innerHTML = Array(gameState.lives).fill('❤️').join('') + Array(4 - gameState.lives).fill('🤍').join('');
+    $('#life-counter').innerHTML = '❤️'.repeat(gameState.lives) + '🤍'.repeat(4 - gameState.lives);
     $('#gold-counter').textContent = gameState.gold;
-
     const currentEnvData = ENVIRONMENTS[gameState.currentEnvironment];
     $('#environment-indicator').textContent = currentEnvData.name;
     $('#player-team').style.backgroundColor = currentEnvData.color;
 
     let selectionText = '';
     if (gameState.selectedItem) {
-      const { type, data } = gameState.selectedItem;
-      if (type === 'unit' || type === 'playerUnit') {
-        selectionText = `${data.name} 선택됨. 아군 칸을 클릭하여 배치/이동하거나 다른 유닛과 합체하세요.`;
-      } else if (type === 'food') {
-        selectionText = `${data.name} 선택됨. 아군 유닛에게 클릭하여 먹이세요.`;
-      }
+      const { data } = gameState.selectedItem;
+      selectionText = `[${data.name}] ${data.desc}`;
     }
     $('#selection-info').textContent = selectionText;
 
-    let playerTeamHtml = '';
-    for (let i = 0; i < 5; i++) {
-      playerTeamHtml += renderUnit(gameState.playerTeam[i], i, 'player');
-    }
-    $('#player-team').innerHTML = playerTeamHtml;
+    $('#player-team').innerHTML = gameState.playerTeam.map((u, i) => renderUnit(u, i, 'player')).join('');
+    $('#player-bench').innerHTML = gameState.benchTeam.map((u, i) => renderUnit(u, i, 'bench')).join('');
 
-    let enemyTeamHtml = '';
+    let enemyTeamHtml = '<div class="h-36"></div>';
     if (gameState.phase === 'battle') {
       $('#enemy-team').style.backgroundColor = currentEnvData.color;
       $('#enemy-team').classList.add('p-4', 'rounded-lg');
-      for (let i = 0; i < 5; i++) {
-        enemyTeamHtml += renderUnit(gameState.enemyTeam[i], i, 'enemy');
-      }
+      enemyTeamHtml = gameState.enemyTeam.map((u, i) => renderUnit(u, i, 'enemy')).join('');
     } else {
       $('#enemy-team').style.backgroundColor = 'transparent';
       $('#enemy-team').classList.remove('p-4', 'rounded-lg');
-      enemyTeamHtml = '<div class="h-36"></div>';
     }
     $('#enemy-team').innerHTML = enemyTeamHtml;
 
+    $('#shop-area').classList.toggle('hidden', gameState.phase !== 'shop');
+    $('#enemy-team-area').classList.toggle('hidden', gameState.phase === 'shop');
+    $('#battle-log-container').classList.toggle('hidden', gameState.phase === 'shop');
     if (gameState.phase === 'shop') {
-      $('#shop-area').classList.remove('hidden');
-      $('#enemy-team-area').classList.add('hidden');
-      $('#battle-log-container').classList.add('hidden');
-
-      let shopUnitsHtml = '';
-      for (let i = 0; i < 3; i++) {
-        shopUnitsHtml += renderUnit(gameState.shop.units[i], i, 'shop');
-      }
-      $('#shop-units').innerHTML = shopUnitsHtml;
-
-      let shopFoodsHtml = '';
-      for (let i = 0; i < 2; i++) {
-        shopFoodsHtml += renderFood(gameState.shop.foods[i], i);
-      }
-      $('#shop-foods').innerHTML = shopFoodsHtml;
-
-    } else {
-      $('#shop-area').classList.add('hidden');
-      $('#enemy-team-area').classList.remove('hidden');
-      $('#battle-log-container').classList.remove('hidden');
+      $('#shop-units').innerHTML = gameState.shop.units.map((u, i) => renderUnit(u, i, 'shop')).join('');
+      $('#shop-foods').innerHTML = gameState.shop.foods.map((f, i) => renderFood(f, i)).join('');
     }
 
-    // Render Win Trophies
     const trophyBar = $('#win-trophy-bar');
     trophyBar.innerHTML = '';
     const filledTrophySVG = `<svg class="h-10 w-10 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 3.25A2.25 2.25 0 0 0 10.75 1H6.25A2.25 2.25 0 0 0 4 3.25V5.5h9.25v10.25h-3.5a.75.75 0 0 1 0-1.5h2v-1.5h-2a.75.75 0 0 1 0-1.5h2v-1.5h-2a.75.75 0 0 1 0-1.5h2V8h-2a.75.75 0 0 1 0-1.5h2.75A2.25 2.25 0 0 0 13 4.25V3.25Z M8.5 18.25a.75.75 0 0 0-1.5 0v1.5h-1.5a.75.75 0 0 0 0 1.5H7v1.5a.75.75 0 0 0 1.5 0V21h1.5a.75.75 0 0 0 0-1.5H8.5v-1.25Z M18 17a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path></svg>`;
     const emptyTrophySVG = `<svg class="h-10 w-10 text-white/40" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 3.25A2.25 2.25 0 0 0 10.75 1H6.25A2.25 2.25 0 0 0 4 3.25V5.5h9.25v10.25h-3.5a.75.75 0 0 1 0-1.5h2v-1.5h-2a.75.75 0 0 1 0-1.5h2v-1.5h-2a.75.75 0 0 1 0-1.5h2V8h-2a.75.75 0 0 1 0-1.5h2.75A2.25 2.25 0 0 0 13 4.25V3.25Z M8.5 18.25a.75.75 0 0 0-1.5 0v1.5h-1.5a.75.75 0 0 0 0 1.5H7v1.5a.75.75 0 0 0 1.5 0V21h1.5a.75.75 0 0 0 0-1.5H8.5v-1.25Z M18 17a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path></svg>`;
-
-    for (let i = 0; i < 10; i++) {
-      trophyBar.innerHTML += (i < gameState.wins) ? filledTrophySVG : emptyTrophySVG;
-    }
-
+    for (let i = 0; i < 10; i++) trophyBar.innerHTML += (i < gameState.wins) ? filledTrophySVG : emptyTrophySVG;
     addClickListeners();
   }
 
-
-  // --- 게임 로직 ---
-  function getAvailableUnits(tier) {
-    return Object.keys(UNIT_DATA).filter(id => !UNIT_DATA[id].isToken && UNIT_DATA[id].tier <= tier);
-  }
+  function getAvailableUnits(tier) { return Object.keys(UNIT_DATA).filter(id => !UNIT_DATA[id].isToken && UNIT_DATA[id].tier <= tier); }
 
   function populateShop() {
-    // BUG FIX: Adjusted the tier calculation to match SAP progression.
     const maxTier = Math.min(6, Math.floor((gameState.turn - 1) / 2) + 1);
     const availableUnits = getAvailableUnits(maxTier);
-
     gameState.shop.units = [];
     for(let i=0; i<3; i++) {
       if (availableUnits.length === 0) continue;
       const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
       gameState.shop.units.push(createUnitInstance(randomId));
     }
-
     const availableFoods = Object.keys(FOOD_DATA);
     gameState.shop.foods = [];
     for(let i=0; i<2; i++) {
@@ -372,31 +317,39 @@
   }
 
   function levelUp(unit) {
-    unit.level++;
-    unit.exp = 1;
-    unit.atk++;
-    unit.hp++;
+    Object.assign(unit, UNIT_DATA[unit.id].level2);
+    unit.level = 2;
   }
 
-  function clearSelection() {
-    gameState.selectedItem = null;
-    renderAll();
+  function checkForCombine(unitId) {
+    if (!unitId) return;
+    const allPlayerUnits = [...gameState.playerTeam, ...gameState.benchTeam];
+    const unitsToCombine = [];
+    allPlayerUnits.forEach((u, index) => {
+      if (u && u.id === unitId && u.level === 1) {
+        unitsToCombine.push({ unit: u, index, teamKey: index < 5 ? 'playerTeam' : 'benchTeam' });
+      }
+    });
+
+    if (unitsToCombine.length >= 3) {
+      const [unitToKeep, ...unitsToRemove] = unitsToCombine;
+      levelUp(unitToKeep.unit);
+      unitsToRemove.slice(0, 2).forEach(item => {
+        gameState[item.teamKey][item.index % 5] = null;
+      });
+    }
   }
 
-  function sellUnit(index) {
-    const unit = gameState.playerTeam[index];
+  function clearSelection() { gameState.selectedItem = null; renderAll(); }
+  function sellUnit(team, index) {
+    const teamKey = team === 'player' ? 'playerTeam' : 'benchTeam';
+    const unit = gameState[teamKey][index];
     if (!unit) return;
     gameState.gold += unit.level;
-    gameState.playerTeam[index] = null;
+    gameState[teamKey][index] = null;
     clearSelection();
   }
-
-  function rollShop() {
-    if (gameState.gold < 1) return;
-    gameState.gold -= 1;
-    populateShop();
-    renderAll();
-  }
+  function rollShop() { if (gameState.gold < 1) return; gameState.gold -= 1; populateShop(); renderAll(); }
 
   function startTurn() {
     gameState.turn++;
@@ -410,16 +363,10 @@
 
   function initGame() {
     gameState = {
-      turn: 1,
-      wins: 0,
-      lives: 4,
-      gold: 10,
-      phase: 'shop',
-      playerTeam: Array(5).fill(null),
-      enemyTeam: [],
+      turn: 1, wins: 0, lives: 4, gold: 10, phase: 'shop',
+      playerTeam: Array(5).fill(null), benchTeam: Array(5).fill(null), enemyTeam: [],
       shop: { units: [], foods: [] },
-      currentEnvironment: 'LOW_TIDE',
-      selectedItem: null,
+      currentEnvironment: 'LOW_TIDE', selectedItem: null,
     };
     const environments = Object.keys(ENVIRONMENTS);
     gameState.currentEnvironment = environments[Math.floor(Math.random() * environments.length)];
@@ -427,19 +374,15 @@
     renderAll();
   }
 
-  // --- 전투 로직 ---
   async function startBattle() {
     gameState.phase = 'battle';
     generateEnemyTeam();
-
     let playerBattleTeam = gameState.playerTeam.filter(u => u).map(u => JSON.parse(JSON.stringify(u)));
-    playerBattleTeam.forEach(u => u.instanceId = crypto.randomUUID()); // 전투용 새 ID
+    playerBattleTeam.forEach(u => u.instanceId = crypto.randomUUID());
     let enemyBattleTeam = gameState.enemyTeam.filter(u => u).map(u => JSON.parse(JSON.stringify(u)));
-
     renderAll();
     await delay(100);
     renderBattleState(playerBattleTeam, enemyBattleTeam);
-
     const battleLog = $('#battle-log');
     battleLog.innerHTML = '';
     const log = (msg) => {
@@ -451,7 +394,6 @@
 
     log('--- 전투 시작 ---');
     await delay(500);
-
     await resolveTriggers('startOfBattle', playerBattleTeam, playerBattleTeam, enemyBattleTeam, log);
     await resolveTriggers('startOfBattle', enemyBattleTeam, enemyBattleTeam, playerBattleTeam, log);
     renderBattleState(playerBattleTeam, enemyBattleTeam);
@@ -461,34 +403,29 @@
       const playerUnit = playerBattleTeam[0];
       const enemyUnit = enemyBattleTeam[0];
       if (!playerUnit || !enemyUnit) break;
-
       await delay(500);
-
       await resolveTriggers('beforeAttack', [playerUnit], playerBattleTeam, enemyBattleTeam, log);
       renderBattleState(playerBattleTeam, enemyBattleTeam);
       await resolveTriggers('beforeAttack', [enemyUnit], enemyBattleTeam, playerBattleTeam, log);
       renderBattleState(playerBattleTeam, enemyBattleTeam);
       await delay(500);
-
-      playerBattleTeam = playerBattleTeam.filter(u => u.hp + u.battleHp > 0);
-      enemyBattleTeam = enemyBattleTeam.filter(u => u.hp + u.battleHp > 0);
+      playerBattleTeam = playerBattleTeam.filter(u => u && u.hp + u.battleHp > 0);
+      enemyBattleTeam = enemyBattleTeam.filter(u => u && u.hp + u.battleHp > 0);
       if (playerBattleTeam.length === 0 || enemyBattleTeam.length === 0) break;
 
       $(`#unit-${playerUnit.instanceId}`)?.classList.add('attack-animation');
       $(`#unit-${enemyUnit.instanceId}`)?.classList.add('enemy-attack-animation');
 
       await applyDamage(enemyUnit, playerUnit.atk + playerUnit.battleAtk, enemyBattleTeam, playerBattleTeam, log, playerUnit);
-      if (enemyBattleTeam.some(u => u.hp + u.battleHp > 0)) {
+      if (enemyBattleTeam.some(u => u && u.hp + u.battleHp > 0)) {
         await applyDamage(playerUnit, enemyUnit.atk + enemyUnit.battleAtk, playerBattleTeam, enemyBattleTeam, log, enemyUnit);
       }
 
       await delay(500);
       $(`#unit-${playerUnit.instanceId}`)?.classList.remove('attack-animation');
       $(`#unit-${enemyUnit.instanceId}`)?.classList.remove('enemy-attack-animation');
-
       playerBattleTeam = playerBattleTeam.filter(u => u && u.hp + u.battleHp > 0);
       enemyBattleTeam = enemyBattleTeam.filter(u => u && u.hp + u.battleHp > 0);
-
       renderBattleState(playerBattleTeam, enemyBattleTeam);
       await delay(500);
     }
@@ -503,9 +440,7 @@
     } else {
       log('--- 무승부 ---');
     }
-
     await delay(2000);
-
     if (gameState.wins >= 10) {
       showModal('최종 승리!', '갯벌의 지배자가 되셨습니다!');
     } else if (gameState.lives <= 0) {
@@ -514,35 +449,29 @@
       startTurn();
     }
   }
-
   function renderBattleState(playerTeam, enemyTeam) {
-    let playerTeamHtml = '';
-    for (let i = 0; i < 5; i++) playerTeamHtml += renderUnit(playerTeam[i], i, 'player');
-    $('#player-team').innerHTML = playerTeamHtml;
-
-    let enemyTeamHtml = '';
-    for (let i = 0; i < 5; i++) enemyTeamHtml += renderUnit(enemyTeam[i], i, 'enemy');
-    $('#enemy-team').innerHTML = enemyTeamHtml;
+    $('#player-team').innerHTML = playerTeam.map((u, i) => renderUnit(u, i, 'player')).join('') + Array(5 - playerTeam.length).fill(renderUnit(null)).join('');
+    $('#enemy-team').innerHTML = enemyTeam.map((u, i) => renderUnit(u, i, 'enemy')).join('') + Array(5 - enemyTeam.length).fill(renderUnit(null)).join('');
   }
-
   async function applyDamage(target, damage, targetTeam, attackerTeam, log, attacker) {
     if (!target || target.hp + target.battleHp <= 0) return;
-
     let finalDamage = damage;
+    if (target.effects.evade > 0) {
+      target.effects.evade--;
+      log(`${target.name}이(가) 공격을 회피했습니다!`);
+      return;
+    }
     if (target.id === 'nakji' && !target.effects.firstHitTaken) {
-      finalDamage = Math.max(0, finalDamage - 2);
+      finalDamage = Math.max(0, finalDamage - (target.level === 2 ? 4 : 2));
       target.effects.firstHitTaken = true;
     }
     finalDamage = Math.max(0, finalDamage - target.effects.damageReduction);
-
     const damageNumber = document.createElement('div');
     damageNumber.className = 'damage-text';
     damageNumber.textContent = `-${finalDamage}`;
     $(`#unit-${target.instanceId} .damage-text-container`)?.appendChild(damageNumber);
-
     target.hp -= finalDamage;
-    log(`${attacker.name}이(가) ${target.name}에게 ${finalDamage} 피해를 입혔습니다. (남은 체력: ${Math.max(0, target.hp + target.battleHp)})`);
-
+    log(`${attacker.name}이(가) ${target.name}에게 ${finalDamage} 피해. (남은 체력: ${Math.max(0, target.hp + target.battleHp)})`);
     if (target.hp + target.battleHp > 0) {
       await resolveTriggers('hurt', [target], targetTeam, attackerTeam, log);
     } else {
@@ -551,216 +480,164 @@
       await resolveTriggers('faint', [target], targetTeam, attackerTeam, log);
     }
   }
-
   async function dealDirectDamage(target, damage, log, source) {
     if(!target || target.hp + target.battleHp <= 0) return;
     const damageNumber = document.createElement('div');
     damageNumber.className = 'damage-text';
     damageNumber.textContent = `-${damage}`;
     $(`#unit-${target.instanceId} .damage-text-container`)?.appendChild(damageNumber);
-
     target.hp -= damage;
-    log(`[${source.name}] 효과로 ${target.name}이(가) ${damage}의 피해를 입혔습니다.`);
+    log(`[${source.name}] 효과로 ${target.name}이(가) ${damage}의 피해를 입었습니다.`);
   }
-
   function generateEnemyTeam() {
     gameState.enemyTeam = [];
     const enemyUnitCount = Math.min(5, Math.floor(gameState.turn / 2) + 2);
-    const maxTier = Math.min(6, Math.floor((gameState.turn + 1) / 2) + 1);
+    const maxTier = Math.min(6, Math.floor((gameState.turn - 1) / 2) + 1);
     const availableUnits = getAvailableUnits(maxTier);
-
     for (let i=0; i<enemyUnitCount; i++) {
       if (availableUnits.length === 0) continue;
       const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
-      gameState.enemyTeam.push(createUnitInstance(randomId));
+      const unit = createUnitInstance(randomId);
+      if (gameState.turn > 5 && Math.random() < 0.2) levelUp(unit);
+      gameState.enemyTeam.push(unit);
     }
   }
-
   async function resolveTriggers(trigger, actors, actorTeam, enemyTeam, log) {
     for (const actor of actors) {
       if (!actor || (actor.hp + actor.battleHp <= 0 && trigger !== 'faint')) continue;
-
       if (actor.trigger === trigger) {
         const effect = UNIT_EFFECTS[actor.id];
         if (effect) await effect(actor, actorTeam, enemyTeam, log);
       }
     }
   }
-
   const UNIT_EFFECTS = {
-    bajirak: (self, _1, _2, log) => { self.battleAtk += 1; log(`[${self.name}] 효과: 공격력 +1.`); },
+    bajirak: (self, _1, _2, log) => { const buff = self.level === 2 ? 2 : 1; self.battleAtk += buff; log(`[${self.name}] 효과: 공격력 +${buff}.`); },
     mudworm: (self, team, _, log) => {
-      log(`[${self.name}] 효과: 작은 벌레 소환!`);
+      log(`[${self.name}] 효과: 벌레 소환!`);
       const index = team.findIndex(u => u && u.instanceId === self.instanceId);
-      if (index !== -1 && team.filter(u => u).length < 5) team.splice(index + 1, 0, createUnitInstance('smallWorm'));
+      if (index === -1) return;
+      const count = self.level === 2 ? 2 : 1;
+      const summonId = self.level === 2 ? 'level2Worm' : 'smallWorm';
+      for (let i = 0; i < count && team.filter(u=>u).length < 5; i++) { team.splice(index + 1 + i, 0, createUnitInstance(summonId)); }
     },
+    mudSnail: () => {},
     smallCrab: (self, team, _, log) => {
       const i = team.findIndex(u => u && u.instanceId === self.instanceId);
-      if (i !== -1 && i < team.length - 1 && team[i+1]) {
-        team[i+1].battleAtk += 1;
-        log(`[${self.name}] 효과: ${team[i+1].name} 공격력 +1.`);
-      }
+      if (i > -1 && team[i+1]) { const buff = self.level === 2 ? 2 : 1; team[i+1].battleAtk += buff; log(`[${self.name}] 효과: ${team[i+1].name} 공격력 +${buff}.`); }
     },
     daehap: (self, team, _, log) => {
       const i = team.findIndex(u => u && u.instanceId === self.instanceId);
-      if (i !== -1 && i < team.length - 1 && team[i+1]) {
-        team[i+1].battleAtk += 1;
-        team[i+1].battleHp += 1;
-        log(`[${self.name}] 효과: ${team[i+1].name} +1/+1.`);
-      }
+      if (i > -1 && team[i+1]) { const buff = self.level === 2 ? 2 : 1; team[i+1].battleAtk += buff; team[i+1].battleHp += buff; log(`[${self.name}] 효과: ${team[i+1].name} +${buff}/+${buff}.`); }
     },
-    ppulsora: (self, team, _, log) => { if (team.findIndex(u=>u && u.instanceId===self.instanceId) === 0) { self.effects.evade = 1; log(`[${self.name}] 효과: 회피 1회 획득.`); } },
+    ppulsora: (self, team, _, log) => { if (team.findIndex(u=>u && u.instanceId===self.instanceId) === 0) { const amount = self.level === 2 ? 2:1; self.effects.evade = amount; log(`[${self.name}] 효과: 회피 ${amount}회 획득.`); } },
     mangdungeo: (self, team, _, log) => {
       const allies = team.filter(u => u && u.instanceId !== self.instanceId);
       if (allies.length > 0) {
-        const target = allies[Math.floor(Math.random() * allies.length)];
-        target.battleAtk += 1;
-        log(`[${self.name}] 효과: ${target.name} 공격력 +1.`);
+        const count = self.level === 2 ? 2 : 1;
+        for(let i=0; i<count; i++){ const target = allies[Math.floor(Math.random() * allies.length)]; target.battleAtk += 1; log(`[${self.name}] 효과: ${target.name} 공격력 +1.`); }
       }
     },
-    nongge: async (self, _, enemyTeam, log) => { await dealDirectDamage(enemyTeam[0], 1, log, self); },
+    nongge: async (self, _, enemyTeam, log) => { const dmg = self.level === 2 ? 2:1; await dealDirectDamage(enemyTeam[0], dmg, log, self); },
     honghap: (self, _, enemyTeam, log) => {
-      if (enemyTeam[0]) {
-        enemyTeam[0].battleAtk = Math.max(0, enemyTeam[0].atk + enemyTeam[0].battleAtk - 1) - enemyTeam[0].atk;
-        log(`[${self.name}] 효과: ${enemyTeam[0].name} 공격력 -1.`);
-      }
+      if (enemyTeam[0]) { const debuff = self.level === 2 ? 2 : 1; enemyTeam[0].battleAtk = Math.max(0, (enemyTeam[0].atk + enemyTeam[0].battleAtk) - debuff) - enemyTeam[0].atk; log(`[${self.name}] 효과: ${enemyTeam[0].name} 공격력 -${debuff}.`); }
     },
     garibi: (self, team, _, log) => {
-      log(`[${self.name}] 효과: 작은 가리비 2마리 소환!`);
+      log(`[${self.name}] 효과: 가리비 소환!`);
       const index = team.findIndex(u => u && u.instanceId === self.instanceId);
-      if (index !== -1) {
-        let count = 0;
-        for(let i = 0; i < 2 && team.filter(u=>u).length < 5; i++) {
-          team.splice(index + 1 + i, 0, createUnitInstance('smallScallop'));
-          count++;
-        }
-      }
+      if (index === -1) return;
+      const summonId = self.level === 2 ? 'level2Scallop' : 'smallScallop';
+      for(let i = 0; i < 2 && team.filter(u=>u).length < 5; i++) { team.splice(index + 1 + i, 0, createUnitInstance(summonId)); }
     },
-    jjangddungeo: async (self, _, enemyTeam, log) => { await dealDirectDamage(enemyTeam[0], 2, log, self); },
+    jjangddungeo: async (self, _, enemyTeam, log) => { const dmg = self.level === 2 ? 4 : 2; await dealDirectDamage(enemyTeam[0], dmg, log, self); },
     chilmyeoncho: (self, team, _, log) => { UNIT_EFFECTS.daehap(self, team, _, log); },
-    haehongnamul: (self, team, _, log) => { team.forEach(u => u && (u.battleHp += 1)); log(`[${self.name}] 효과: 모든 아군 체력 +1.`); },
+    haehongnamul: (self, team, _, log) => { const buff = self.level === 2 ? 2 : 1; team.forEach(u => u && (u.battleHp += buff)); log(`[${self.name}] 효과: 모든 아군 체력 +${buff}.`); },
     sora: (self, team, _, log) => {
       const i = team.findIndex(u => u && u.instanceId === self.instanceId);
-      if (i !== -1 && i < team.length - 1 && team[i+1]) {
-        team[i+1].battleAtk += 2;
-        log(`[${self.name}] 효과: ${team[i+1].name} 공격력 +2.`);
-      }
+      if (i > -1 && team[i+1]) { const buff = self.level === 2 ? 4 : 2; team[i+1].battleAtk += buff; log(`[${self.name}] 효과: ${team[i+1].name} 공격력 +${buff}.`); }
     },
-    kkotge: async (self, _, enemyTeam, log) => {
-      await dealDirectDamage(enemyTeam[0], 1, log, self);
-      await dealDirectDamage(enemyTeam[1], 1, log, self);
-    },
-    chilge: (self, team, _, log) => { self.effects.damageReduction = 2; log(`[${self.name}] 효과: 받는 피해 -2.`); },
+    kkotge: async (self, _, enemyTeam, log) => { const dmg = self.level === 2 ? 2 : 1; await dealDirectDamage(enemyTeam[0], dmg, log, self); await dealDirectDamage(enemyTeam[1], dmg, log, self); },
+    chilge: (self, _, _2, log) => { const reduc = self.level === 2 ? 4 : 2; self.effects.damageReduction = reduc; log(`[${self.name}] 효과: 받는 피해 -${reduc}.`); },
     nakji: (self, team, _, log) => {
       const i = team.findIndex(u => u && u.instanceId === self.instanceId);
-      if (i !== -1 && i < team.filter(u=>u).length - 1) {
-        const [unit] = team.splice(i, 1);
-        team.push(unit);
-        log(`[${self.name}] 효과: 후열로 이동.`);
-      }
+      if (i !== -1 && i < team.filter(u=>u).length - 1) { const [unit] = team.splice(i, 1); team.push(unit); log(`[${self.name}] 효과: 후열로 이동.`); }
     },
-    bigSnail: (self, team, _, log) => { team.forEach(u => u && (u.effects.damageReduction += 1)); log(`[${self.name}] 효과: 모든 아군 받는 피해 -1.`); },
+    bigSnail: (self, team, _, log) => { const reduc = self.level === 2 ? 2 : 1; team.forEach(u => u && (u.effects.damageReduction += reduc)); log(`[${self.name}] 효과: 모든 아군 받는 피해 -${reduc}.`); },
     muneo: async (self, team, enemyTeam, log) => {
-      await dealDirectDamage(enemyTeam[0], 1, log, self);
+      const dmg = self.level === 2 ? 2 : 1; const buff = self.level === 2 ? 2 : 1;
+      await dealDirectDamage(enemyTeam[0], dmg, log, self);
       const i = team.findIndex(u => u && u.instanceId === self.instanceId);
-      if (i !== -1 && i < team.length - 1 && team[i+1]) {
-        team[i+1].battleAtk += 1;
-        log(`[${self.name}] 효과: ${team[i+1].name} 공격력 +1.`);
-      }
+      if (i > -1 && team[i+1]) { team[i+1].battleAtk += buff; log(`[${self.name}] 효과: ${team[i+1].name} 공격력 +${buff}.`); }
     },
     sungeo: (self, team, _, log) => {
       const allies = team.filter(u => u && u.instanceId !== self.instanceId);
       if (allies.length > 0) {
-        const target = allies[Math.floor(Math.random() * allies.length)];
-        target.battleAtk += 2;
-        log(`[${self.name}] 효과: ${target.name} 공격력 +2.`);
+        const count = self.level === 2 ? 2 : 1;
+        for(let i=0; i<count; i++){ const target = allies[Math.floor(Math.random() * allies.length)]; target.battleAtk += 2; log(`[${self.name}] 효과: ${target.name} 공격력 +2.`); }
       }
     },
-    doyosae: async (self, _, enemyTeam, log) => { await dealDirectDamage(enemyTeam[0], 2, log, self); },
-    galmaegi: (self, team, _, log) => { team.forEach(u => u && u.instanceId !== self.instanceId && (u.battleAtk += 1)); log(`[${self.name}] 효과: 다른 모든 아군 공격력 +1.`); },
+    doyosae: async (self, _, enemyTeam, log) => { const dmg = self.level === 2 ? 4 : 2; await dealDirectDamage(enemyTeam[0], dmg, log, self); },
+    galmaegi: (self, team, _, log) => { const buff = self.level === 2 ? 2 : 1; team.forEach(u => u && u.instanceId !== self.instanceId && (u.battleAtk += buff)); log(`[${self.name}] 효과: 다른 모든 아군 공격력 +${buff}.`); },
     waegari: (self, team, _, log) => {
       const i = team.findIndex(u => u && u.instanceId === self.instanceId);
-      if (i !== -1 && i < team.length - 1 && team[i+1]) {
-        team[i+1].battleAtk += 2;
-        team[i+1].battleHp += 2;
-        log(`[${self.name}] 효과: ${team[i+1].name} +2/+2.`);
-      }
+      if (i > -1 && team[i+1]) { const buff = self.level === 2 ? 4 : 2; team[i+1].battleAtk += buff; team[i+1].battleHp += buff; log(`[${self.name}] 효과: ${team[i+1].name} +${buff}/+${buff}.`); }
     },
-    daewangjogae: async (self, _, enemyTeam, log) => { await UNIT_EFFECTS.kkotge(self, _, enemyTeam, log); },
+    daewangjogae: async (self, _, enemyTeam, log) => { const dmg = self.level === 2 ? 2 : 1; await dealDirectDamage(enemyTeam[0], dmg, log, self); await dealDirectDamage(enemyTeam[1], dmg, log, self); },
   };
 
-  function delay(ms) {
-    return new Promise(res => setTimeout(res, ms));
-  }
+  function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
+  function showModal(title, text) { $('#modal-title').textContent = title; $('#modal-text').textContent = text; $('#modal').classList.remove('hidden'); }
 
-  function showModal(title, text) {
-    $('#modal-title').textContent = title;
-    $('#modal-text').textContent = text;
-    $('#modal').classList.remove('hidden');
-  }
-
-  // --- 클릭 이벤트 리스너 (탭-탭 시스템) ---
   function addClickListeners() {
     $$('.unit-card').forEach(card => card.addEventListener('click', e => { e.stopPropagation(); handleCardClick(card.dataset); }));
-    $$('.sell-button').forEach(button => button.addEventListener('click', e => { e.stopPropagation(); sellUnit(parseInt(e.target.dataset.index)); }));
+    $$('.sell-button').forEach(button => button.addEventListener('click', e => { e.stopPropagation(); sellUnit(button.dataset.team, parseInt(button.dataset.index)); }));
   }
 
   function handleCardClick(dataset) {
-    const { team, type, index, id, instanceId } = dataset;
-    if (!id && !type && team !== 'player') return;
+    const { team, type, index } = dataset;
+    const isPlayerArea = team === 'player' || team === 'bench';
     const selected = gameState.selectedItem;
 
     if (!selected) {
       if (team === 'shop' || type === 'food') {
         const itemIndex = parseInt(index);
         const itemData = type === 'food' ? gameState.shop.foods[itemIndex] : gameState.shop.units[itemIndex];
-        if (!itemData) return;
-        gameState.selectedItem = { type: type || 'unit', index: itemIndex, data: itemData };
-      } else if (team === 'player' && gameState.playerTeam[index]) {
-        const unit = gameState.playerTeam[index];
-        gameState.selectedItem = { type: 'playerUnit', index: parseInt(index), instanceId: unit.instanceId, data: unit };
+        if (itemData) gameState.selectedItem = { type: type || 'unit', index: itemIndex, data: itemData };
+      } else if (isPlayerArea) {
+        const teamKey = team === 'player' ? 'playerTeam' : 'benchTeam';
+        const unit = gameState[teamKey][index];
+        if (unit) gameState.selectedItem = { type: 'playerUnit', team, index: parseInt(index), instanceId: unit.instanceId, data: unit };
       }
     } else {
-      if ((selected.type === 'playerUnit' && selected.instanceId === instanceId) ||
-              (selected.type !== 'playerUnit' && selected.index == index && (selected.type === 'food' ? type === 'food' : team === 'shop'))) {
-        clearSelection(); return;
-      }
-
       if (selected.type === 'unit') {
-        if (team === 'player') {
-          const unitToBuy = selected.data;
-          if (gameState.gold < 3) return;
-
-          const targetUnit = gameState.playerTeam[index];
-          if (!targetUnit) {
+        if (isPlayerArea && gameState.gold >= 3) {
+          const teamKey = team === 'player' ? 'playerTeam' : 'benchTeam';
+          if (!gameState[teamKey][index]) {
             gameState.gold -= 3;
-            gameState.playerTeam[index] = unitToBuy;
-            if (unitToBuy.trigger === 'buy' && unitToBuy.id === 'mudSnail') {
-              const allies = gameState.playerTeam.filter(u => u);
-              if (allies.length > 0) allies[Math.floor(Math.random() * allies.length)].hp++;
-            }
+            const boughtUnit = createUnitInstance(selected.data.id);
+            gameState[teamKey][index] = boughtUnit;
             gameState.shop.units[selected.index] = null;
-          } else if (targetUnit.id === unitToBuy.id && targetUnit.level < 3) {
-            gameState.gold -= 3;
-            levelUp(targetUnit);
-            gameState.shop.units[selected.index] = null;
+            if (boughtUnit.trigger === 'buy') handleBuyTrigger(boughtUnit);
+            checkForCombine(boughtUnit.id);
+            clearSelection();
           }
-          clearSelection();
         }
       } else if (selected.type === 'food') {
-        if (team === 'player' && gameState.playerTeam[index]) {
-          const food = selected.data;
-          if (gameState.gold < food.cost) return;
-          gameState.gold -= food.cost;
-          food.effect(gameState.playerTeam[index]);
-          gameState.shop.foods[selected.index] = null;
-          clearSelection();
+        if (isPlayerArea) {
+          const teamKey = team === 'player' ? 'playerTeam' : 'benchTeam';
+          const targetUnit = gameState[teamKey][index];
+          if (targetUnit && gameState.gold >= selected.data.cost) {
+            gameState.gold -= selected.data.cost;
+            selected.data.effect(targetUnit);
+            gameState.shop.foods[selected.index] = null;
+            clearSelection();
+          }
         }
       } else if (selected.type === 'playerUnit') {
-        if (team === 'player') {
-          const sourceIndex = selected.index;
-          const targetIndex = parseInt(index);
-          [gameState.playerTeam[sourceIndex], gameState.playerTeam[targetIndex]] = [gameState.playerTeam[targetIndex], gameState.playerTeam[sourceIndex]];
+        if (isPlayerArea) {
+          const sourceTeamKey = selected.team === 'player' ? 'playerTeam' : 'benchTeam';
+          const targetTeamKey = team === 'player' ? 'playerTeam' : 'benchTeam';
+          [gameState[sourceTeamKey][selected.index], gameState[targetTeamKey][index]] = [gameState[targetTeamKey][index], gameState[sourceTeamKey][selected.index]];
           clearSelection();
         }
       }
@@ -768,10 +645,26 @@
     renderAll();
   }
 
+  function handleBuyTrigger(boughtUnit) {
+    if (boughtUnit.id === 'mudSnail') {
+      const allAllies = [...gameState.playerTeam, ...gameState.benchTeam].filter(u => u);
+      if (allAllies.length > 0) {
+        const count = boughtUnit.level === 2 ? 2 : 1;
+        for(let i=0; i<count; i++){
+          const target = allAllies[Math.floor(Math.random() * allAllies.length)];
+          target.hp++;
+        }
+      }
+    }
+  }
+
   $('#roll-button').addEventListener('click', rollShop);
   $('#end-turn-button').addEventListener('click', startBattle);
   $('#restart-button').addEventListener('click', () => { $('#modal').classList.add('hidden'); initGame(); });
-  document.body.addEventListener('click', (e) => { if (e.target.tagName === 'BODY' || e.target.id === 'game-container') clearSelection(); });
+  document.body.addEventListener('click', (e) => {
+    if (e.target.closest('.unit-card, button')) return;
+    clearSelection();
+  });
 
   initGame();
 </script>
