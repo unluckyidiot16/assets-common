@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문명 클리커 v14: 밸런스 조정</title>
+    <title>문명 클리커 v15: 발전 조건 추가</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -39,8 +39,9 @@
     </div>
 
     <div>
-        <div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700 dark:text-white">시대 발전</span><span id="progress-percentage" class="text-sm font-medium text-gray-700 dark:text-white">0%</span></div>
+        <div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700 dark:text-white">자원 목표</span><span id="progress-percentage" class="text-sm font-medium text-gray-700 dark:text-white">0%</span></div>
         <div class="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700"><div id="progress-bar" class="bg-indigo-600 h-3 rounded-full progress-bar-fill" style="width: 0%"></div></div>
+        <div id="requirements-display" class="text-xs text-center text-gray-500 dark:text-gray-400 mt-1.5"></div>
     </div>
 
     <div id="great-person-container" class="h-14 bg-yellow-100 dark:bg-yellow-900 rounded-lg p-2 flex items-center space-x-2 overflow-x-auto">
@@ -76,6 +77,7 @@
         rpsDisplay: document.getElementById('rps-display'), mainActionContainer: document.getElementById('main-action-container'),
         upgradesContainer: document.getElementById('upgrades-container'), buildingsContainer: document.getElementById('buildings-container'),
         progressBar: document.getElementById('progress-bar'), progressPercentage: document.getElementById('progress-percentage'),
+        requirementsDisplay: document.getElementById('requirements-display'),
         modal: document.getElementById('modal'), modalContent: document.getElementById('modal-content'), modalTitle: document.getElementById('modal-title'),
         modalMessage: document.getElementById('modal-message'), modalButton: document.getElementById('modal-button'),
         modalImageContainer: document.getElementById('modal-image-container'), modalImage: document.getElementById('modal-image'),
@@ -87,6 +89,7 @@
     const eras = [
         {
             name: "석기 시대", eraImage: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/stoneage.png", resource: "식량", resourceImage: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/meat.png", goal: 500,
+            requirements: { hut: 5, tribe: 1 },
             clearMessage: "농경을 시작하며 식량을 안정적으로 확보했습니다. 이제 인류는 지식을 탐구하며 새로운 시대를 맞이합니다!",
             mainAction: { name: '수렵/채집', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/hunt.png' },
             upgrades: [
@@ -103,6 +106,7 @@
         },
         {
             name: "고대 농경 시대", eraImage: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png", resource: "지식", resourceImage: "https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png", goal: 2500,
+            requirements: { farm: 5, library: 1 },
             clearMessage: "문자와 법전은 문명을 비약적으로 발전시켰습니다. 이제 증기기관의 발명과 함께 산업의 시대가 열립니다!",
             mainAction: { name: '연구', image: 'https://unluckyidiot16.github.io/assets-common/CivilizationClicker/wait.png' },
             upgrades: [
@@ -119,8 +123,17 @@
 
     let gameState = {
         currentEraIndex: 0, resourceCount: 0, clickValue: 1, resourcesPerSecond: 0,
-        globalMultiplier: 1.0, clickBonusFromRps: 0,
+        globalMultiplier: 1.0,
     };
+
+    function areRequirementsMet(era) {
+        if (!era.requirements) return true;
+        return Object.keys(era.requirements).every(reqId => {
+            const building = era.buildings.find(b => b.id === reqId);
+            const requiredLevel = era.requirements[reqId];
+            return building && building.count >= requiredLevel;
+        });
+    }
 
     function updateUI() {
         const currentEra = eras[gameState.currentEraIndex];
@@ -138,6 +151,21 @@
         const progress = Math.min((gameState.resourceCount / currentEra.goal) * 100, 100);
         elements.progressBar.style.width = `${progress}%`;
         elements.progressPercentage.textContent = `${Math.floor(progress)}%`;
+
+        // Update requirements display
+        if (currentEra.requirements) {
+            let reqText = "발전 조건: ";
+            const reqs = Object.keys(currentEra.requirements).map(reqId => {
+                const building = currentEra.buildings.find(b => b.id === reqId);
+                const requiredLevel = currentEra.requirements[reqId];
+                const currentLevel = building ? building.count : 0;
+                const met = currentLevel >= requiredLevel;
+                return `<span class="${met ? 'text-green-500' : 'text-red-500'}">${building.name} (${currentLevel}/${requiredLevel})</span>`;
+            });
+            elements.requirementsDisplay.innerHTML = reqText + reqs.join(', ');
+        } else {
+            elements.requirementsDisplay.innerHTML = '';
+        }
 
         renderMainActionCard();
         renderCardList(elements.upgradesContainer, currentEra.upgrades, 'upgrade');
@@ -166,7 +194,7 @@
             const isPurchased = !isBuilding && item.purchased;
             const canAfford = gameState.resourceCount >= cost;
 
-            const card = document.createElement('div'); // Changed to div to handle events on the container
+            const card = document.createElement('div');
             card.className = `upgrade-card w-full p-2 rounded-lg flex flex-col justify-between h-36 ${
                 isPurchased ? 'bg-green-100 dark:bg-green-900 ring-2 ring-green-400' :
                     canAfford ? 'bg-yellow-100 dark:bg-yellow-800' :
@@ -213,14 +241,19 @@
         if (gameState.resourceCount >= cost) {
             gameState.resourceCount -= cost;
             building.count++;
+            checkEraCompletion();
         }
     }
 
     function checkEraCompletion() {
         const currentEra = eras[gameState.currentEraIndex];
-        if (currentEra && gameState.resourceCount >= currentEra.goal && !currentEra.completed) {
-            currentEra.completed = true;
-            showModal('era');
+        if (currentEra && !currentEra.completed) {
+            const resourcesMet = gameState.resourceCount >= currentEra.goal;
+            const buildingsMet = areRequirementsMet(currentEra);
+            if (resourcesMet && buildingsMet) {
+                currentEra.completed = true;
+                showModal('era');
+            }
         }
     }
 
@@ -233,11 +266,11 @@
             });
             gameState.resourcesPerSecond = currentRPS * gameState.globalMultiplier;
             gameState.resourceCount += gameState.resourcesPerSecond / 10;
+            checkEraCompletion();
         } else {
             gameState.resourcesPerSecond = 0;
         }
         if (Math.random() < 1 / 600) spawnGreatPerson();
-        checkEraCompletion();
         updateUI();
     }
 
@@ -300,7 +333,6 @@
         updateUI();
     }
 
-    // --- Modal and Great Person Logic ---
     function showModal(type, data) {
         const currentEra = eras[gameState.currentEraIndex];
         elements.modalImageContainer.classList.add('hidden');
