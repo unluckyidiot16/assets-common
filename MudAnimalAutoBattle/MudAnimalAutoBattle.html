@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>갯벌 전투 시뮬레이터</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #F0EAD6; /* 모래사장 느낌의 배경색 */
+    }
+    .unit-card {
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      -webkit-user-select: none; /* Safari */
+      -ms-user-select: none; /* IE 10+ */
+      user-select: none;
+    }
+    .unit-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .selected {
+      outline: 3px solid #4A90E2;
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 6px 12px rgba(74,144,226,0.4);
+    }
+    .faint-animation {
+      animation: faint 0.5s ease-out forwards;
+    }
+    @keyframes faint {
+      from { opacity: 1; transform: scale(1); }
+      to { opacity: 0; transform: scale(0.8); }
+    }
+    .attack-animation {
+      animation: attack 0.4s ease-in-out;
+    }
+    @keyframes attack {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(15px); }
+      100% { transform: translateX(0); }
+    }
+    .enemy-attack-animation {
+      animation: enemy-attack 0.4s ease-in-out;
+    }
+    @keyframes enemy-attack {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(-15px); }
+      100% { transform: translateX(0); }
+    }
+    .damage-text {
+      animation: damage-show 0.5s ease-out forwards;
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: #E53E3E; /* Red */
+      text-shadow: 1px 1px #fff;
+      pointer-events: none;
+    }
+    @keyframes damage-show {
+      from { opacity: 1; transform: translate(-50%, 0); }
+      to { opacity: 0; transform: translate(-50%, -30px); }
+    }
+    #life-counter {
+      font-size: 1.5rem;
+      letter-spacing: 0.1em;
+    }
+    .team-board {
+      transition: background-color 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-[#F0EAD6] text-gray-800 p-4">
+
+<div id="game-container" class="max-w-7xl mx-auto">
+  <!-- 상단 정보 UI -->
+  <div id="info-bar" class="flex justify-between items-center bg-[#A4C3B2] p-3 rounded-lg shadow-md mb-4 text-white">
+    <div class="flex items-center space-x-6">
+      <div><span class="font-bold">턴:</span> <span id="turn-counter">1</span></div>
+      <div id="life-counter"></div>
+    </div>
+    <div class="text-2xl font-bold" id="environment-indicator"></div>
+    <div><span class="font-bold">골드:</span> <span id="gold-counter">10</span> 💰</div>
+  </div>
+
+  <!-- 선택 정보 -->
+  <div id="selection-info" class="text-center mb-2 h-6 font-semibold text-blue-700"></div>
+
+  <!-- 상대 팀 (전투 시에만 보임) -->
+  <div id="enemy-team-area" class="mb-4 min-h-[160px]">
+    <h2 class="text-center text-xl font-bold text-gray-500 mb-2">상대 팀</h2>
+    <div id="enemy-team" class="team-board flex justify-center items-center space-x-2"></div>
+  </div>
+
+  <!-- 전투 로그 -->
+  <div id="battle-log-container" class="h-24 bg-white/50 rounded-lg p-2 overflow-y-auto mb-4 border-2 border-gray-300 shadow-inner hidden">
+    <div id="battle-log" class="text-sm"></div>
+  </div>
+
+  <!-- 플레이어 팀 -->
+  <div id="player-team-area" class="mb-4 min-h-[160px]">
+    <h2 class="text-center text-xl font-bold text-gray-600 mb-2">나의 팀 (클릭하여 조작)</h2>
+    <div id="player-team" class="team-board flex justify-center items-start space-x-2 p-4 rounded-lg"></div>
+  </div>
+
+  <!-- 상점 -->
+  <div id="shop-area" class="bg-[#6B9080]/80 p-4 rounded-xl shadow-lg">
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex space-x-2">
+        <h2 class="text-2xl font-bold text-white">상점</h2>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button id="roll-button" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">리롤 (1 골드)</button>
+        <button id="end-turn-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">턴 종료</button>
+      </div>
+    </div>
+    <div class="flex justify-center space-x-4">
+      <!-- 상점 유닛 -->
+      <div id="shop-units" class="flex justify-start items-center space-x-2"></div>
+      <!-- 상점 음식 -->
+      <div id="shop-foods" class="flex justify-start items-center space-x-2"></div>
+    </div>
+  </div>
+
+  <!-- 승리 트로피 바 -->
+  <div id="win-trophy-bar" class="mt-4 bg-[#A4C3B2] p-3 rounded-lg shadow-md flex justify-center items-center space-x-2 h-16">
+    <!-- Trophies will be rendered here by JavaScript -->
+  </div>
+</div>
+
+<!-- 게임 오버/승리 모달 -->
+<div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+  <div class="bg-white p-8 rounded-2xl shadow-2xl text-center">
+    <h2 id="modal-title" class="text-4xl font-bold mb-4"></h2>
+    <p id="modal-text" class="text-lg mb-6"></p>
+    <button id="restart-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-xl">다시 시작</button>
+  </div>
+</div>
+
+<script type="module">
+  // --- 게임 데이터 정의 ---
+  const ENVIRONMENTS = {
+    HIGH_TIDE: { name: '밀물', color: '#a2d2ff' }, // 하늘색
+    LOW_TIDE: { name: '썰물', color: '#b08968' },  // 황토색
+  };
+
+  const UNIT_DATA = {
+    // T1
+    bajirak: { name: '바지락', tier: 1, atk: 3, hp: 2, trigger: 'hurt', desc: '피격: 자신 공격력 +1(전투).' },
+    mudworm: { name: '갯지렁이', tier: 1, atk: 2, hp: 2, trigger: 'faint', desc: '퇴장: 1/1 작은 벌레 1마리 소환.' },
+    mudSnail: { name: '갯벌 달팽이', tier: 1, atk: 1, hp: 3, trigger: 'buy', desc: '구매: 무작위 아군 체력 +1(영구).' },
+    smallCrab: { name: '작은 게', tier: 1, atk: 3, hp: 2, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 공격력 +1(전투).' },
+    // T2
+    daehap: { name: '대합', tier: 2, atk: 2, hp: 4, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 +1/+1(전투).' },
+    ppulsora: { name: '뿔소라', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '전투 시작: 전열이면 회피 1회.' },
+    mangdungeo: { name: '망둥어', tier: 2, atk: 3, hp: 3, trigger: 'startOfBattle', desc: '전투 시작: 무작위 아군 공격력 +1(전투).' },
+    nongge: { name: '농게', tier: 2, atk: 4, hp: 2, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 1 피해.' },
+    // T3
+    honghap: { name: '홍합', tier: 3, atk: 4, hp: 3, trigger: 'hurt', desc: '피격: 앞 적 공격력 -1(전투).' },
+    garibi: { name: '가리비', tier: 3, atk: 5, hp: 3, trigger: 'faint', desc: '퇴장: 2/2 작은 가리비 2마리 소환.' },
+    jjangddungeo: { name: '짱뚱어', tier: 3, atk: 5, hp: 3, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 2 피해.' },
+    chilmyeoncho: { name: '칠면초', tier: 3, atk: 3, hp: 5, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 +1/+1(전투).' },
+    // T4
+    haehongnamul: { name: '해홍나물', tier: 4, atk: 2, hp: 8, trigger: 'startOfBattle', desc: '전투 시작: 모든 아군 체력 +1(전투).' },
+    sora: { name: '소라', tier: 4, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 공격력 +2(전투).' },
+    kkotge: { name: '꽃게', tier: 4, atk: 5, hp: 4, trigger: 'beforeAttack', desc: '공격 전: 앞 적과 그 뒤 적에게 각각 1 피해.' },
+    chilge: { name: '칠게', tier: 4, atk: 4, hp: 7, trigger: 'startOfBattle', desc: '전투 시작: 이 전투 동안 자신이 받는 피해 -2.' },
+    // T5
+    nakji: { name: '낙지', tier: 5, atk: 6, hp: 3, trigger: 'startOfBattle', desc: '전투 시작: 후열로 이동. 첫 피격 피해 -2.' },
+    bigSnail: { name: '큰 달팽이', tier: 5, atk: 4, hp: 9, trigger: 'startOfBattle', desc: '전투 시작: 모든 아군이 받는 피해 -1(이 전투 동안).' },
+    muneo: { name: '문어', tier: 5, atk: 6, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 앞 적에게 1 피해. 뒤 친구 공격력 +1(전투).' },
+    sungeo: { name: '숭어', tier: 5, atk: 7, hp: 6, trigger: 'startOfBattle', desc: '전투 시작: 무작위 아군 공격력 +2(전투).' },
+    // T6
+    doyosae: { name: '도요새', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '전투 시작: 앞 적에게 2 피해.' },
+    galmaegi: { name: '갈매기', tier: 6, atk: 8, hp: 8, trigger: 'startOfBattle', desc: '전투 시작: 모든 아군 공격력 +1(전투).' },
+    waegari: { name: '왜가리', tier: 6, atk: 9, hp: 9, trigger: 'startOfBattle', desc: '전투 시작: 뒤 친구 +2/+2(전투).' },
+    daewangjogae: { name: '대왕조개', tier: 6, atk: 10, hp: 5, trigger: 'beforeAttack', desc: '공격 전: 관통 1 피해(뒤 적 1 전이).' },
+    // Tokens
+    smallWorm: { name: '작은 벌레', tier: 'T', atk: 1, hp: 1, isToken: true, desc: '' },
+    smallScallop: { name: '작은 가리비', tier: 'T', atk: 2, hp: 2, isToken: true, desc: '' },
+  };
+
+  const FOOD_DATA = {
+    plankton: { name: '플랑크톤', tier: 1, cost: 3, desc: '유닛에게 영구 +1/+1 부여.', effect: (unit) => { unit.atk += 1; unit.hp += 1; } },
+    shell: { name: '껍질 강화', tier: 2, cost: 3, desc: '유닛에게 멜론 아머(피해 7 흡수) 부여.', effect: (unit) => { unit.effects.armorType = 'melon'; unit.effects.armorValue = 7; } },
+    mudCoating: { name: '갯벌 홈', tier: 3, cost: 3, desc: '유닛에게 갈릭 아머(받는 피해 -2) 부여.', effect: (unit) => { unit.effects.armorType = 'garlic'; unit.effects.armorValue = 2; } },
+  };
+
+  // --- 게임 상태 관리 ---
+  let gameState = {};
+
+  function createUnitInstance(id, level = 1) {
+    const data = UNIT_DATA[id];
+    return {
+      id: id,
+      ...data,
+      instanceId: crypto.randomUUID(),
+      atk: data.atk + (level - 1),
+      hp: data.hp + (level - 1),
+      level: level,
+      exp: 0,
+      battleAtk: 0,
+      battleHp: 0,
+      effects: {
+        evade: 0,
+        armorType: null,
+        armorValue: 0,
+        damageReduction: 0,
+        firstHitTaken: false,
+      }
+    };
+  }
+
+  // --- UI 렌더링 ---
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => document.querySelectorAll(selector);
+
+  function renderUnit(unit, index, teamType) {
+    const isShop = teamType === 'shop';
+    const isEmpty = !unit;
+    const baseClasses = `unit-card w-32 h-36 rounded-lg p-2 flex flex-col justify-between items-center relative flex-shrink-0`;
+
+    if (isEmpty) {
+      return `<div class="${baseClasses} border-2 border-dashed border-gray-400/50" data-team="player" data-index="${index}"></div>`;
+    }
+
+    const selectedClass = gameState.selectedItem?.instanceId === unit.instanceId ? 'selected' : '';
+    const costText = isShop ? `<div class="absolute bottom-0 w-full bg-blue-500 text-white text-xs py-1 rounded-b-lg">구매 (3)</div>` : '';
+    const sellButton = teamType === 'player' && gameState.phase === 'shop' ? `<button class="sell-button absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs z-10" data-index="${index}">판매</button>` : '';
+
+    return `
+        <div id="unit-${unit.instanceId}" class="${baseClasses} bg-white ${selectedClass}" data-team="${teamType}" data-index="${index}" data-id="${unit.id}" data-instance-id="${unit.instanceId}">
+            ${sellButton}
+            <div class="text-xs font-bold text-center">${unit.name} (L${unit.level})</div>
+            <div class="text-center text-lg my-1">
+                <span class="text-red-500 font-bold">${unit.atk + unit.battleAtk}</span> / 
+                <span class="text-blue-500 font-bold">${unit.hp + unit.battleHp}</span>
+            </div>
+            <div class="text-gray-500 text-[10px] text-center">${unit.desc}</div>
+            ${costText}
+            <div class="damage-text-container absolute inset-0"></div>
+        </div>
+    `;
+  }
+
+  function renderFood(food, index) {
+    if (!food) return `<div class="w-24 h-24 border-2 border-dashed border-gray-400/50 rounded-lg"></div>`;
+    const selectedClass = gameState.selectedItem?.type === 'food' && gameState.selectedItem.index === index ? 'selected' : '';
+    return `
+        <div class="unit-card w-24 h-24 bg-green-100 rounded-lg p-2 flex flex-col justify-center items-center text-center ${selectedClass}" data-type="food" data-index="${index}">
+            <div class="text-sm font-bold">${food.name}</div>
+            <div class="text-xs mt-1">${food.desc}</div>
+            <div class="font-bold mt-1 text-yellow-600">${food.cost} 골드</div>
+        </div>
+     `;
+  }
+
+  function renderAll() {
+    $('#turn-counter').textContent = gameState.turn;
+    $('#life-counter').innerHTML = Array(gameState.lives).fill('❤️').join('') + Array(4 - gameState.lives).fill('🤍').join('');
+    $('#gold-counter').textContent = gameState.gold;
+
+    const currentEnvData = ENVIRONMENTS[gameState.currentEnvironment];
+    $('#environment-indicator').textContent = currentEnvData.name;
+    $('#player-team').style.backgroundColor = currentEnvData.color;
+
+    let selectionText = '';
+    if (gameState.selectedItem) {
+      const { type, data } = gameState.selectedItem;
+      if (type === 'unit' || type === 'playerUnit') {
+        selectionText = `${data.name} 선택됨. 아군 칸을 클릭하여 배치/이동하거나 다른 유닛과 합체하세요.`;
+      } else if (type === 'food') {
+        selectionText = `${data.name} 선택됨. 아군 유닛에게 클릭하여 먹이세요.`;
+      }
+    }
+    $('#selection-info').textContent = selectionText;
+
+    let playerTeamHtml = '';
+    for (let i = 0; i < 5; i++) {
+      playerTeamHtml += renderUnit(gameState.playerTeam[i], i, 'player');
+    }
+    $('#player-team').innerHTML = playerTeamHtml;
+
+    let enemyTeamHtml = '';
+    if (gameState.phase === 'battle') {
+      $('#enemy-team').style.backgroundColor = currentEnvData.color;
+      $('#enemy-team').classList.add('p-4', 'rounded-lg');
+      for (let i = 0; i < 5; i++) {
+        enemyTeamHtml += renderUnit(gameState.enemyTeam[i], i, 'enemy');
+      }
+    } else {
+      $('#enemy-team').style.backgroundColor = 'transparent';
+      $('#enemy-team').classList.remove('p-4', 'rounded-lg');
+      enemyTeamHtml = '<div class="h-36"></div>';
+    }
+    $('#enemy-team').innerHTML = enemyTeamHtml;
+
+    if (gameState.phase === 'shop') {
+      $('#shop-area').classList.remove('hidden');
+      $('#enemy-team-area').classList.add('hidden');
+      $('#battle-log-container').classList.add('hidden');
+
+      let shopUnitsHtml = '';
+      for (let i = 0; i < 3; i++) {
+        shopUnitsHtml += renderUnit(gameState.shop.units[i], i, 'shop');
+      }
+      $('#shop-units').innerHTML = shopUnitsHtml;
+
+      let shopFoodsHtml = '';
+      for (let i = 0; i < 2; i++) {
+        shopFoodsHtml += renderFood(gameState.shop.foods[i], i);
+      }
+      $('#shop-foods').innerHTML = shopFoodsHtml;
+
+    } else {
+      $('#shop-area').classList.add('hidden');
+      $('#enemy-team-area').classList.remove('hidden');
+      $('#battle-log-container').classList.remove('hidden');
+    }
+
+    // Render Win Trophies
+    const trophyBar = $('#win-trophy-bar');
+    trophyBar.innerHTML = '';
+    const filledTrophySVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.3 2.21a2 2 0 00-2.6 0L5.96 4.654a2 2 0 01-1.185.583H2.5a2 2 0 00-2 2v2.584a2 2 0 01-.583 1.185l-2.443 2.74a2 2 0 000 2.6l2.443 2.74a2 2 0 01.583 1.186V17.5a2 2 0 002 2h2.275a2 2 0 011.185.583l2.74 2.443a2 2 0 002.6 0l2.74-2.443a2 2 0 011.185-.583H17.5a2 2 0 002-2v-2.275a2 2 0 01.583-1.185l2.443-2.74a2 2 0 000-2.6l-2.443-2.74a2 2 0 01-.583-1.185V6.5a2 2 0 00-2-2h-2.275a2 2 0 01-1.185-.583L11.3 2.21zM10 14a4 4 0 100-8 4 4 0 000 8z" clip-rule="evenodd" />
+        <path d="M10 6a1 1 0 100 2 1 1 0 000-2z" />
+    </svg>`.replace('viewBox="0 0 20 20"', 'viewBox="0 0 24 24"'); // Quick fix for different viewbox
+    const emptyTrophySVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9a9.75 9.75 0 01-4.874-1.956l-.526-.351m10.25-1.604a9.75 9.75 0 004.874-1.956l-.526-.351m-9.25 2.307a9.75 9.75 0 004.874-1.956l-.526-.351m-4.374 1.604A9.75 9.75 0 012.625 15.75M12 15.75v3.75m0 0H8.25m3.75 0H15.75M12 15.75A3.75 3.75 0 0015.75 12H8.25A3.75 3.75 0 0012 15.75z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 12V3.75A3.75 3.75 0 0115.75 0h-7.5A3.75 3.75 0 0112 3.75z" />
+    </svg>`.replace('viewBox="0 0 24 24"', 'viewBox="-2 -2 28 28"'); // Adjust viewbox
+
+    for (let i = 0; i < 10; i++) {
+      trophyBar.innerHTML += (i < gameState.wins) ? filledTrophySVG : emptyTrophySVG;
+    }
+
+    addClickListeners();
+  }
+
+
+  // --- 게임 로직 ---
+  function getAvailableUnits(tier) {
+    return Object.keys(UNIT_DATA).filter(id => !UNIT_DATA[id].isToken && UNIT_DATA[id].tier <= tier);
+  }
+
+  function populateShop() {
+    const maxTier = Math.min(6, Math.floor((gameState.turn + 1) / 2) + 1);
+    const availableUnits = getAvailableUnits(maxTier);
+
+    gameState.shop.units = [];
+    for(let i=0; i<3; i++) {
+      const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
+      gameState.shop.units.push(createUnitInstance(randomId));
+    }
+
+    const availableFoods = Object.keys(FOOD_DATA);
+    gameState.shop.foods = [];
+    for(let i=0; i<2; i++) {
+      const randomId = availableFoods[Math.floor(Math.random() * availableFoods.length)];
+      gameState.shop.foods.push({id: randomId, ...FOOD_DATA[randomId]});
+    }
+  }
+
+  function levelUp(unit) {
+    unit.level++;
+    unit.exp = 1;
+    unit.atk++;
+    unit.hp++;
+  }
+
+  function clearSelection() {
+    gameState.selectedItem = null;
+    renderAll();
+  }
+
+  function sellUnit(index) {
+    const unit = gameState.playerTeam[index];
+    if (!unit) return;
+    gameState.gold += unit.level;
+    gameState.playerTeam[index] = null;
+    clearSelection();
+  }
+
+  function rollShop() {
+    if (gameState.gold < 1) return;
+    gameState.gold -= 1;
+    populateShop();
+    renderAll();
+  }
+
+  function startTurn() {
+    gameState.turn++;
+    gameState.gold = 10;
+    gameState.phase = 'shop';
+    const environments = Object.keys(ENVIRONMENTS);
+    gameState.currentEnvironment = environments[Math.floor(Math.random() * environments.length)];
+    populateShop();
+    renderAll();
+  }
+
+  function initGame() {
+    gameState = {
+      turn: 1,
+      wins: 0,
+      lives: 4,
+      gold: 10,
+      phase: 'shop',
+      playerTeam: Array(5).fill(null),
+      enemyTeam: [],
+      shop: { units: [], foods: [] },
+      currentEnvironment: 'LOW_TIDE',
+      selectedItem: null,
+    };
+    const environments = Object.keys(ENVIRONMENTS);
+    gameState.currentEnvironment = environments[Math.floor(Math.random() * environments.length)];
+    populateShop();
+    renderAll();
+  }
+
+  // --- 전투 로직 ---
+  async function startBattle() {
+    gameState.phase = 'battle';
+    generateEnemyTeam();
+
+    let playerBattleTeam = gameState.playerTeam.filter(u => u).map(u => JSON.parse(JSON.stringify(u)));
+    playerBattleTeam.forEach(u => u.instanceId = crypto.randomUUID()); // 전투용 새 ID
+    let enemyBattleTeam = gameState.enemyTeam.filter(u => u).map(u => JSON.parse(JSON.stringify(u)));
+
+    renderAll();
+    await delay(100);
+    renderBattleState(playerBattleTeam, enemyBattleTeam);
+
+    const battleLog = $('#battle-log');
+    battleLog.innerHTML = '';
+    const log = (msg) => {
+      const p = document.createElement('p');
+      p.textContent = msg;
+      battleLog.appendChild(p);
+      battleLog.scrollTop = battleLog.scrollHeight;
+    };
+
+    log('--- 전투 시작 ---');
+    await delay(500);
+
+    await resolveTriggers('startOfBattle', playerBattleTeam, playerBattleTeam, enemyBattleTeam, log);
+    await resolveTriggers('startOfBattle', enemyBattleTeam, enemyBattleTeam, playerBattleTeam, log);
+    renderBattleState(playerBattleTeam, enemyBattleTeam);
+    await delay(1000);
+
+    while (playerBattleTeam.length > 0 && enemyBattleTeam.length > 0) {
+      const playerUnit = playerBattleTeam[0];
+      const enemyUnit = enemyBattleTeam[0];
+      if (!playerUnit || !enemyUnit) break;
+
+      await delay(500);
+
+      await resolveTriggers('beforeAttack', [playerUnit], playerBattleTeam, enemyBattleTeam, log);
+      renderBattleState(playerBattleTeam, enemyBattleTeam);
+      await resolveTriggers('beforeAttack', [enemyUnit], enemyBattleTeam, playerBattleTeam, log);
+      renderBattleState(playerBattleTeam, enemyBattleTeam);
+      await delay(500);
+
+      playerBattleTeam = playerBattleTeam.filter(u => u.hp + u.battleHp > 0);
+      enemyBattleTeam = enemyBattleTeam.filter(u => u.hp + u.battleHp > 0);
+      if (playerBattleTeam.length === 0 || enemyBattleTeam.length === 0) break;
+
+      $(`#unit-${playerUnit.instanceId}`)?.classList.add('attack-animation');
+      $(`#unit-${enemyUnit.instanceId}`)?.classList.add('enemy-attack-animation');
+
+      await applyDamage(enemyUnit, playerUnit.atk + playerUnit.battleAtk, enemyBattleTeam, playerBattleTeam, log, playerUnit);
+      if (enemyBattleTeam.some(u => u.hp + u.battleHp > 0)) {
+        await applyDamage(playerUnit, enemyUnit.atk + enemyUnit.battleAtk, playerBattleTeam, enemyBattleTeam, log, enemyUnit);
+      }
+
+      await delay(500);
+      $(`#unit-${playerUnit.instanceId}`)?.classList.remove('attack-animation');
+      $(`#unit-${enemyUnit.instanceId}`)?.classList.remove('enemy-attack-animation');
+
+      playerBattleTeam = playerBattleTeam.filter(u => u && u.hp + u.battleHp > 0);
+      enemyBattleTeam = enemyBattleTeam.filter(u => u && u.hp + u.battleHp > 0);
+
+      renderBattleState(playerBattleTeam, enemyBattleTeam);
+      await delay(500);
+    }
+
+    await delay(1000);
+    if (playerBattleTeam.length > 0 && enemyBattleTeam.length === 0) {
+      log('--- 승리! ---');
+      gameState.wins++;
+    } else if (playerBattleTeam.length === 0 && enemyBattleTeam.length > 0) {
+      log('--- 패배... ---');
+      gameState.lives--;
+    } else {
+      log('--- 무승부 ---');
+    }
+
+    await delay(2000);
+
+    if (gameState.wins >= 10) {
+      showModal('최종 승리!', '갯벌의 지배자가 되셨습니다!');
+    } else if (gameState.lives <= 0) {
+      showModal('게임 오버', `최종 ${gameState.wins}승을 달성했습니다.`);
+    } else {
+      startTurn();
+    }
+  }
+
+  function renderBattleState(playerTeam, enemyTeam) {
+    let playerTeamHtml = '';
+    for (let i = 0; i < 5; i++) playerTeamHtml += renderUnit(playerTeam[i], i, 'player');
+    $('#player-team').innerHTML = playerTeamHtml;
+
+    let enemyTeamHtml = '';
+    for (let i = 0; i < 5; i++) enemyTeamHtml += renderUnit(enemyTeam[i], i, 'enemy');
+    $('#enemy-team').innerHTML = enemyTeamHtml;
+  }
+
+  async function applyDamage(target, damage, targetTeam, attackerTeam, log, attacker) {
+    if (!target || target.hp + target.battleHp <= 0) return;
+
+    let finalDamage = damage;
+    if (target.id === 'nakji' && !target.effects.firstHitTaken) {
+      finalDamage = Math.max(0, finalDamage - 2);
+      target.effects.firstHitTaken = true;
+    }
+    finalDamage = Math.max(0, finalDamage - target.effects.damageReduction);
+
+    const damageNumber = document.createElement('div');
+    damageNumber.className = 'damage-text';
+    damageNumber.textContent = `-${finalDamage}`;
+    $(`#unit-${target.instanceId} .damage-text-container`)?.appendChild(damageNumber);
+
+    target.hp -= finalDamage;
+    log(`${attacker.name}이(가) ${target.name}에게 ${finalDamage} 피해를 입혔습니다. (남은 체력: ${Math.max(0, target.hp + target.battleHp)})`);
+
+    if (target.hp + target.battleHp > 0) {
+      await resolveTriggers('hurt', [target], targetTeam, attackerTeam, log);
+    } else {
+      $(`#unit-${target.instanceId}`)?.classList.add('faint-animation');
+      log(`${target.name} 퇴장!`);
+      await resolveTriggers('faint', [target], targetTeam, attackerTeam, log);
+    }
+  }
+
+  async function dealDirectDamage(target, damage, log, source) {
+    if(!target || target.hp + target.battleHp <= 0) return;
+    const damageNumber = document.createElement('div');
+    damageNumber.className = 'damage-text';
+    damageNumber.textContent = `-${damage}`;
+    $(`#unit-${target.instanceId} .damage-text-container`)?.appendChild(damageNumber);
+
+    target.hp -= damage;
+    log(`[${source.name}] 효과로 ${target.name}이(가) ${damage}의 피해를 입혔습니다.`);
+  }
+
+  function generateEnemyTeam() {
+    gameState.enemyTeam = [];
+    const enemyUnitCount = Math.min(5, Math.floor(gameState.turn / 2) + 2);
+    const maxTier = Math.min(6, Math.floor((gameState.turn + 1) / 2) + 1);
+    const availableUnits = getAvailableUnits(maxTier);
+
+    for (let i=0; i<enemyUnitCount; i++) {
+      if (availableUnits.length === 0) continue;
+      const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
+      gameState.enemyTeam.push(createUnitInstance(randomId));
+    }
+  }
+
+  async function resolveTriggers(trigger, actors, actorTeam, enemyTeam, log) {
+    for (const actor of actors) {
+      if (!actor || (actor.hp + actor.battleHp <= 0 && trigger !== 'faint')) continue;
+
+      if (actor.trigger === trigger) {
+        const effect = UNIT_EFFECTS[actor.id];
+        if (effect) await effect(actor, actorTeam, enemyTeam, log);
+      }
+    }
+  }
+
+  const UNIT_EFFECTS = {
+    bajirak: (self, _1, _2, log) => { self.battleAtk += 1; log(`[${self.name}] 효과: 공격력 +1.`); },
+    mudworm: (self, team, _, log) => {
+      log(`[${self.name}] 효과: 작은 벌레 소환!`);
+      const index = team.findIndex(u => u && u.instanceId === self.instanceId);
+      if (index !== -1 && team.filter(u => u).length < 5) team.splice(index + 1, 0, createUnitInstance('smallWorm'));
+    },
+    smallCrab: (self, team, _, log) => {
+      const i = team.findIndex(u => u && u.instanceId === self.instanceId);
+      if (i !== -1 && i < team.length - 1 && team[i+1]) {
+        team[i+1].battleAtk += 1;
+        log(`[${self.name}] 효과: ${team[i+1].name} 공격력 +1.`);
+      }
+    },
+    daehap: (self, team, _, log) => {
+      const i = team.findIndex(u => u && u.instanceId === self.instanceId);
+      if (i !== -1 && i < team.length - 1 && team[i+1]) {
+        team[i+1].battleAtk += 1;
+        team[i+1].battleHp += 1;
+        log(`[${self.name}] 효과: ${team[i+1].name} +1/+1.`);
+      }
+    },
+    ppulsora: (self, team, _, log) => { if (team.findIndex(u=>u && u.instanceId===self.instanceId) === 0) { self.effects.evade = 1; log(`[${self.name}] 효과: 회피 1회 획득.`); } },
+    mangdungeo: (self, team, _, log) => {
+      const allies = team.filter(u => u && u.instanceId !== self.instanceId);
+      if (allies.length > 0) {
+        const target = allies[Math.floor(Math.random() * allies.length)];
+        target.battleAtk += 1;
+        log(`[${self.name}] 효과: ${target.name} 공격력 +1.`);
+      }
+    },
+    nongge: async (self, _, enemyTeam, log) => { await dealDirectDamage(enemyTeam[0], 1, log, self); },
+    honghap: (self, _, enemyTeam, log) => {
+      if (enemyTeam[0]) {
+        enemyTeam[0].battleAtk = Math.max(0, enemyTeam[0].atk + enemyTeam[0].battleAtk - 1) - enemyTeam[0].atk;
+        log(`[${self.name}] 효과: ${enemyTeam[0].name} 공격력 -1.`);
+      }
+    },
+    garibi: (self, team, _, log) => {
+      log(`[${self.name}] 효과: 작은 가리비 2마리 소환!`);
+      const index = team.findIndex(u => u && u.instanceId === self.instanceId);
+      if (index !== -1) {
+        let count = 0;
+        for(let i = 0; i < 2 && team.filter(u=>u).length < 5; i++) {
+          team.splice(index + 1 + i, 0, createUnitInstance('smallScallop'));
+          count++;
+        }
+      }
+    },
+    jjangddungeo: async (self, _, enemyTeam, log) => { await dealDirectDamage(enemyTeam[0], 2, log, self); },
+    chilmyeoncho: (self, team, _, log) => { UNIT_EFFECTS.daehap(self, team, _, log); },
+    haehongnamul: (self, team, _, log) => { team.forEach(u => u && (u.battleHp += 1)); log(`[${self.name}] 효과: 모든 아군 체력 +1.`); },
+    sora: (self, team, _, log) => {
+      const i = team.findIndex(u => u && u.instanceId === self.instanceId);
+      if (i !== -1 && i < team.length - 1 && team[i+1]) {
+        team[i+1].battleAtk += 2;
+        log(`[${self.name}] 효과: ${team[i+1].name} 공격력 +2.`);
+      }
+    },
+    kkotge: async (self, _, enemyTeam, log) => {
+      await dealDirectDamage(enemyTeam[0], 1, log, self);
+      await dealDirectDamage(enemyTeam[1], 1, log, self);
+    },
+    chilge: (self, team, _, log) => { self.effects.damageReduction = 2; log(`[${self.name}] 효과: 받는 피해 -2.`); },
+    nakji: (self, team, _, log) => {
+      const i = team.findIndex(u => u && u.instanceId === self.instanceId);
+      if (i !== -1 && i < team.filter(u=>u).length - 1) {
+        const [unit] = team.splice(i, 1);
+        team.push(unit);
+        log(`[${self.name}] 효과: 후열로 이동.`);
+      }
+    },
+    bigSnail: (self, team, _, log) => { team.forEach(u => u && (u.effects.damageReduction += 1)); log(`[${self.name}] 효과: 모든 아군 받는 피해 -1.`); },
+    muneo: async (self, team, enemyTeam, log) => {
+      await dealDirectDamage(enemyTeam[0], 1, log, self);
+      const i = team.findIndex(u => u && u.instanceId === self.instanceId);
+      if (i !== -1 && i < team.length - 1 && team[i+1]) {
+        team[i+1].battleAtk += 1;
+        log(`[${self.name}] 효과: ${team[i+1].name} 공격력 +1.`);
+      }
+    },
+    sungeo: (self, team, _, log) => {
+      const allies = team.filter(u => u && u.instanceId !== self.instanceId);
+      if (allies.length > 0) {
+        const target = allies[Math.floor(Math.random() * allies.length)];
+        target.battleAtk += 2;
+        log(`[${self.name}] 효과: ${target.name} 공격력 +2.`);
+      }
+    },
+    doyosae: async (self, _, enemyTeam, log) => { await dealDirectDamage(enemyTeam[0], 2, log, self); },
+    galmaegi: (self, team, _, log) => { team.forEach(u => u && u.instanceId !== self.instanceId && (u.battleAtk += 1)); log(`[${self.name}] 효과: 다른 모든 아군 공격력 +1.`); },
+    waegari: (self, team, _, log) => {
+      const i = team.findIndex(u => u && u.instanceId === self.instanceId);
+      if (i !== -1 && i < team.length - 1 && team[i+1]) {
+        team[i+1].battleAtk += 2;
+        team[i+1].battleHp += 2;
+        log(`[${self.name}] 효과: ${team[i+1].name} +2/+2.`);
+      }
+    },
+    daewangjogae: async (self, _, enemyTeam, log) => { await UNIT_EFFECTS.kkotge(self, _, enemyTeam, log); },
+  };
+
+  function delay(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
+
+  function showModal(title, text) {
+    $('#modal-title').textContent = title;
+    $('#modal-text').textContent = text;
+    $('#modal').classList.remove('hidden');
+  }
+
+  // --- 클릭 이벤트 리스너 (탭-탭 시스템) ---
+  function addClickListeners() {
+    $$('.unit-card').forEach(card => card.addEventListener('click', e => { e.stopPropagation(); handleCardClick(card.dataset); }));
+    $$('.sell-button').forEach(button => button.addEventListener('click', e => { e.stopPropagation(); sellUnit(parseInt(e.target.dataset.index)); }));
+  }
+
+  function handleCardClick(dataset) {
+    const { team, type, index, id, instanceId } = dataset;
+    if (!id && !type && team !== 'player') return;
+    const selected = gameState.selectedItem;
+
+    if (!selected) {
+      if (team === 'shop' || type === 'food') {
+        const itemIndex = parseInt(index);
+        const itemData = type === 'food' ? gameState.shop.foods[itemIndex] : gameState.shop.units[itemIndex];
+        if (!itemData) return;
+        gameState.selectedItem = { type: type || 'unit', index: itemIndex, data: itemData };
+      } else if (team === 'player' && gameState.playerTeam[index]) {
+        const unit = gameState.playerTeam[index];
+        gameState.selectedItem = { type: 'playerUnit', index: parseInt(index), instanceId: unit.instanceId, data: unit };
+      }
+    } else {
+      if ((selected.type === 'playerUnit' && selected.instanceId === instanceId) ||
+              (selected.type !== 'playerUnit' && selected.index == index && (selected.type === 'food' ? type === 'food' : team === 'shop'))) {
+        clearSelection(); return;
+      }
+
+      if (selected.type === 'unit') {
+        if (team === 'player') {
+          const unitToBuy = selected.data;
+          if (gameState.gold < 3) return;
+
+          const targetUnit = gameState.playerTeam[index];
+          if (!targetUnit) {
+            gameState.gold -= 3;
+            gameState.playerTeam[index] = unitToBuy;
+            if (unitToBuy.trigger === 'buy' && unitToBuy.id === 'mudSnail') {
+              const allies = gameState.playerTeam.filter(u => u);
+              if (allies.length > 0) allies[Math.floor(Math.random() * allies.length)].hp++;
+            }
+            gameState.shop.units[selected.index] = null;
+          } else if (targetUnit.id === unitToBuy.id && targetUnit.level < 3) {
+            gameState.gold -= 3;
+            levelUp(targetUnit);
+            gameState.shop.units[selected.index] = null;
+          }
+          clearSelection();
+        }
+      } else if (selected.type === 'food') {
+        if (team === 'player' && gameState.playerTeam[index]) {
+          const food = selected.data;
+          if (gameState.gold < food.cost) return;
+          gameState.gold -= food.cost;
+          food.effect(gameState.playerTeam[index]);
+          gameState.shop.foods[selected.index] = null;
+          clearSelection();
+        }
+      } else if (selected.type === 'playerUnit') {
+        if (team === 'player') {
+          const sourceIndex = selected.index;
+          const targetIndex = parseInt(index);
+          [gameState.playerTeam[sourceIndex], gameState.playerTeam[targetIndex]] = [gameState.playerTeam[targetIndex], gameState.playerTeam[sourceIndex]];
+          clearSelection();
+        }
+      }
+    }
+    renderAll();
+  }
+
+  $('#roll-button').addEventListener('click', rollShop);
+  $('#end-turn-button').addEventListener('click', startBattle);
+  $('#restart-button').addEventListener('click', () => { $('#modal').classList.add('hidden'); initGame(); });
+  document.body.addEventListener('click', (e) => { if (e.target.tagName === 'BODY' || e.target.id === 'game-container') clearSelection(); });
+
+  initGame();
+</script>
+
+</body>
+</html>
+
