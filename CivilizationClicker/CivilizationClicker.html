@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문명 클리커 v7: 이미지 경로 수정</title>
+    <title>문명 클리커 v8: 버그 수정</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -149,7 +149,6 @@
                     </div>
                 </button>
             `;
-        elements.mainActionContainer.querySelector('button').onclick = (e) => mainActionClick(e);
     }
 
     function renderCardList(container, items, type) {
@@ -212,7 +211,7 @@
     function checkEraCompletion() {
         const currentEra = eras[gameState.currentEraIndex];
         if (currentEra && gameState.resourceCount >= currentEra.goal && !currentEra.completed) {
-            currentEra.completed = true; // Prevent multiple modal triggers
+            currentEra.completed = true;
             showModal('era');
         }
     }
@@ -235,13 +234,25 @@
     }
 
     function init() {
+        // *** BUG FIX: Using event delegation for reliable clicks ***
+        elements.mainActionContainer.addEventListener('click', (e) => {
+            const actionCard = e.target.closest('.action-card');
+            if (actionCard) {
+                mainActionClick(e);
+                actionCard.classList.add('active');
+                setTimeout(() => actionCard.classList.remove('active'), 100);
+            }
+        });
+
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && !e.repeat) {
                 e.preventDefault();
                 mainActionClick(e);
                 const actionCard = elements.mainActionContainer.querySelector('.action-card');
-                actionCard.classList.add('active');
-                setTimeout(() => actionCard.classList.remove('active'), 100);
+                if (actionCard) {
+                    actionCard.classList.add('active');
+                    setTimeout(() => actionCard.classList.remove('active'), 100);
+                }
             }
         });
 
