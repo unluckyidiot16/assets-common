@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>갯벌 서바이버 (타이틀 화면 & 버그 수정)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #333;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #game-container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #game-wrapper {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      transform-origin: top left;
+    }
+    canvas {
+      background-color: #d2c8b4;
+      display: block;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
+    }
+    .modal-backdrop {
+      background-color: rgba(0, 0, 0, 0.7);
+    }
+    .ui-element { pointer-events: all; }
+    .card {
+      background: #fff;
+      border: 2px solid #a89d86;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+<div id="game-container">
+  <div id="game-wrapper">
+    <!-- Game UI -->
+    <div id="ui" class="absolute top-0 left-0 p-4 text-gray-800 w-full h-full z-10 pointer-events-none hidden">
+      <div class="flex justify-between items-start">
+        <div class="p-2 bg-white/50 rounded-md">
+          <div id="level-display" class="font-bold text-xl">레벨: 1</div>
+          <div class="w-64 h-6 bg-gray-300 rounded-full mt-2 border border-gray-400">
+            <div id="hp-bar" class="h-full bg-red-500 rounded-full text-center text-white text-sm" style="width: 100%;"></div>
+          </div>
+          <div id="hp-text" class="text-sm font-semibold ml-2">40 / 40</div>
+        </div>
+        <div id="timer" class="text-4xl font-bold bg-white/50 px-4 py-2 rounded-lg shadow-lg">10:00</div>
+        <div class="flex flex-col items-end space-y-2">
+          <div id="coin-display" class="font-bold text-xl bg-white/50 px-3 py-1 rounded-md">코인: 0</div>
+          <div class="flex space-x-2">
+            <div id="weapon-ui" class="flex flex-col items-start p-2 bg-white/50 rounded-md"></div>
+            <div id="passive-ui" class="flex flex-col items-start p-2 bg-white/50 rounded-md"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <canvas id="gameCanvas" width="1280" height="720"></canvas>
+  </div>
+</div>
+
+<!-- Modals -->
+<div id="titleModal" class="absolute inset-0 z-40 flex flex-col items-center justify-center modal-backdrop">
+  <div class="text-center text-white">
+    <h1 class="text-8xl font-bold mb-4">갯벌 서바이버</h1>
+    <p class="text-2xl mb-12">작은 게의 위대한 생존기</p>
+    <button id="startGameBtn" class="ui-element bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-lg text-3xl transition-transform transform hover:scale-105">
+      게임 시작
+    </button>
+  </div>
+</div>
+
+<div id="levelUpModal" class="hidden absolute inset-0 z-20 items-center justify-center modal-backdrop">
+  <div class="bg-amber-100 p-8 rounded-lg shadow-2xl text-center">
+    <h2 class="text-3xl font-bold mb-6 text-amber-800">레벨 업! 능력을 선택하세요.</h2>
+    <div id="card-options" class="flex gap-6"></div>
+  </div>
+</div>
+
+<div id="gameOverModal" class="hidden absolute inset-0 z-30 flex-col items-center justify-center modal-backdrop">
+  <div class="bg-slate-200 p-12 rounded-lg shadow-2xl text-center">
+    <h2 id="gameOverTitle" class="text-5xl font-bold mb-4 text-slate-800">게임 오버</h2>
+    <p id="gameOverText" class="text-xl mb-8 text-slate-600">최종 스코어: 0</p>
+    <button id="restartGameBtn" class="ui-element bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-2xl transition-transform transform hover:scale-105">
+      다시 시작
+    </button>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const gameWrapper = document.getElementById('game-wrapper');
+
+  let gameState = 'title'; // 'title', 'playing', 'paused', 'gameOver'
+
+  const GLOBAL_SCALE = 2.0;
+
+  // --- UI Elements ---
+  const uiContainer = document.getElementById('ui');
+  const hpBar = document.getElementById('hp-bar'), hpText = document.getElementById('hp-text');
+  const levelDisplay = document.getElementById('level-display'), timerDisplay = document.getElementById('timer');
+  const coinDisplay = document.getElementById('coin-display'), titleModal = document.getElementById('titleModal');
+  const levelUpModal = document.getElementById('levelUpModal'), cardOptionsContainer = document.getElementById('card-options');
+  const gameOverModal = document.getElementById('gameOverModal'), gameOverTitle = document.getElementById('gameOverTitle'), gameOverText = document.getElementById('gameOverText');
+  const weaponUI = document.getElementById('weapon-ui'), passiveUI = document.getElementById('passive-ui');
+  const startGameBtn = document.getElementById('startGameBtn'), restartGameBtn = document.getElementById('restartGameBtn');
+
+  const imageCache = {};
+  const IMAGE_BASE_URL = "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/";
+  const EFFECT_BASE_URL = "https://unluckyidiot16.github.io/assets-common/MudSurvivor/";
+
+  function preloadImages() { /* ... preloading logic ... */
+    imageCache['player'] = new Image(); imageCache['player'].src = IMAGE_BASE_URL + "smallCrab.png";
+    Object.keys(ENEMY_CATALOG).forEach(key => { if (ENEMY_CATALOG[key].imgKey) { imageCache[key] = new Image(); imageCache[key].src = IMAGE_BASE_URL + ENEMY_CATALOG[key].imgKey + ".png"; } });
+    imageCache['sandpiper'] = new Image(); imageCache['sandpiper'].src = 'https://placehold.co/160x160/666666/FFFFFF?text=Bird';
+    imageCache['melee_effect'] = new Image(); imageCache['melee_effect'].src = EFFECT_BASE_URL + "slash.gif";
+    imageCache['player_hit_effect'] = new Image(); imageCache['player_hit_effect'].src = EFFECT_BASE_URL + "hit.gif";
+  }
+
+  // --- Game Database ---
+  const WEAPON_DB = { 'W01': { name: "집게 휘두르기", desc: "가까운 적에게 부채꼴 근접 공격", baseDmg: 18, cooldown: 600, range: 80 * GLOBAL_SCALE, angle: 90, type: 'melee' }, 'W02': { name: "모래 분사", desc: "전방으로 관통하는 모래알 발사", baseDmg: 12, cooldown: 500, projectileSpeed: 7, pierce: 1, type: 'ranged' } };
+  const PASSIVE_DB = { 'P01': { name: "껍질 강화", desc: "방어력 +2", effect: p => { p.defense += 2; } }, 'P02': { name: "촉각 예민", desc: "아이템 획득 범위 +20%", effect: p => { p.pickupRadius *= 1.2; } }, 'P03': { name: "삼켜진 공기", desc: "최대 HP +15%", effect: p => { p.maxHp *= 1.15; p.hp = p.maxHp; } }, 'P04': { name: "근력 성장", desc: "근접 피해 +15%", effect: p => { p.meleeDamageMultiplier += 0.15; } } };
+  const ENEMY_CATALOG = {
+    mudworm: { name: '갯지렁이', hp: 15, dmg: 3, spd: 2.3, size: 18 * GLOBAL_SCALE, xp: 1, imgKey: 'mudworm' },
+    mudSnail: { name: '갯벌 달팽이', hp: 35, dmg: 2, spd: 1.2, size: 22 * GLOBAL_SCALE, xp: 2, imgKey: 'mudSnail' },
+    bajirak: { name: '바지락', hp: 25, dmg: 3, spd: 2.0, size: 20 * GLOBAL_SCALE, xp: 2, imgKey: 'bajirak' },
+    mangdungeo: { name: '망둥어', hp: 28, dmg: 4, spd: 3.2, size: 20 * GLOBAL_SCALE, xp: 3, imgKey: 'mangdungeo' },
+    chilge: { name: '칠게', hp: 55, dmg: 6, spd: 2.6, size: 25 * GLOBAL_SCALE, xp: 5, imgKey: 'chilge' },
+    jjangddungeo: { name: '짱뚱어', hp: 65, dmg: 7, spd: 2.8, size: 26 * GLOBAL_SCALE, xp: 7, imgKey: 'jjangddungeo' },
+    nakji: { name: '낙지', hp: 90, dmg: 8, spd: 2.2, size: 30 * GLOBAL_SCALE, xp: 10, imgKey: 'nakji' }
+  };
+  const BOSS_CATALOG = { sandpiper: { hp: 6000, dmg: 40, spd: 2, size: 40 * GLOBAL_SCALE, xp: 1000 } };
+  const SPAWNER_CLIPS = [
+    { start: 0, end: 120, enemies: [{ type: "mudworm", every: 1.8, count: [4, 6] }] },
+    { start: 120, end: 240, enemies: [{ type: "mudworm", every: 2.5, count: [3, 5] }, { type: "mudSnail", every: 4.5, count: [1, 2] }] },
+    { start: 240, end: 420, enemies: [{ type: "mudSnail", every: 4.0, count: [2, 4] }, { type: "mangdungeo", every: 3.0, count: [3, 5] }, { type: "bajirak", every: 4.0, count: [2, 3] }] },
+    { start: 420, end: 540, enemies: [{ type: "chilge", every: 4.5, count: [2, 3] }, { type: "jjangddungeo", every: 5.5, count: [1, 2] }, { type: "mangdungeo", every: 2.5, count: [4, 6] }] },
+    { start: 540, end: 600, enemies: [{ type: "mudworm", every: 1.2, count: [8, 12] }, { type: "nakji", every: 6.0, count: [1,1] }] }
+  ];
+
+  let keys = {};
+  let player, enemies, projectiles, pickups, boss, effects;
+  let gameTime, lastSpawnTimes, camera;
+
+  function resizeGame() {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const scaleX = viewportWidth / canvas.width;
+    const scaleY = viewportHeight / canvas.height;
+    const scale = Math.min(scaleX, scaleY);
+    gameWrapper.style.transform = `scale(${scale})`;
+    gameWrapper.style.left = `${(viewportWidth - canvas.width * scale) / 2}px`;
+    gameWrapper.style.top = `${(viewportHeight - canvas.height * scale) / 2}px`;
+  }
+
+  function initGame() {
+    gameTime = 600 * 1000;
+    player = {
+      x: 0, y: 0, size: 20 * GLOBAL_SCALE, speed: 3.6 * 0.7,
+      hp: 40, maxHp: 40, defense: 0, meleeDamageMultiplier: 1.0,
+      level: 1, xp: 0, xpToNextLevel: 12, pickupRadius: 50 * GLOBAL_SCALE,
+      weapons: {}, passives: {}, growthStage: 1,
+      invincible: false, invincibleTimer: 0,
+    };
+    camera = { x: 0, y: 0 };
+    enemies = []; projectiles = []; pickups = []; effects = [];
+    boss = null; lastSpawnTimes = {};
+    addWeapon('W01');
+    updateUI();
+  }
+
+  function startGame() {
+    initGame();
+    gameState = 'playing';
+    titleModal.style.display = 'none';
+    gameOverModal.style.display = 'none';
+    uiContainer.classList.remove('hidden');
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+  }
+
+  function update(dt) {
+    let dx = 0, dy = 0;
+    if (keys['ArrowUp'] || keys['w']) dy -= 1; if (keys['ArrowDown'] || keys['s']) dy += 1;
+    if (keys['ArrowLeft'] || keys['a']) dx -= 1; if (keys['ArrowRight'] || keys['d']) dx += 1;
+    if (dx !== 0 || dy !== 0) {
+      const mag = Math.sqrt(dx * dx + dy * dy);
+      player.x += (dx / mag) * player.speed * (dt/16.67);
+      player.y += (dy / mag) * player.speed * (dt/16.67);
+    }
+    camera.x = player.x - canvas.width / 2;
+    camera.y = player.y - canvas.height / 2;
+    if (player.invincibleTimer > 0) { player.invincibleTimer -= dt; if (player.invincibleTimer <= 0) player.invincible = false; }
+
+    spawnEnemies();
+    Object.values(player.weapons).forEach(w => { w.timer -= dt; if (w.timer <= 0) { fireWeapon(w); w.timer = w.cooldown; } });
+
+    enemies.forEach(e => updateEnemy(e, dt));
+    if (boss) updateBoss(boss);
+    projectiles.forEach(p => updateProjectile(p, dt));
+    pickups.forEach(p => updatePickup(p));
+    effects = effects.filter(e => { e.duration -= dt; return e.duration > 0; });
+
+    checkCollisions();
+    gameTime -= dt; if (gameTime < 0) gameTime = 0;
+    if (gameTime <= 0 && !boss) winGame("시간까지 생존했습니다!");
+  }
+
+  function fireWeapon(weapon) {
+    const closestEnemy = findClosestEnemy(player.x, player.y);
+    if (!closestEnemy) return;
+    const angle = Math.atan2(closestEnemy.y - player.y, closestEnemy.x - player.x);
+
+    if (weapon.type === 'melee') {
+      enemies.forEach(enemy => {
+        const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+        if (dist < weapon.range) {
+          let angleDiff = Math.abs(angle - Math.atan2(enemy.y - player.y, enemy.x - player.x));
+          if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+          if (angleDiff < (weapon.angle * Math.PI / 180) / 2) {
+            enemyTakeDamage(enemy, weapon.baseDmg * player.meleeDamageMultiplier);
+          }
+        }
+      });
+      effects.push({
+        img: imageCache['melee_effect'], x: player.x, y: player.y,
+        angle: angle, size: weapon.range * 0.75,
+        duration: 300, weaponRange: weapon.range
+      });
+    } else if (weapon.type === 'ranged') { /* Ranged logic */ }
+  }
+
+  function playerTakeDamage(damage) {
+    if (player.invincible) return;
+    const actualDamage = Math.max(1, damage - player.defense);
+    player.hp -= actualDamage;
+    player.invincible = true; player.invincibleTimer = 500;
+    effects.push({ img: imageCache['player_hit_effect'], x: player.x, y: player.y, angle: 0, size: player.size * 0.75, duration: 250 });
+    if (player.hp <= 0) { player.hp = 0; loseGame(); }
+    updateUI();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(-camera.x, -camera.y);
+
+    drawGrid();
+
+    pickups.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); });
+    enemies.forEach(e => { const img = imageCache[e.type]; if (img?.complete) ctx.drawImage(img, e.x - e.size / 2, e.y - e.size / 2, e.size, e.size); });
+
+    if (player) {
+      const playerImg = imageCache['player'];
+      if (player.invincible) ctx.globalAlpha = Math.floor(player.invincibleTimer / 100) % 2 === 0 ? 0.5 : 1.0;
+      if (playerImg?.complete) ctx.drawImage(playerImg, player.x - player.size / 2, player.y - player.size / 2, player.size, player.size);
+      ctx.globalAlpha = 1.0;
+    }
+
+    effects.forEach(e => {
+      ctx.save();
+      ctx.translate(e.x, e.y);
+      ctx.rotate(e.angle);
+      const drawX = e.weaponRange ? (e.weaponRange / 9) : -e.size / 2; // Adjusted position (3x closer)
+      const drawY = -e.size / 2;
+      if(e.img?.complete) ctx.drawImage(e.img, drawX, drawY, e.size, e.size);
+      ctx.restore();
+    });
+
+    ctx.restore();
+  }
+
+  function loseGame() {
+    gameState = 'gameOver';
+    gameOverTitle.textContent = "게임 오버";
+    const score = player.level * 100 + (player.coins || 0) * 10 + Math.floor((600000 - gameTime) / 1000);
+    gameOverText.textContent = `생존 시간: ${Math.floor((600000 - gameTime) / 1000)}초. 최종 점수: ${score}`;
+    gameOverModal.style.display = 'flex';
+  }
+  function winGame(message) {
+    if (gameState === 'gameOver') return;
+    gameState = 'gameOver';
+    gameOverTitle.textContent = "승리!";
+    const score = player.level * 1000 + (player.coins || 0) * 50 + player.hp * 10;
+    gameOverText.textContent = `${message} 최종 점수: ${score}`;
+    gameOverModal.style.display = 'flex';
+    boss = null;
+  }
+
+  let lastTime = 0;
+  function gameLoop(timestamp) {
+    if (gameState === 'title' || gameState === 'gameOver') return;
+
+    if (!lastTime) lastTime = timestamp;
+    const dt = timestamp - lastTime;
+    lastTime = timestamp;
+
+    if (gameState === 'playing') {
+      update(dt);
+      updateUI();
+    }
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  function levelUp() {
+    gameState = 'paused';
+    player.level++; player.xp -= player.xpToNextLevel;
+    player.xpToNextLevel = Math.floor(player.xpToNextLevel * 1.3 + 10);
+    if (player.level === 5 && player.growthStage === 1) { player.growthStage = 2; player.size *= 1.2; player.speed *= 0.9; player.maxHp *= 1.5; player.hp = player.maxHp; player.invincible = true; player.invincibleTimer = 1500; }
+    if (player.level === 10 && player.growthStage === 2) { player.growthStage = 3; player.size *= 1.2; player.speed *= 0.9; player.maxHp *= 2; player.hp = player.maxHp; player.invincible = true; player.invincibleTimer = 1500; }
+    showLevelUpOptions();
+    updateUI();
+  }
+  function selectUpgrade(id) {
+    if (WEAPON_DB[id]) { if (player.weapons[id]) { player.weapons[id].baseDmg *= 1.15; player.weapons[id].level++; } else addWeapon(id); }
+    else if (PASSIVE_DB[id]) { if (player.passives[id]) player.passives[id].level++; else player.passives[id] = { id, name: PASSIVE_DB[id].name, level: 1 }; PASSIVE_DB[id].effect(player); }
+    levelUpModal.style.display = 'none';
+    gameState = 'playing';
+    updateUI();
+  }
+
+  // --- Event Listeners and Init ---
+  startGameBtn.addEventListener('click', startGame);
+  restartGameBtn.addEventListener('click', startGame);
+  window.addEventListener('keydown', e => keys[e.key] = true);
+  window.addEventListener('keyup', e => keys[e.key] = false);
+  window.addEventListener('resize', resizeGame);
+
+  // Initial setup
+  preloadImages();
+  initGame(); // Initialize game variables for the first draw
+  resizeGame();
+  draw(); // Draw initial empty state
+
+  // --- Simplified helper functions for brevity ---
+  function drawGrid() {
+    if (!camera) return;
+    ctx.strokeStyle = "#c0b4a0";
+    ctx.lineWidth = 2;
+    const gridSize = 200;
+    const startX = Math.floor(camera.x / gridSize) * gridSize;
+    const startY = Math.floor(camera.y / gridSize) * gridSize;
+
+    for (let x = startX; x < camera.x + canvas.width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, camera.y);
+      ctx.lineTo(x, camera.y + canvas.height);
+      ctx.stroke();
+    }
+    for (let y = startY; y < camera.y + canvas.height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(camera.x, y);
+      ctx.lineTo(camera.x + canvas.width, y);
+      ctx.stroke();
+    }
+  }
+  function updateEnemy(e, dt) { const a = Math.atan2(player.y - e.y, player.x - e.x); e.x += Math.cos(a) * e.speed * (dt/16.67); e.y += Math.sin(a) * e.speed * (dt/16.67); const m=200, lB=camera.x-m, rB=camera.x+canvas.width+m, tB=camera.y-m, bB=camera.y+canvas.height+m; if(e.x<lB)e.x=rB; else if(e.x>rB)e.x=lB; if(e.y<tB)e.y=bB; else if(e.y>bB)e.y=tB;}
+  function spawnEnemies() { const s=(600000-gameTime)/1000; if(s>=540&&!boss){/*...*/} const cC=SPAWNER_CLIPS.find(c=>s>=c.start&&s<c.end); if(!cC)return; const dM=1+(s/60)*0.08; cC.enemies.forEach(sI=>{if(!lastSpawnTimes[sI.type])lastSpawnTimes[sI.type]=0; if(s-lastSpawnTimes[sI.type]>sI.every){lastSpawnTimes[sI.type]=s; const n=Math.floor(Math.random()*(sI.count[1]-sI.count[0]+1))+sI.count[0]; for(let i=0;i<n;i++){if(enemies.length>150)break; const a=Math.random()*Math.PI*2, r=Math.max(canvas.width/2,canvas.height/2)+100; const x=player.x+Math.cos(a)*r, y=player.y+Math.sin(a)*r; const eD=ENEMY_CATALOG[sI.type]; enemies.push({...eD,x,y,hp:eD.hp*dM,speed:eD.spd*(1+(s/60)*0.02),id:Math.random(),type:sI.type});}}});}
+  function updateUI() {hpBar.style.width=`${(player.hp/player.maxHp)*100}%`; hpText.textContent=`${Math.ceil(player.hp)} / ${Math.ceil(player.maxHp)}`; levelDisplay.innerHTML=`레벨: ${player.level} <span class="text-sm">(${player.xp}/${player.xpToNextLevel} XP)</span>`; const m=Math.floor(gameTime/60000), s=Math.floor((gameTime%60000)/1000); timerDisplay.textContent=`${m}:${s.toString().padStart(2,'0')}`; coinDisplay.textContent=`코인: ${player.coins||0}`; weaponUI.innerHTML='<h4 class="font-bold">무기</h4>'+Object.values(player.weapons).map(w=>`<div>${w.name} Lv.${w.level}</div>`).join(''); passiveUI.innerHTML='<h4 class="font-bold">패시브</h4>'+Object.values(player.passives).map(p=>`<div>${p.name} Lv.${p.level}</div>`).join('');}
+  function updateProjectile(p, dt) { p.x += Math.cos(p.angle) * p.speed * (dt/16.67); p.y += Math.sin(p.angle) * p.speed * (dt/16.67); p.lived += dt; }
+  function updatePickup(p) { if(Math.hypot(p.x-player.x, p.y-player.y) < player.pickupRadius) { const a = Math.atan2(player.y-p.y, player.x-p.x); p.x+=Math.cos(a)*8; p.y+=Math.sin(a)*8; } }
+  function findClosestEnemy(x,y) { let c=null, dI=Infinity;[...enemies, boss].filter(Boolean).forEach(e=>{const d=Math.hypot(x-e.x,y-e.y);if(d<dI){dI=d;c=e;}});return c; }
+  function checkCollisions() { projectiles = projectiles.filter(p => { let canLive = p.pierce > p.hitEnemies.length && p.lived < 2000; enemies.forEach(e => { if (!p.hitEnemies.includes(e.id) && Math.hypot(p.x - e.x, p.y - e.y) < (p.size + e.size)/2) { enemyTakeDamage(e, p.damage); p.hitEnemies.push(e.id); if (p.hitEnemies.length >= p.pierce) canLive = false; } }); if (boss && !p.hitEnemies.includes('boss') && Math.hypot(p.x-boss.x, p.y-boss.y) < (p.size+boss.size)/2) { bossTakeDamage(p.damage); p.hitEnemies.push('boss'); if(p.hitEnemies.length >= p.pierce) canLive = false; } return canLive; }); enemies.forEach(e => { if(Math.hypot(player.x-e.x, player.y-e.y) < (player.size+e.size)/2) playerTakeDamage(e.dmg); }); pickups = pickups.filter(p => { if(Math.hypot(player.x-p.x, player.y-p.y) < (player.size/2+p.size)) { collectPickup(p); return false; } return true; }); }
+  function enemyTakeDamage(e,d) { e.hp -= d; if(e.hp<=0){ createPickups(e); enemies=enemies.filter(i=>i.id!==e.id); }}
+  function bossTakeDamage(d) { if(!boss) return; boss.hp -= d; if(!boss.enraged&&boss.hp<=BOSS_CATALOG.sandpiper.hp/2) boss.enraged=true; if(boss.hp<=0){ createPickups(boss,true); winGame("보스를 처치했습니다!"); }}
+  function createPickups(e,isBoss=false) { const n=isBoss?20:1; for(let i=0;i<n;i++){ const r=Math.random(), o=(r-0.5)*20*GLOBAL_SCALE; if(r<0.8)pickups.push({x:e.x+o,y:e.y+o,type:'xp',value:e.xp,size:4*GLOBAL_SCALE,color:'#90ee90'}); else if(r<0.9)pickups.push({x:e.x+o,y:e.y+o,type:'coin',value:1,size:6*GLOBAL_SCALE,color:'#ffd700'}); else pickups.push({x:e.x+o,y:e.y+o,type:'health',value:5,size:7*GLOBAL_SCALE,color:'#add8e6'}); }}
+  function collectPickup(p) { if(p.type==='xp'){player.xp+=p.value;if(player.xp>=player.xpToNextLevel)levelUp();}else if(p.type==='coin')player.coins=(player.coins||0)+p.value;else if(p.type==='health')player.hp=Math.min(player.maxHp,player.hp+p.value); updateUI(); }
+  function showLevelUpOptions() { cardOptionsContainer.innerHTML=''; const o=getLevelUpChoices(3); o.forEach(opt=>{const c=document.createElement('div');c.className='card ui-element w-60 h-80 p-4 rounded-lg cursor-pointer flex flex-col justify-center text-center';c.innerHTML=`<h3 class="text-xl font-bold mb-2">${opt.name}</h3><p class="text-gray-600">${opt.desc}</p>`;c.onclick=()=>selectUpgrade(opt.id);cardOptionsContainer.appendChild(c);}); levelUpModal.style.display='flex'; }
+  function getLevelUpChoices(n) { const aW=Object.keys(WEAPON_DB).filter(w=>!player.weapons[w]),aP=Object.keys(PASSIVE_DB).filter(p=>!player.passives[p]||player.passives[p].level<5);let pool=[...Object.values(player.weapons).map(w=>({...w,upgrade:true})),...aW.map(id=>({id,...WEAPON_DB[id]})),...aP.map(id=>({id,...PASSIVE_DB[id]}))]; pool.sort(()=>0.5-Math.random()); return pool.slice(0,n); }
+  function addWeapon(id) { if(Object.keys(player.weapons).length>=6)return;player.weapons[id]={id,...WEAPON_DB[id],timer:WEAPON_DB[id].cooldown,level:1}; }
+  function updateBoss(b) { /* ... */ }
+</script>
+</body>
+</html>
+
