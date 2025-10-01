@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인생 시뮬레이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        .stat-bar-fill {
+            transition: width 0.5s ease-in-out;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .fade-out {
+            animation: fadeOut 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+        .toast {
+            animation: toast-in-out 3s ease-in-out forwards;
+        }
+        @keyframes toast-in-out {
+            0% { transform: translateY(100%); opacity: 0; }
+            15% { transform: translateY(0); opacity: 1; }
+            85% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+        #roulette-display {
+            transition: transform 0.1s ease-out;
+        }
+        .dice-final {
+            animation: pop-in 0.3s ease-out;
+        }
+        @keyframes pop-in {
+            0% { transform: scale(0.8); opacity: 0; }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .info-btn {
+            background: none;
+            border: none;
+            padding: 0 4px;
+            cursor: pointer;
+            color: #3b82f6; /* text-blue-500 */
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .info-btn:hover {
+            color: #1d4ed8; /* text-blue-700 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+<div id="game-container" class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6 relative overflow-hidden" style="height: 90vh; max-height: 800px;">
+
+    <!-- Stats Header -->
+    <div id="stats-header" class="mb-4 space-y-3 hidden">
+        <div class="flex justify-between items-center text-sm font-bold text-gray-600">
+            <span id="stage-display"></span>
+            <span id="event-counter"></span>
+        </div>
+        <!-- HP -->
+        <div class="stat-item">
+            <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-red-500"><i class="fas fa-heart mr-2"></i>[i]체력[/i]</span>
+                <span id="hp-value" class="font-bold text-red-500">10 / 10</span>
+            </div>
+            <div class="w-full bg-red-100 rounded-full h-3">
+                <div id="hp-bar" class="bg-red-500 h-3 rounded-full stat-bar-fill" style="width: 100%"></div>
+            </div>
+        </div>
+        <!-- MP -->
+        <div class="stat-item">
+            <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-blue-500"><i class="fas fa-brain mr-2"></i>[i]정신력[/i]</span>
+                <span id="mp-value" class="font-bold text-blue-500">10 / 10</span>
+            </div>
+            <div class="w-full bg-blue-100 rounded-full h-3">
+                <div id="mp-bar" class="bg-blue-500 h-3 rounded-full stat-bar-fill" style="width: 100%"></div>
+            </div>
+        </div>
+        <!-- Cash -->
+        <div class="stat-item">
+            <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-green-500"><i class="fas fa-coins mr-2"></i>[i]자산[/i]</span>
+                <span id="cash-value" class="font-bold text-green-500">10</span>
+            </div>
+            <div class="w-full bg-green-100 rounded-full h-3">
+                <div id="cash-bar" class="bg-green-500 h-3 rounded-full stat-bar-fill" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Card Area -->
+    <div id="event-area" class="flex flex-col justify-between hidden" style="height: calc(100% - 160px);">
+        <div id="event-card" class="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center flex flex-col items-center justify-center flex-grow mb-4 fade-in">
+            <h2 id="event-title" class="text-2xl font-bold mb-3 text-gray-800"></h2>
+            <p id="event-text" class="text-gray-600"></p>
+        </div>
+        <div id="choices-container" class="space-y-3">
+            <!-- Choice buttons will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Modal Screens -->
+    <div id="modal-backdrop" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-10 hidden">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm text-center fade-in">
+            <!-- Content will be injected here -->
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-container" class="absolute bottom-6 left-1/2 -translate-x-1/2 w-11/12 max-w-sm z-20 pointer-events-none">
+    </div>
+
+</div>
+
+<script>
+    const termInfo = {
+        "체력": "몸이 얼마나 튼튼한지를 보여줘요. 체력이 높으면 힘이 넘치고 건강해요!",
+        "정신력": "마음이 얼마나 힘이 센지를 보여줘요. 정신력이 높으면 슬프거나 화나는 일을 잘 이겨낼 수 있어요.",
+        "자산": "내가 가진 돈이나 물건을 말해요. 자산이 많으면 원하는 걸 살 수 있는 부자예요!",
+        "재능": "다른 친구들보다 특별히 잘하는 것을 말해요. 노래나 그림, 운동 같은 나만의 멋진 능력이에요!",
+        "공모전": "주제를 정해놓고 그림, 글, 발명품 같은 멋진 작품을 만들어서 서로 겨루는 대회예요. 1등 하면 상을 받아요!",
+        "이직": "지금 다니는 회사를 그만두고, 다른 새로운 회사에 들어가는 것을 말해요.",
+        "투자": "돈을 더 많이 벌기 위해 사업이나 물건에 내 돈을 쓰는 거예요. 성공하면 큰 부자가 될 수 있지만, 실패하면 돈을 잃을 수도 있어요!",
+        "페널티": "규칙을 어기거나 실패했을 때 받는 벌칙이에요. 게임에서 점수가 깎이는 것과 같아요.",
+        "인생 코인": "게임을 끝낼 때마다 얻는 아주 특별한 동전이에요. 이걸 사용하면 주사위를 다시 굴리거나, 처음 환경을 바꾸거나, 게임오버 직전 마지막 기회를 얻을 수 있어요!",
+        "포트폴리오": "내가 얼마나 잘하는지 보여주기 위해 그동안 만들었던 작품이나 상장을 모아놓은 것을 말해요. 그림 모음집이나 스크랩북 같은 거예요."
+    };
+
+    const gameData = {
+        "meta": { "version": "0.3", "language": "ko", "stages": [1, 2, 3, 4, 5, 6, 7], "game_over_zero": ["HP", "MP", "Cash"]},
+        "backgrounds": [
+            {"id": "BG_CITY", "name": "바쁜 도시의 가정", "hp": 7, "mp": 6, "cash": 6},
+            {"id": "BG_RURAL", "name": "활기찬 시골 마을", "hp": 8, "mp": 5, "cash": 5},
+            {"id": "BG_SINGLE", "name": "따뜻한 한부모 가정", "hp": 6, "mp": 7, "cash": 4},
+            {"id": "BG_GRAND", "name": "사랑이 넘치는 조손 가정", "hp": 7, "mp": 5, "cash": 5},
+            {"id": "BG_IMMIG", "name": "도전하는 이주 가정", "hp": 6, "mp": 6, "cash": 6},
+            {"id": "BG_ELDEST", "name": "책임감 강한 맏이", "hp": 7, "mp": 6, "cash": 5},
+            {"id": "BG_ART", "name": "창의적인 예술가 가정", "hp": 6, "mp": 7, "cash": 5},
+            {"id": "BG_BIZ", "name": "성실한 자영업 가정", "hp": 7, "mp": 6, "cash": 6}
+        ],
+        "talents": [
+            {"id": "T_MUSICAL", "name": "노래 부르기"}, {"id": "T_SPATIAL", "name": "길 찾기"}, {"id": "T_PATTERN", "name": "규칙 찾기"}, {"id": "T_HANDS", "name": "손재주"}, {"id": "T_LING", "name": "말하기"}, {"id": "T_CARE", "name": "마음 헤아리기"}, {"id": "T_ATH", "name": "달리기"}, {"id": "T_NEGOT", "name": "설득하기"}, {"id": "T_LEAD", "name": "친구들 이끌기"}, {"id": "T_FOCUS", "name": "집중하기"}, {"id": "T_CREAT", "name": "상상하기"}, {"id": "T_ECO", "name": "식물 키우기"}
+        ],
+        "events": [
+            {"id":"S1_01_HOBBY_KIT","stage":1,"title":"장난감 조립 시간","text":"블록이나 장난감을 조립하는 걸 좋아해요.","choices":[{"label":"끝까지 완성할래!","effects":{"HP":-1,"MP":2,"Cash":0},"discover":{"chance":0.25,"grant":["T_PATTERN","T_HANDS"]}},{"label":"음... 좀 어려운걸.","effects":{"HP":0,"MP":1,"Cash":0}}]},
+            {"id":"S1_04_SPORTS_DAY","stage":1,"title":"유치원 달리기 시합","text":"친구들과 함께 달리기 시합을 해요!","choices":[{"label":"내가 1등 할 거야!","effects":{"HP":-1,"MP":1,"Cash":0},"discover":{"chance":0.2,"grant":["T_ATH"]}},{"label":"열심히 응원할래!","effects":{"HP":0,"MP":1,"Cash":0},"discover":{"chance":0.1,"grant":["T_LEAD"]}}]},
+            {"id":"S1_09_ART_DAY", "stage":1, "title":"그림 그리기 날", "text":"크레용과 물감으로 상상 속 세계를 그려요.", "choices":[{ "label":"큰 종이에 마음껏!", "effects":{HP:0, MP:2, Cash:0}, "discover":{chance:0.25, grant:["T_CREAT","T_HANDS"]} },{ "label":"색칠놀이", "effects":{HP:0, MP:1, Cash:0} }]},
+            {"id":"S1_11_PLANT", "stage":1, "title":"우리 반의 화분", "text":"물을 주고 햇빛을 보여줘요.", "choices":[{ "label":"꾸준히 돌보기", "effects":{HP:0, MP:1, Cash:0}, "discover":{chance:0.2, grant:["T_ECO","T_FOCUS"]} },{ "label":"가끔 잊어버려요", "effects":{HP:0, MP:-1, Cash:0} }]},
+            {"id":"S1_13_STORYTELL", "stage":1, "title":"이야기 만들기", "text":"친구들 앞에서 짧은 이야기를 들려줘요.", "choices":[{ "label":"내가 만든 이야기 들려주기", "effects":{HP:-1, MP:2, Cash:0}, "discover":{chance:0.2, grant:["T_LING","T_LEAD"]} },{ "label":"그림책 읽어주기", "effects":{HP:0, MP:1, Cash:0} }]},
+            {"id":"S2_02_APP_CONTEST","stage":2,"title":"나만의 앱 만들기 [i]공모전[/i]","text":"친구들과 한 팀이 되어 멋진 스마트폰 앱을 만들어서 대회에 내봐요!","choices":[{"label":"밤새워서라도 꼭 완성할 거야!","skill_check": {"dc": 12, "talents": ["T_PATTERN", "T_FOCUS"], "success": {"text": "우와! 우리가 만든 앱이 상을 탔어요! 정말 뿌듯해요.", "effects": {"HP": -2, "MP": 3, "Cash": 2}, "discover": {"chance": 0.5, "grant": ["T_PATTERN", "T_FOCUS"]}, "flags_set": ["PORTFOLIO_SUCCESS"]}, "failure": {"text": "아쉽다... 상은 못 탔지만, 친구들과 함께해서 즐거웠어.", "effects": {"HP": -2, "MP": -1, "Cash": 0}}}},{"label":"구경하면서 배울래.","effects":{"HP":0,"MP":1,"Cash":0}}]},
+            {"id":"S2_09_PRESENT", "stage":2, "title":"교내 발표", "text":"팀 프로젝트를 발표해요.", "choices":[{ "label":"내가 발표", "skill_check":{ "dc":11, "talents":["T_LING","T_LEAD"], "success":{ "text":"발표 대성공! 자신감이 생겼다.", "effects":{HP:-1, MP:2, Cash:1}, "flags_set":["SPEECH_GOOD"] }, "failure":{ "text":"긴장했지만 마무리는 했다.", "effects":{HP:-1, MP:0, Cash:0} } } },{ "label":"자료 조사", "effects":{HP:-1, MP:2, Cash:0}, "discover":{chance:0.2, grant:["T_CREAT","T_FOCUS"]} }]},
+            {"id":"S2_11_SPORTS_CLUB", "stage":2, "title":"방과 후 축구", "text":"친구들과 팀을 만들어 공을 차요.", "choices":[{ "label":"주전 선수로 뛸래", "effects":{HP:-1, MP:1, Cash:0}, "discover":{chance:0.25, grant:["T_ATH","T_LEAD"]} },{ "label":"매니저/기록 담당", "effects":{HP:0, MP:1, Cash:0} }]},
+            {"id":"S2_13_CONTENT", "stage":2, "title":"나만의 영상 만들기", "text":"재미있는 영상을 만들어봐요.", "choices":[{ "label":"꾸준히 업로드", "effects":{HP:-1, MP:2, Cash:1}, "discover":{chance:0.25, grant:["T_CREAT","T_FOCUS"]} },{ "label":"아이디어 스케치", "effects":{HP:0, MP:1, Cash:0} }]},
+            {"id":"S2_14_HEALTHY", "stage":2, "title":"생활 습관", "text":"일찍 자기 vs 밤에 놀기.", "choices":[{ "label":"일찍 자고 일찍 일어나기", "effects":{HP:+2, MP:+1, Cash:0} },{ "label":"밤에 더 놀고 싶어", "effects":{HP:-1, MP:-1, Cash:0} }]},
+            {"id":"S3_01_CLUB", "stage":3, "title":"동아리 활동", "text":"어떤 동아리에 가입할까?", "choices":[{"label":"댄스 동아리", "effects":{HP:-1, MP:1, Cash:-1}, "discover":{chance:0.2, grant:["T_ATH", "T_MUSICAL"]}}, {"label":"코딩 동아리", "effects":{HP:0, MP:2, Cash:-1}, "discover":{chance:0.2, grant:["T_PATTERN", "T_FOCUS"]}}]},
+            {"id":"S3_02_FIRST_CRUSH", "stage":3, "title":"첫사랑", "text":"자꾸만 눈길이 가는 친구가 생겼다.", "choices":[{"label":"용기 내서 말 걸어보기", "effects":{HP:0, MP:2, Cash:0}}, {"label":"멀리서 바라만 본다", "effects":{HP:0, MP:-1, Cash:0}}]},
+            {"id":"S3_03_PART_TIME", "stage":3, "title":"첫 아르바이트", "text":"용돈을 벌기 위해 아르바이트를 시작했다.", "choices":[{"label":"편의점 알바", "effects":{HP:-1, MP:0, Cash:2}, "discover":{chance:0.15, grant:["T_NEGOT"]}}, {"label":"전단지 돌리기", "effects":{HP:-2, MP:0, Cash:2}}]},
+            {"id":"S3_04_EXAM_PRESSURE", "stage":3, "title":"시험 스트레스", "text":"중요한 시험이 다가와서 마음이 불안하다.", "choices":[{"label":"친구랑 같이 공부하기", "effects":{HP:-1, MP:1, Cash:0}}, {"label":"혼자 밤새서 공부하기", "effects":{HP:-2, MP:1, Cash:0}}]},
+            {"id":"S3_05_CAREER_WORRY", "stage":3, "title":"진로 고민", "text":"앞으로 뭐가 되고 싶은지 잘 모르겠다.", "choices":[{"label":"선생님과 상담하기", "effects":{HP:0, MP:2, Cash:0}}, {"label":"일단 성적부터 올리자", "effects":{HP:-1, MP:1, Cash:0}}]},
+            {"id":"S4_01_MAJOR", "stage":4, "title":"전공 선택", "text":"어떤 공부를 깊게 해볼까?", "choices":[{"label":"돈 잘 버는 학과", "effects":{HP:-1, MP:0, Cash:1}}, {"label":"내가 좋아하는 학과", "effects":{HP:0, MP:2, Cash:0}}]},
+            {"id":"S4_02_TEAM_PROJECT", "stage":4, "title":"팀 프로젝트 갈등", "text":"팀원들이 과제를 잘 안 하는 것 같다.", "choices":[{"label":"내가 총대 메고 이끌기", "effects":{HP:-1, MP:1, Cash:0}, "discover":{chance:0.2, grant:["T_LEAD"]}}, {"label":"내 할 일만 잘하자", "effects":{HP:0, MP:0, Cash:0}}]},
+            {"id":"S4_03_CAMPUS_LIFE", "stage":4, "title":"캠퍼스 생활", "text":"수업 끝나고 뭐할까?", "choices":[{"label":"동아리 친구들과 놀기", "effects":{HP:1, MP:1, Cash:-1}}, {"label":"도서관에서 공부하기", "effects":{HP:0, MP:1, Cash:0}}]},
+            {"id":"S4_04_TUITION", "stage":4, "title":"학자금 걱정", "text":"다음 학기 등록금이 부족하다.", "choices":[{"label":"학자금 대출 알아보기", "effects":{HP:0, MP:-1, Cash:0}}, {"label":"아르바이트 늘리기", "effects":{HP:-2, MP:0, Cash:2}}]},
+            {"id":"S4_05_LIVING_ALONE", "stage":4, "title":"자취 시작", "text":"집을 떠나 혼자 살게 되었다.", "choices":[{"label":"자유를 만끽하자!", "effects":{HP:1, MP:1, Cash:-1}}, {"label":"생활비 아끼며 살기", "effects":{HP:0, MP:0, Cash:1}}]},
+            {"id":"S5_01_RESUME", "stage":5, "title":"이력서 쓰기", "text":"나를 멋지게 소개하는 글을 써야 한다.", "choices":[{"label":"밤새워 완벽하게 쓰기", "effects":{HP:-1, MP:1, Cash:0}}, {"label":"합격한 선배에게 조언 구하기", "effects":{HP:0, MP:2, Cash:0}}]},
+            {"id":"S5_02_INTERVIEW_FAIL", "stage":5, "title":"면접 탈락", "text":"가고 싶던 회사 면접에서 떨어졌다. 너무 속상하다.", "choices":[{"label":"좌절하지 않고 다른 회사 지원", "effects":{HP:0, MP:1, Cash:0}}, {"label":"친구 만나서 기분 풀기", "effects":{HP:1, MP:1, Cash:-1}}]},
+            {"id":"S5_03_CERTIFICATE", "stage":5, "title":"자격증 공부", "text":"취업에 도움이 되는 자격증을 따는 게 좋겠다.", "choices":[{"label":"독서실 끊고 집중!", "effects":{HP:-1, MP:1, Cash:-1}}, {"label":"인터넷 강의로 독학", "effects":{HP:0, MP:1, Cash:0}}]},
+            {"id":"S5_04_INTERN", "stage":5, "title":"인턴 합격!", "text":"드디어 회사 생활을 경험해볼 기회가 생겼다!", "choices":[{"label":"하나라도 더 배우자", "effects":{HP:-1, MP:1, Cash:1}}, {"label":"실수하지 않게 조심하자", "effects":{HP:0, MP:0, Cash:1}}]},
+            {"id":"S5_05_JOB_FAIR", "stage":5, "title":"취업 박람회", "text":"여러 회사 정보를 얻을 수 있는 좋은 기회다.", "choices":[{"label":"관심 회사 부스 방문하기", "effects":{HP:-1, MP:1, Cash:0}}, {"label":"피곤하니까 그냥 집에 가기", "effects":{HP:1, MP:-1, Cash:0}}]},
+            {"id":"S6_03_SWITCH","stage":6,"title":"새로운 회사에서 오라고 해요","text":"지금 회사보다 돈을 더 많이 주는 곳에서 같이 일하자고 해요! 어떡할까요?","choices":[{"label":"좋아! 새로운 곳으로 가볼래! ([i]이직[/i])","skill_check": {"dc": 11, "talents": ["T_NEGOT", "T_LING"], "success": {"text": "새로운 회사가 나랑 잘 맞나 봐요! 일도 재밌고 돈도 더 많이 벌었어요.", "effects": {"HP": -1, "MP": 2, "Cash": 3}}, "failure": {"text": "힝... 새 회사는 너무 힘들어. 괜히 옮겼나 봐.", "effects": {"HP": -1, "MP": -2, "Cash": 1}}}},{"label":"아니야, 지금 회사가 좋아.","effects":{"HP":0,"MP":0,"Cash":0}}]},
+            {"id":"S6_09_OKR", "stage":6, "title":"첫 업무 목표", "text":"회사에서 처음으로 나만의 목표가 생겼다.", "choices":[{ "label":"최고의 성과를 내겠어!", "effects":{HP:-1, MP:+2, Cash:+1} }, { "label":"실수 없이 차근차근", "effects":{HP:0, MP:+1, Cash:0} }]},
+            {"id":"S6_10_CUSTOMER", "stage":6, "title":"첫 고객 불만", "text":"고객이 화가 많이 났다. 어떻게 대응해야 할까?", "choices":[{ "label":"마음을 헤아리며 해결책 제시", "effects":{HP:-1, MP:+1, Cash:0}, "discover":{chance:0.2, grant:["T_CARE"]} }, { "label":"규정대로 처리하겠습니다", "effects":{HP:0, MP:0, Cash:+1} }]},
+            {"id":"S6_12_OPEN_SOURCE", "stage":6, "title":"업무 외 공부", "text":"실력을 키우기 위해 퇴근 후에도 공부를 한다.", "choices":[{ "label":"스터디 그룹 참여", "effects":{HP:-1, MP:+1, Cash:0} }, { "label":"유명한 개발자 코드 보기", "effects":{HP:0, MP:+2, Cash:0}, "discover":{chance:0.25, grant:["T_PATTERN","T_FOCUS"]} }]},
+            {"id":"S6_14_NIGHT_SHIFT", "stage":6, "title":"잦은 야근", "text":"일이 너무 많아서 자꾸 집에 늦게 간다.", "choices":[{ "label":"건강 챙기며 일하기", "effects":{HP:-1, MP:+1, Cash:+1} }, { "label":"젊을 때 고생은 사서 한다!", "effects":{HP:-2, MP:-1, Cash:+1} }]},
+            {"id":"S7_02_SIDE_BIZ","stage":7,"title":"나만의 가게를 열어볼까?","text":"회사를 다니면서 작은 가게를 열거나 [i]투자[/i]를 해서 돈을 더 벌어보고 싶어요.","choices":[{"label":"작게 시작해볼까?","effects":{"HP":-1,"MP":1,"Cash":1}},{"label":"크게 [i]투자[/i]해서 대박나자!","skill_check": {"dc": 13, "talents": ["T_NEGOT", "T_LEAD"], "success": {"text": "용감한 [i]투자[/i]가 성공했어요! 엄청난 부자가 되었어요!", "effects": {"HP": -1, "MP": 1, "Cash": 4}}, "failure": {"text": "[i]투자[/i]가 실패해서 돈을 많이 잃었어요... 너무 슬퍼요.", "effects": {"HP": -1, "MP": -1, "Cash": -3}}}}]},
+            {"id":"S7_09_TRIP", "stage":7, "title":"가족 여행", "text":"사랑하는 가족과 함께 휴식을 즐겨요.", "choices":[{ "label":"아껴서 다녀오기", "effects":{HP:+1, MP:+2, Cash:-1} }, { "label":"최고급 호텔로!", "effects":{HP:+2, MP:+2, Cash:-2} }]},
+            {"id":"S7_10_COMM_LEAD", "stage":7, "title":"동네 봉사활동", "text":"우리 동네를 위해 좋은 일을 하고 싶어요.", "choices":[{ "label":"봉사 동호회 만들기", "effects":{HP:-1, MP:+2, Cash:0}, "discover":{chance:0.25, grant:["T_LEAD","T_CARE"]} }, { "label":"가끔 참여하기", "effects":{HP:0, MP:+1, Cash:0} }]},
+            {"id":"S7_12_HEALTH_COACH", "stage":7, "title":"건강 관리", "text":"예전같지 않은 몸, 관리가 필요하다.", "choices":[{ "label":"운동과 식단 시작", "effects":{HP:+2, MP:+1, Cash:-1} }, { "label":"아직은 괜찮아", "effects":{HP:-1, MP:0, Cash:0} }]},
+            {"id":"S7_13_SECOND_MAJOR", "stage":7, "title":"새로운 취미", "text":"어렸을 때 배우고 싶었던 것을 시작해본다.", "choices":[{ "label":"악기 배우기", "effects":{HP:-1, MP:+2, Cash:-1}, "discover":{chance:0.1, grant:["T_MUSICAL"]}}, { "label":"그림 그리기", "effects":{HP:0, MP:+1, Cash:-1}, "discover":{chance:0.1, grant:["T_CREAT"]} }]}
+        ]
+    };
+
+    // DOM Elements
+    const statsHeader = document.getElementById('stats-header');
+    const eventArea = document.getElementById('event-area');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalContent = document.getElementById('modal-content');
+    const toastContainer = document.getElementById('toast-container');
+    const stageDisplay = document.getElementById('stage-display');
+    const eventCounter = document.getElementById('event-counter');
+    const hpValue = document.getElementById('hp-value');
+    const hpBar = document.getElementById('hp-bar');
+    const mpValue = document.getElementById('mp-value');
+    const mpBar = document.getElementById('mp-bar');
+    const cashValue = document.getElementById('cash-value');
+    const cashBar = document.getElementById('cash-bar');
+    const eventCard = document.getElementById('event-card');
+    const eventTitle = document.getElementById('event-title');
+    const eventText = document.getElementById('event-text');
+    const choicesContainer = document.getElementById('choices-container');
+
+    // Game State
+    let playerState = {};
+    let currentStageEvents = [];
+    let lifeCoins = 0;
+    let currentSkillCheck = null;
+    let rerolledThisCheck = false;
+    let previousModalContent = '';
+    const MAX_STAT = 10;
+    const STAGE_NAMES = ["유치원생", "초등학생", "청소년", "대학생", "취업 준비생", "사회초년생", "중년"];
+    const TARGET_EVENTS_PER_STAGE = { 1: 5, 2: 5, 3: 5, 4: 5, 5: 5, 6: 5, 7: 5 };
+
+    // Utility Functions
+    const shuffleArray = (array) => { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } return array; };
+    const getTalentName = (id) => gameData.talents.find(t => t.id === id)?.name || '???';
+
+    function uid(prefix='ID') { return `${prefix}_${Math.random().toString(36).slice(2,8)}`; }
+    function makeFillerEvent(stage){
+        const pick = Math.random();
+        if (pick < 0.34) {
+            return {
+                id: `FILL_GIG_${stage}_${uid()}`, stage,
+                title: "작은 알바 기회", text: "주말에 잠깐 일해보기.",
+                choices: [ { label: "해볼래", effects: { HP: -1, MP: 0, Cash: +2 } }, { label: "다음에", effects: { HP: 0,  MP: +1, Cash: 0 } } ]
+            };
+        } else if (pick < 0.67) {
+            return {
+                id: `FILL_STUDY_${stage}_${uid()}`, stage,
+                title: "집중 공부 시간", text: "오늘은 공부/연습에 몰입.",
+                choices: [ { label: "깊게 몰입", effects: { HP: -1, MP: +2, Cash: -1 } }, { label: "가볍게",   effects: { HP: 0,  MP: +1, Cash: 0 } } ]
+            };
+        }
+        return {
+            id: `FILL_SOCIAL_${stage}_${uid()}`, stage,
+            title: "가벼운 모임", text: "사람들과 어울리며 에너지 충전.",
+            choices: [ { label: "참석", effects: { HP: +1, MP: +1, Cash: -1 } }, { label: "건너뛴다", effects: { HP: 0, MP: 0, Cash: 0 } } ]
+        };
+    }
+    function buildSafetyEventIfNeeded(){
+        const s = playerState;
+        if (s.HP <= 2) { return { id: `SAFE_HP_${s.stage}_${uid()}`, stage: s.stage, title: "몸이 지쳐요", text: "무리하면 큰일 나요.", choices: [ { label: "제대로 쉬기", effects: { HP: +3, MP: +1, Cash: -1 } }, { label: "약간만 쉬기", effects: { HP: +2, MP:  0, Cash:  0 } } ] }; }
+        if (s.MP <= 2) { return { id: `SAFE_MP_${s.stage}_${uid()}`, stage: s.stage, title: "마음이 무거워요", text: "누구와 이야기해 볼까요?", choices: [ { label: "가벼운 대화", effects: { HP: 0, MP: +3, Cash: 0 } }, { label: "취미로 머리 식히기", effects: { HP: +1, MP: +2, Cash: -1 } } ] }; }
+        if (s.Cash <= 2) { return { id: `SAFE_CASH_${s.stage}_${uid()}`, stage: s.stage, title: "주머니가 가벼워요", text: "소액 부업 기회!", choices: [ { label: "짧은 알바", effects: { HP: -1, MP: 0, Cash: +2 } }, { label: "중고 판매", effects: { HP: 0,  MP: +1, Cash: +1 } } ] }; }
+        return null;
+    }
+    function pullStageEvents(stage){
+        const pool = gameData.events.filter(e => e.stage === stage);
+        const target = TARGET_EVENTS_PER_STAGE[stage] || 5;
+        let list = shuffleArray([...pool]).slice(0, Math.min(pool.length, target));
+        while (list.length < target) list.push(makeFillerEvent(stage));
+        // REMOVED: Guaranteed rest event
+        return list;
+    }
+
+    // Main Game Functions
+    function parseInfoTags(text) { if (!text) return ''; return text.replace(/\[i\](.*?)\[\/i\]/g, (match, term) => { if(term.includes("<i class='fas fa-dice-d20 ml-2'></i>")) return term; return `<span class="inline-flex items-center whitespace-nowrap">${term}<button class="info-btn" onclick="event.stopPropagation(); showInfoPopup('${term}')"><i class="fas fa-info-circle"></i></button></span>`; }); }
+    function showInfoPopup(term) { const info = termInfo[term]; if (!info) return; previousModalContent = modalContent.innerHTML; const infoHtml = ` <h3 class="text-2xl font-bold text-blue-600 mb-4">${term}</h3> <p class="text-gray-700 text-left mb-6">${info}</p> <button class="w-full p-3 bg-gray-400 text-white rounded-lg font-bold" onclick="closeInfoPopup()">알겠어요!</button> `; modalContent.innerHTML = infoHtml; modalBackdrop.classList.remove('hidden'); }
+    function closeInfoPopup() { if (previousModalContent) { modalContent.innerHTML = previousModalContent; previousModalContent = ''; } else { hideModal(); } }
+    function loadLifeCoins() { const savedCoins = localStorage.getItem('lifeCoins'); lifeCoins = savedCoins === null ? 3 : parseInt(savedCoins); }
+    function saveLifeCoins() { localStorage.setItem('lifeCoins', lifeCoins); }
+    function updateLifeCoins(amount) { lifeCoins += amount; saveLifeCoins(); }
+    function updateStatsUI() { playerState.HP = Math.max(0, Math.min(playerState.HP, MAX_STAT)); playerState.MP = Math.max(0, Math.min(playerState.MP, MAX_STAT)); playerState.Cash = Math.max(0, Math.min(playerState.Cash, MAX_STAT)); document.querySelector('.stat-item .font-bold.text-red-500').innerHTML = parseInfoTags('<i class="fas fa-heart mr-2"></i>[i]체력[/i]'); document.querySelector('.stat-item .font-bold.text-blue-500').innerHTML = parseInfoTags('<i class="fas fa-brain mr-2"></i>[i]정신력[/i]'); document.querySelector('.stat-item .font-bold.text-green-500').innerHTML = parseInfoTags('<i class="fas fa-coins mr-2"></i>[i]자산[/i]'); hpValue.textContent = `${playerState.HP} / ${MAX_STAT}`; hpBar.style.width = `${(playerState.HP / MAX_STAT) * 100}%`; mpValue.textContent = `${playerState.MP} / ${MAX_STAT}`; mpBar.style.width = `${(playerState.MP / MAX_STAT) * 100}%`; cashValue.textContent = `${playerState.Cash}`; cashBar.style.width = `${(playerState.Cash / MAX_STAT) * 100}%`; }
+    function showToast(message, iconClass) { const toast = document.createElement('div'); toast.className = 'bg-gray-800 text-white p-4 rounded-xl shadow-lg flex items-center toast'; toast.innerHTML = `<i class="${iconClass} mr-3"></i><span>${parseInfoTags(message)}</span>`; toastContainer.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+    function showModal(content) { modalContent.innerHTML = content; modalBackdrop.classList.remove('hidden'); }
+    function hideModal() { modalBackdrop.classList.add('hidden'); }
+    function initGame() { loadLifeCoins(); statsHeader.classList.add('hidden'); eventArea.classList.add('hidden'); const titleScreenHtml = `<div class="text-center"><h1 class="text-4xl font-bold mb-2 text-indigo-700">나의 인생은?</h1><p class="text-gray-500 mb-8">선택이 모여 멋진 삶이 돼요!</p><button class="w-full p-4 bg-indigo-500 text-white rounded-lg font-bold text-lg transform hover:scale-105 transition mb-4" onclick="startRoulette()">시작하기</button><div class="p-2 bg-gray-100 rounded-lg">${parseInfoTags("<span>[i]인생 코인[/i]:</span><span id='life-coin-display' class='font-bold text-gray-700'>" + lifeCoins + "</span>")}</div></div>`; showModal(titleScreenHtml); }
+    function startRoulette() { const rouletteHtml = `<h2 class="text-2xl font-bold mb-6 text-gray-800">어떤 아이로 태어날까요?</h2><div class="h-24 flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden"><div id="roulette-display" class="text-2xl font-bold text-indigo-600"></div></div>`; showModal(rouletteHtml); const rouletteDisplay = document.getElementById('roulette-display'); let spinCount = 0; const totalSpins = 30; let currentInterval = 50; const spin = () => { if (spinCount >= totalSpins) { const finalBackground = shuffleArray([...gameData.backgrounds])[0]; rouletteDisplay.textContent = finalBackground.name; rouletteDisplay.classList.add('text-green-600'); setTimeout(() => showBackgroundResult(finalBackground), 1000); return; } const randomBg = shuffleArray([...gameData.backgrounds])[0]; rouletteDisplay.textContent = randomBg.name; rouletteDisplay.style.transform = 'scale(1.1)'; setTimeout(() => { rouletteDisplay.style.transform = 'scale(1)'; }, 50); spinCount++; if (spinCount > 15) currentInterval += 20; if (spinCount > 25) currentInterval += 40; setTimeout(spin, currentInterval); }; spin(); }
+    function handleBackgroundReroll() { if (lifeCoins > 0) { updateLifeCoins(-1); startRoulette(); } else { showToast("인생 코인이 부족해요!", "fas fa-exclamation-circle"); } }
+    function showBackgroundResult(background) { const rerollButtonDisabled = lifeCoins <= 0 ? 'disabled' : ''; const rerollButtonClasses = lifeCoins <= 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600'; const resultHtml = `<p class="text-gray-600 mb-4">당신은...</p><h2 class="text-2xl font-bold text-indigo-700 mb-6">"${background.name}"</h2><p class="text-gray-600 mb-6">...에서 당신의 이야기가 시작됩니다!</p><div class="space-y-3"><button class="w-full p-3 bg-indigo-500 text-white rounded-lg font-bold" onclick="startGame('${background.id}')">이 인생 살아보기</button><button class="w-full p-3 text-white rounded-lg font-bold ${rerollButtonClasses}" onclick="handleBackgroundReroll()" ${rerollButtonDisabled}>다시 뽑기! (${parseInfoTags("[i]인생 코인[/i]")} ${lifeCoins})</button></div>`; showModal(resultHtml); }
+    function startGame(backgroundId) { const background = gameData.backgrounds.find(bg => bg.id === backgroundId); playerState = { HP: background.hp, MP: background.mp, Cash: background.cash, talents: [], flags: [], stage: 1, background: background, stageKeywords: {}, usedLastChance: false }; hideModal(); statsHeader.classList.remove('hidden'); eventArea.classList.remove('hidden'); startStage(); }
+    function startStage() { const baseList = pullStageEvents(playerState.stage); const safety = buildSafetyEventIfNeeded(); currentStageEvents = safety ? [safety, ...baseList] : baseList; playerState.currentEventIndex = 0; playerState.totalEventsInStage = currentStageEvents.length; updateStatsUI(); showNextEvent(); }
+    function showNextEvent() { eventCard.classList.remove('fade-in'); eventCard.classList.add('fade-out'); setTimeout(() => { if (playerState.currentEventIndex >= playerState.totalEventsInStage) { endStage(); return; } const event = currentStageEvents[playerState.currentEventIndex]; stageDisplay.textContent = `${playerState.stage}단계: ${STAGE_NAMES[playerState.stage - 1]}`; eventCounter.textContent = `사건 ${playerState.currentEventIndex + 1} / ${playerState.totalEventsInStage}`; eventTitle.innerHTML = parseInfoTags(event.title); eventText.innerHTML = parseInfoTags(event.text); choicesContainer.innerHTML = ''; event.choices.forEach((choice, index) => { const button = document.createElement('button'); button.className = "w-full text-left p-4 bg-indigo-500 text-white hover:bg-indigo-600 rounded-lg font-bold transition transform hover:scale-105"; let label = choice.label; if (choice.skill_check) { label = `${label} <i class="fas fa-dice-d20 ml-2"></i>`; } button.innerHTML = parseInfoTags(label); button.onclick = () => makeChoice(index); choicesContainer.appendChild(button); }); eventCard.classList.remove('fade-out'); eventCard.classList.add('fade-in'); }, 500); }
+    function makeChoice(choiceIndex) { const event = currentStageEvents[playerState.currentEventIndex]; const choice = event.choices[choiceIndex]; if (choice.skill_check) { startSkillCheck(choice.skill_check); } else { applyChoiceResult(choice); playerState.currentEventIndex++; showNextEvent(); } }
+    function startSkillCheck(checkData) { currentSkillCheck = checkData; rerolledThisCheck = false; const relevantTalent = checkData.talents.find(t => playerState.talents.includes(t)); const talentName = relevantTalent ? getTalentName(relevantTalent) : '없음'; const checkHtml = `<h2 class="text-2xl font-bold mb-2">도전!</h2><p class="text-gray-600 mb-4">성공 목표: ${checkData.dc}점 이상!</p><div class="text-sm bg-gray-100 p-2 rounded-lg mb-6"><p>나의 [i]재능[/i]: <span class="font-bold ${relevantTalent ? 'text-green-600' : 'text-red-500'}">${talentName} (+5점!)</span></p></div><div id="dice-result-area" class="h-20"></div><button id="roll-dice-btn" class="w-full p-3 bg-indigo-500 text-white rounded-lg font-bold" onclick="rollDice()"><i class="fas fa-dice-d20 mr-2"></i>주사위 굴리기</button>`; showModal(checkHtml); modalContent.innerHTML = parseInfoTags(modalContent.innerHTML); }
+    function rollDice() { document.getElementById('roll-dice-btn').style.display = 'none'; const diceResultArea = document.getElementById('dice-result-area'); const finalRoll = Math.floor(Math.random() * 20) + 1; const talentBonus = currentSkillCheck.talents.some(t => playerState.talents.includes(t)) ? 5 : 0; const total = finalRoll + talentBonus; const success = total >= currentSkillCheck.dc; let spinCount = 0; const totalSpins = 20; let currentInterval = 30; const spin = () => { if (spinCount >= totalSpins) { diceResultArea.innerHTML = `<p class="text-lg mb-2">결과: <span class="font-bold text-4xl dice-final inline-block">${finalRoll}</span> + <span class="font-bold text-green-500">${talentBonus} ([i]재능[/i])</span> = <span class="font-bold text-4xl text-indigo-600">${total}</span></p>`; diceResultArea.innerHTML = parseInfoTags(diceResultArea.innerHTML); if (success) { diceResultArea.innerHTML += `<p class="text-xl font-bold text-green-600">성공!</p>`; showModalFooter([{text: '와! 신난다!', class: 'bg-green-500', action: () => applySkillCheckResult(currentSkillCheck.success)}]); } else { diceResultArea.innerHTML += `<p class="text-xl font-bold text-red-500">실패...</p>`; let buttons = [{text: '결과 받아들이기', class: 'bg-red-500', action: () => applySkillCheckResult(currentSkillCheck.failure)}]; if (lifeCoins > 0 && !rerolledThisCheck) { buttons.unshift({text: `다시! (${parseInfoTags("[i]인생 코인[/i]")} ${lifeCoins})`, class: 'bg-yellow-500', action: 'handleDiceReroll()'}); } showModalFooter(buttons); } return; } const randomRoll = Math.floor(Math.random() * 20) + 1; diceResultArea.innerHTML = `<p class="text-lg mb-2">결과: <span class="font-bold text-4xl inline-block">${randomRoll}</span></p>`; spinCount++; currentInterval += spinCount * 2; setTimeout(spin, currentInterval); }; spin(); }
+    function handleDiceReroll() { if (lifeCoins > 0) { updateLifeCoins(-1); rerolledThisCheck = true; rollDice(); } }
+    function showModalFooter(buttons) { let footerHtml = '<div class="flex gap-3 mt-6">'; buttons.forEach(btn => { const action = typeof btn.action === 'string' ? btn.action : `tempFunc${buttons.indexOf(btn)}()`; if (typeof btn.action === 'function') { window[`tempFunc${buttons.indexOf(btn)}`] = btn.action; } footerHtml += `<button class="w-full p-3 text-white rounded-lg font-bold ${btn.class}" onclick="${action}">${btn.text}</button>`; }); footerHtml += '</div>'; modalContent.innerHTML += footerHtml; modalContent.innerHTML = parseInfoTags(modalContent.innerHTML); }
+    function applySkillCheckResult(result) { applyChoiceResult(result); hideModal(); playerState.currentEventIndex++; setTimeout(showNextEvent, 100); }
+    function applyChoiceResult(result) { if (result.effects) { playerState.HP += result.effects.HP || 0; playerState.MP += result.effects.MP || 0; playerState.Cash += result.effects.Cash || 0; } if (result.flags_set) { result.flags_set.forEach(flag => { if (!playerState.flags.includes(flag)) playerState.flags.push(flag); }); } if (result.stage_keywords) { Object.assign(playerState.stageKeywords, result.stage_keywords); } if (result.discover && Math.random() < result.discover.chance) { const newTalentId = result.discover.grant[Math.floor(Math.random() * result.discover.grant.length)]; if (!playerState.talents.includes(newTalentId)) { playerState.talents.push(newTalentId); const talentName = getTalentName(newTalentId); showToast(`새로운 [i]재능[/i] 발견: ${talentName}!`, 'fas fa-star'); } } if (result.text) { showToast(result.text, 'fas fa-info-circle'); } updateStatsUI(); if (playerState.HP <= 0 || playerState.MP <= 0 || playerState.Cash <= 0) { if (lifeCoins > 0 && !playerState.usedLastChance) { triggerLastChance(); } else { let cause = playerState.HP <= 0 ? '너무 무리해서' : playerState.MP <= 0 ? '마음이 아파서' : '돈이 없어서'; gameOver(cause); } } }
+    function triggerLastChance() { playerState.usedLastChance = true; const lastChanceHtml = ` <h2 class="text-3xl font-bold text-yellow-500 mb-4">인생의 위기!</h2> <p class="text-gray-700 text-lg mb-6">스탯이 0이 되었습니다. [i]인생 코인[/i] 1개를 사용하여 마지막 기회를 얻으시겠습니까?</p> <div class="flex gap-3 mt-6"> <button class="w-full p-3 text-white rounded-lg font-bold bg-green-500" onclick="useLastChance()">네 (코인 1개 사용)</button> <button class="w-full p-3 text-white rounded-lg font-bold bg-red-500" onclick="declineLastChance()">아니오</button> </div> `; showModal(lastChanceHtml); modalContent.innerHTML = parseInfoTags(modalContent.innerHTML); }
+    function useLastChance() { updateLifeCoins(-1); let recoveryToast = ""; if (playerState.HP <= 0) { playerState.HP = 5; playerState.MP += 1; recoveryToast = "체력을 회복하고 다시 일어섭니다!"; } else if (playerState.MP <= 0) { playerState.MP = 5; playerState.HP += 1; recoveryToast = "마음을 다잡고 다시 일어섭니다!"; } else if (playerState.Cash <= 0) { playerState.Cash = 3; playerState.MP += 1; recoveryToast = "도움을 받아 위기를 넘겼습니다!"; } updateStatsUI(); hideModal(); showToast(recoveryToast, "fas fa-hand-holding-heart"); }
+    function declineLastChance() { let cause = playerState.HP <= 0 ? '너무 무리해서' : playerState.MP <= 0 ? '마음이 아파서' : '돈이 없어서'; gameOver(cause); }
+    function endStage() { if (playerState.stage >= 7) { gameEnd(); return; } const summary = generateStageSummary(); showModal(`<h2 class="text-2xl font-bold mb-4 text-indigo-700">${STAGE_NAMES[playerState.stage - 1]} 시절 이야기</h2><p class="text-gray-600 mb-6">${summary}</p><button class="w-full p-3 bg-indigo-500 text-white rounded-lg font-bold" onclick="nextStage()">다음 이야기로</button>`); }
+    function generateStageSummary() { const stage = playerState.stage; const keywords = playerState.stageKeywords; switch (stage) { case 1: return `당신은 ${playerState.background.name}에서 태어나, 신나는 유치원 시절을 보냈어요!`; case 2: return `초등학생이 되어서는 ${keywords.focus || '공부와 놀이'} 사이에서 즐거운 시간을 보냈어요.`; case 3: return `질풍노도의 청소년기, ${keywords.focus || '학업과 친구'} 사이에서 고민하며 성장했어요.`; case 4: return `대학생이 되어 ${keywords.focus || '전공 공부와 동아리 활동'}을 하며 자유를 만끽했어요.`; case 5: return `치열한 취업 준비 끝에, ${keywords.focus || '첫 사회생활'}을 시작할 준비를 마쳤어요.`; case 6: return `사회초년생으로 ${keywords.focus || '업무에 적응하며'} 정신없이 시간을 보냈어요.`; default: return "한 시절이 이렇게 끝났어요."; } }
+    function nextStage() { playerState.stage++; playerState.stageKeywords = {}; hideModal(); startStage(); }
+    function gameOver(reason) { const coinsEarned = 1; updateLifeCoins(coinsEarned); showModal(`<h2 class="text-3xl font-bold text-red-500 mb-4">게임 끝!</h2><p class="text-gray-700 text-lg mb-2">이유: ${reason}</p><p class="text-gray-600 mb-4">나의 인생 이야기가 끝났어요.</p><div class="p-2 bg-yellow-100 rounded-lg text-yellow-700 font-bold mb-6">${parseInfoTags(`[i]인생 코인[/i] +${coinsEarned}`)}</div><button class="w-full p-3 bg-gray-500 text-white rounded-lg font-bold" onclick="initGame()">새로운 인생 시작하기</button>`); }
+    function gameEnd() { const coinsEarned = 3; updateLifeCoins(coinsEarned); let endingTitle = "행복한 어른"; let endingText = "몸도 마음도 건강하게, 즐거운 인생을 살았어요!"; if (playerState.Cash >= 9 && (playerState.HP < 4 || playerState.MP < 4)) { endingTitle = "돈은 많지만 너무 지쳤어"; endingText = "부자가 되었지만, 너무 무리해서 몸과 마음이 힘들어요."; } else if (playerState.MP >= 9 && playerState.Cash < 7) { endingTitle = "마음이 행복한 사람"; endingText = "돈이 아주 많은 건 아니지만, 내가 좋아하는 일을 하면서 보람을 느껴요."; } showModal(`<h2 class="text-3xl font-bold text-indigo-700 mb-4">나의 인생 이야기 끝!</h2><p class="text-xl font-bold text-gray-800 mb-2">${endingTitle}</p><p class="text-gray-600 mb-4">${endingText}</p><div class="p-2 bg-yellow-100 rounded-lg text-yellow-700 font-bold mb-6">${parseInfoTags(`[i]인생 코인[/i] +${coinsEarned}`)}</div><button class="w-full p-3 bg-indigo-500 text-white rounded-lg font-bold" onclick="initGame()">새로운 인생 시작하기</button>`); }
+
+    // Start the game
+    window.onload = initGame;
+</script>
+</body>
+</html>
+
