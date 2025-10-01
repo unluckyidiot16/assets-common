@@ -352,11 +352,13 @@
   }
 
   function populateShop() {
-    const maxTier = Math.min(6, Math.floor((gameState.turn + 1) / 2) + 1);
+    // BUG FIX: Adjusted the tier calculation to match SAP progression.
+    const maxTier = Math.min(6, Math.floor((gameState.turn - 1) / 2) + 1);
     const availableUnits = getAvailableUnits(maxTier);
 
     gameState.shop.units = [];
     for(let i=0; i<3; i++) {
+      if (availableUnits.length === 0) continue;
       const randomId = availableUnits[Math.floor(Math.random() * availableUnits.length)];
       gameState.shop.units.push(createUnitInstance(randomId));
     }
