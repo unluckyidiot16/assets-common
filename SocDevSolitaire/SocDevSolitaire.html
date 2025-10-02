@@ -1,14 +1,575 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>socdev-assets</title>
-<h1>사회 발전 게임 – 에셋</h1>
-<p>이미지 테스트:</p>
-<p>
-  <!-- 레포 루트에 파일이 있으면 이 경로가 맞습니다 -->
-  <img src="./socdev-assets/starter_farm.png" alt="starter_farm" width="240">
-</p>
-<p>정상 보이면 카드 코드에서 이 경로를 쓰세요:<br>
-<code>https://unluckyidiot16.github.io/assets-common/socdev-assets/starter_farm.png</code>
-</p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>솔리테어 하버</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            touch-action: manipulation; /* Disable double-tap zoom on mobile */
+        }
+        .card {
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            position: relative; /* For positioning the discard button */
+        }
+        .card:hover:not(.tutorial-locked) {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Discard button style */
+        .discard-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 24px;
+            height: 24px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 9999px;
+            border: 2px solid white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 10;
+        }
+        .discard-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        .mandatory-card {
+            border-color: #ef4444;
+            box-shadow: 0 0 15px #ef4444;
+        }
+        .slot.highlight {
+            outline: 2px solid #3b82f6;
+            box-shadow: 0 0 15px #3b82f6;
+        }
+        .animated-coin {
+            position: absolute;
+            font-size: 1.5rem;
+            animation: float-up 1.5s ease-out forwards;
+        }
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.75);
+        }
+        .tutorial-overlay {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid white;
+            z-index: 50;
+            max-width: 300px;
+            text-align: center;
+        }
+        .tutorial-locked {
+            opacity: 0.5;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .rarity-common { background: linear-gradient(135deg, #a3a3a3, #e5e5e5); color: #171717;}
+        .rarity-uncommon { background: linear-gradient(135deg, #22c55e, #86efac); color: #14532d;}
+        .rarity-rare { background: linear-gradient(135deg, #3b82f6, #93c5fd); color: #1e3a8a;}
+        .rarity-epic { background: linear-gradient(135deg, #a855f7, #d8b4fe); color: #581c87;}
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex flex-col items-center justify-center min-h-screen p-2 sm:p-4">
+
+<div id="game-container" class="w-full max-w-7xl mx-auto hidden">
+    <!-- 상단 HUD -->
+    <div id="hud" class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 text-center">
+        <div class="bg-white p-3 rounded-lg shadow"><div class="text-sm font-bold text-gray-500">턴</div><div id="turn-counter" class="text-2xl font-bold">1 / 20</div></div>
+        <div class="bg-white p-3 rounded-lg shadow"><div class="text-sm font-bold text-gray-500">남은 상환금</div><div id="debt-counter" class="text-2xl font-bold text-red-600">35</div></div>
+        <div class="bg-white p-3 rounded-lg shadow"><div class="text-sm font-bold text-gray-500">보유 코인</div><div id="coin-counter" class="text-2xl font-bold text-yellow-600">2</div></div>
+        <div class="bg-white p-3 rounded-lg shadow"><div class="text-sm font-bold text-gray-500">토지</div><div id="land-counter" class="text-2xl font-bold">3 / 6</div></div>
+    </div>
+    <div id="milestone-alert" class="hidden text-center my-2 p-2 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-md"></div>
+    <!-- 게임 보드 -->
+    <div id="board" class="grid grid-cols-3 lg:grid-cols-6 gap-4 mb-4 min-h-[180px]"></div>
+    <!-- 플레이어 손패 -->
+    <div id="hand" class="flex flex-wrap items-center justify-center gap-4 p-4 bg-gray-200 rounded-lg shadow-inner min-h-[170px]"></div>
+    <!-- 행동 버튼 -->
+    <div id="actions" class="flex flex-wrap items-center justify-center gap-4 mt-4">
+        <button id="buy-land-btn" class="px-6 py-3 bg-green-500 text-white font-bold rounded-lg shadow-md hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">토지 구매 (2원)</button>
+        <button id="shop-btn" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition-colors">상점</button>
+        <button id="end-turn-btn" class="px-6 py-3 bg-red-500 text-white font-bold rounded-lg shadow-md hover:bg-red-600 transition-colors">턴 종료</button>
+    </div>
+</div>
+
+<!-- 게임 시작 화면 -->
+<div id="start-menu" class="text-center p-8 bg-white rounded-lg shadow-xl">
+    <h1 class="text-4xl font-bold mb-2">솔리테어 하버</h1>
+    <p class="text-gray-600 mb-8">할아버지의 빚을 갚고 토지를 지켜내세요!</p>
+    <div class="space-y-4">
+        <button data-mode="tutorial" class="start-btn w-full px-6 py-3 bg-green-500 text-white font-bold rounded-lg shadow-md hover:bg-green-600 transition-transform hover:scale-105">튜토리얼 (추천)</button>
+        <button data-mode="normal" class="start-btn w-full px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition-transform hover:scale-105">기본 모드 (20턴, 35원)</button>
+        <button data-mode="hard" class="start-btn w-full px-6 py-3 bg-red-500 text-white font-bold rounded-lg shadow-md hover:bg-red-600 transition-transform hover:scale-105">하드 모드 (22턴, 45원 + 중간이자)</button>
+    </div>
+</div>
+
+<!-- 모달 (상점, 게임 오버 등) -->
+<div id="modal" class="hidden fixed inset-0 z-40 flex items-center justify-center modal-backdrop">
+    <div id="modal-content" class="bg-white rounded-lg shadow-2xl p-6 w-11/12 max-w-md relative"></div>
+</div>
+
+<!-- 튜토리얼 오버레이 -->
+<div id="tutorial-container"></div>
+
+<script>
+    const gameData = {
+        "config": {
+            "startingCoins": 2, "startingSlots": 3, "maxSlots": 6, "handMax": 5, "stackMax": 8, "landBaseCost": 2, "landCostPerStage": 1,
+            "unlockCosts": { "lightIndustry": 12, "heavyIndustry": 20 },
+            "debtModes": {
+                "normal": { "turnLimit": 20, "targetCoins": 35, "milestones": [] },
+                "hard": { "turnLimit": 22, "targetCoins": 45, "milestones": [{ "turn": 8, "due": 4 }, { "turn": 16, "due": 5 }] }
+            }
+        },
+        "cards": [
+            { "id":"crop_potato","name":"감자","tier":"T1","sector":"agri_basic","rarity":"common","copies":18, "sellTable":[ {"need":2,"coins":1}, {"need":4,"coins":3}, {"need":6,"coins":5}, {"need":8,"coins":8} ] },
+            { "id":"crop_corn","name":"옥수수","tier":"T1","sector":"agri_basic","rarity":"common","copies":16, "sellTable":[ {"need":2,"coins":1}, {"need":4,"coins":3}, {"need":6,"coins":5}, {"need":8,"coins":8} ] },
+            { "id":"crop_wheat","name":"밀","tier":"T1","sector":"agri_basic","rarity":"uncommon","copies":12, "sellTable":[ {"need":2,"coins":2}, {"need":3,"coins":4}, {"need":5,"coins":7} ] },
+            { "id":"crop_rice","name":"쌀","tier":"T1","sector":"agri_basic","rarity":"uncommon","copies":12, "sellTable":[ {"need":2,"coins":2}, {"need":3,"coins":4}, {"need":5,"coins":7} ] },
+            { "id":"crop_coffee","name":"커피체리","tier":"T1","sector":"agri_basic","rarity":"rare","copies":8, "sellTable":[ {"need":1,"coins":2}, {"need":2,"coins":5}, {"need":3,"coins":9}, {"need":4,"coins":14} ] },
+            { "id":"proc_cheese","name":"치즈","tier":"T1","sector":"agri_processed","rarity":"uncommon","copies":10, "sellTable":[ {"need":1,"coins":2}, {"need":2,"coins":4}, {"need":3,"coins":7}, {"need":4,"coins":11} ] },
+            { "id":"proc_jam","name":"잼","tier":"T1","sector":"agri_processed","rarity":"uncommon","copies":10, "sellTable":[ {"need":1,"coins":2}, {"need":2,"coins":4}, {"need":3,"coins":7}, {"need":4,"coins":11} ] },
+            { "id":"proc_oil","name":"올리브유","tier":"T1","sector":"agri_processed","rarity":"rare","copies":8, "sellTable":[ {"need":1,"coins":3}, {"need":2,"coins":6}, {"need":3,"coins":10}, {"need":4,"coins":15} ] },
+            { "id":"light_textile","name":"직물","tier":"T2","sector":"light_industry","rarity":"uncommon","copies":9, "sellTable":[ {"need":1,"coins":3}, {"need":2,"coins":7}, {"need":3,"coins":12} ] },
+            { "id":"light_paper","name":"종이","tier":"T2","sector":"light_industry","rarity":"uncommon","copies":9, "sellTable":[ {"need":1,"coins":3}, {"need":2,"coins":7}, {"need":3,"coins":12} ] },
+            { "id":"light_glass","name":"유리병","tier":"T2","sector":"light_industry","rarity":"rare","copies":7, "sellTable":[ {"need":1,"coins":4}, {"need":2,"coins":9}, {"need":3,"coins":15} ] },
+            { "id":"heavy_steel","name":"강철빔","tier":"T2","sector":"heavy_industry","rarity":"rare","copies":6, "sellTable":[ {"need":1,"coins":5}, {"need":2,"coins":11}, {"need":3,"coins":18} ] },
+            { "id":"heavy_engine","name":"엔진","tier":"T2","sector":"heavy_industry","rarity":"epic","copies":4, "sellTable":[ {"need":1,"coins":6}, {"need":2,"coins":13}, {"need":3,"coins":21} ] }
+        ],
+        "packs": [
+            { "id":"pack_t1_agri","name":"T1 농업 팩","cost":3, "weights":{"common":0.6,"uncommon":0.3,"rare":0.1}, "pool":["crop_potato","crop_corn","crop_wheat","crop_rice","crop_coffee","proc_cheese","proc_jam","proc_oil"] },
+            { "id":"pack_t2_light","name":"T2 경공업 팩","cost":6, "unlock":"lightIndustry", "weights":{"uncommon":0.65,"rare":0.35}, "pool":["light_textile","light_paper","light_glass"] },
+            { "id":"pack_t2_heavy","name":"T2 중공업 팩","cost":8, "unlock":"heavyIndustry", "weights":{"rare":0.5,"epic":0.5}, "pool":["heavy_steel","heavy_engine"] }
+        ]
+    };
+
+    const tutorialData = {
+        turnLimit: 8, targetCoins: 10, milestones: [],
+        turnHands: {
+            1: ["crop_potato", "crop_potato", "crop_wheat", "proc_jam", "crop_corn"],
+            2: ["crop_potato", "crop_potato", "crop_corn", "proc_oil", "crop_coffee"],
+            3: ["proc_jam", "crop_wheat", "crop_corn", "crop_potato", "crop_rice"]
+        },
+        steps: [
+            { guide: { text: '손패 맨 앞의 감자를 빈 토지에 심어보세요.', element: '#hand .card:first-child' }, waitFor: { trigger: 'plant', card: 'crop_potato' } },
+            { guide: { text: '좋아요! 같은 카드는 겹쳐서 심을 수 있습니다. 다음 감자도 같은 곳에 심어보세요.', element: '#hand .card:first-child' }, waitFor: { trigger: 'plant', card: 'crop_potato' } },
+            { guide: { text: '훌륭합니다! 이제 다른 종류인 밀을 새 토지에 심어봅시다.', element: '#hand .card:first-child' }, waitFor: { trigger: 'plant', card: 'crop_wheat' } },
+            { guide: { text: '기본 규칙을 익혔네요. 더 비싸게 팔기 위해 카드를 모아봅시다. 턴을 종료하세요.', element: '#end-turn-btn' }, waitFor: { trigger: 'turn_start', turn: 2 } },
+            { guide: { text: '새 카드를 받았네요. 감자를 더 쌓아서 4장을 채워봅시다. 첫 번째 감자를 심어주세요.', element: '#hand .card:first-child' }, waitFor: { trigger: 'plant', card: 'crop_potato' } },
+            { guide: { text: '한 장 더!', element: '#hand .card:first-child' }, waitFor: { trigger: 'plant', card: 'crop_potato' } },
+            { guide: { text: '감자 4장을 모았습니다! 이제 팔면 3원을 벌 수 있어요. 판매 버튼을 눌러보세요.', element: '#board .slot:nth-child(1) .sell-btn' }, waitFor: { trigger: 'sell', card: 'crop_potato' } },
+            { guide: { text: '첫 수익이네요! 그 돈으로 토지를 구매해서 더 많은 작물을 키워봅시다.', element: '#buy-land-btn' }, waitFor: { trigger: 'buy_land' } },
+            { guide: { text: '좋아요! 이제 턴을 종료하세요.', element: '#end-turn-btn' }, waitFor: { trigger: 'turn_start', turn: 3 } },
+            { guide: { text: "'잼'은 1장만 팔아도 비싸답니다. 빈 토지에 심고 바로 팔아봅시다.", element: '#hand .card:first-child' }, waitFor: { trigger: 'plant', card: 'proc_jam' } },
+            { guide: { text: "바로 판매해서 '빠른 현금화'를 체험해보세요.", element: 'SLOT_WITH_CARD(proc_jam) .sell-btn' }, waitFor: { trigger: 'sell', card: 'proc_jam' } },
+            { guide: { text: '이제 자유롭게 플레이하며 남은 빚을 갚아보세요! 레어 카드는 더 비싸답니다.', element: '#game-container', unlock: true }, waitFor: { trigger: 'debt_cleared' } }
+        ]
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => document.querySelectorAll(selector);
+
+    const elements = {
+        gameContainer: $('#game-container'), startMenu: $('#start-menu'),
+        hud: { turn: $('#turn-counter'), debt: $('#debt-counter'), coins: $('#coin-counter'), land: $('#land-counter'), },
+        board: $('#board'), hand: $('#hand'),
+        actions: { buyLandBtn: $('#buy-land-btn'), shopBtn: $('#shop-btn'), endTurnBtn: $('#end-turn-btn'), },
+        modal: { container: $('#modal'), content: $('#modal-content'), },
+        milestoneAlert: $('#milestone-alert'), tutorialContainer: $('#tutorial-container')
+    };
+
+    let state = {};
+
+    const Game = {
+        init(mode) {
+            let config = (mode === 'tutorial') ? { ...gameData.config.debtModes.normal, ...tutorialData } : gameData.config.debtModes[mode];
+            Tutorial.unlockAllActions();
+            state = {
+                mode, turn: 1, turnLimit: config.turnLimit, coins: gameData.config.startingCoins, debt: config.targetCoins,
+                debtMilestones: [...config.milestones],
+                slots: Array(gameData.config.startingSlots).fill(null).map(() => ({ cardId: null, stack: [] })),
+                hand: [], deck: [], discard: [], selectedCardIndex: -1,
+                unlocked: { lightIndustry: false, heavyIndustry: false },
+                isTutorial: mode === 'tutorial', tutorialStep: 0,
+                tutorialGuidedStepsCompleted: false, sellCount: 0, gameOver: false, isProcessing: false,
+            };
+            if (state.isTutorial) Tutorial.setHandForTurn(1);
+            else { this.createDeck(); this.drawHand(gameData.config.handMax); }
+            elements.startMenu.classList.add('hidden');
+            elements.gameContainer.classList.remove('hidden');
+            this.renderAll();
+            if (state.isTutorial) setTimeout(() => Tutorial.showGuide(tutorialData.steps[0].guide), 100);
+        },
+        createDeck() {
+            state.deck = [];
+            gameData.cards.forEach(cardDef => {
+                for (let i = 0; i < cardDef.copies; i++) state.deck.push(cardDef.id);
+            });
+            this.shuffleDeck();
+        },
+        shuffleDeck() {
+            for (let i = state.deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
+            }
+        },
+        drawCard() {
+            if (state.deck.length === 0) {
+                if (state.discard.length === 0) return null;
+                state.deck = [...state.discard];
+                state.discard = [];
+                this.shuffleDeck();
+            }
+            return state.deck.pop();
+        },
+        drawHand(count) {
+            for (let i = 0; i < count; i++) {
+                if (state.hand.length < gameData.config.handMax) {
+                    const cardId = this.drawCard();
+                    if (cardId) state.hand.push(cardId);
+                }
+            }
+        },
+        async endTurn() {
+            if (state.isProcessing || state.gameOver) return;
+            state.isProcessing = true;
+            while (state.hand.length > gameData.config.handMax) {
+                const cardToDiscard = state.hand.shift();
+                state.discard.push(cardToDiscard);
+                this.showToast(`손패가 가득 차 ${this.getCardDef(cardToDiscard).name} 카드를 버립니다.`, 'error');
+                this.renderHand();
+                await this.sleep(500);
+            }
+            state.turn++;
+            state.sellCount = 0;
+            if (this.checkGameOver()) { state.isProcessing = false; return; }
+            if (state.isTutorial && !state.tutorialGuidedStepsCompleted) Tutorial.setHandForTurn(state.turn);
+            else {
+                if (state.deck.length === 0 && state.discard.length === 0 && (state.isTutorial || state.mode !== 'tutorial')) this.createDeck();
+                this.drawHand(gameData.config.handMax - state.hand.length);
+            }
+            this.renderAll();
+            const milestone = state.debtMilestones.find(m => m.turn === state.turn);
+            if (milestone) {
+                elements.milestoneAlert.textContent = `${state.turn}턴 중간 이자(${milestone.due}원) 청구!`;
+                elements.milestoneAlert.classList.remove('hidden');
+                state.coins -= milestone.due;
+                if (state.coins < 0) {
+                    this.showToast('이자를 내지 못해 파산했습니다!', 'error');
+                    this.triggerGameOver(false);
+                } else this.showToast(`${milestone.due}원의 중간 이자를 납부했습니다.`, 'warn');
+            } else elements.milestoneAlert.classList.add('hidden');
+            this.updateUI();
+            state.isProcessing = false;
+            if (state.isTutorial) Tutorial.checkTrigger('turn_start', { turn: state.turn });
+        },
+        checkGameOver() {
+            if (state.debt <= 0) { this.triggerGameOver(true); return true; }
+            if (state.turn > state.turnLimit) { this.triggerGameOver(false); return true; }
+            return false;
+        },
+        triggerGameOver(isWin) {
+            state.gameOver = true;
+            if (state.isTutorial) Tutorial.unlockAllActions();
+            const title = isWin ? "🎉 상환 완료! 🎉" : "😭 파산 😭";
+            let message, html;
+            if (isWin && state.mode === 'tutorial') {
+                message = `축하합니다! 튜토리얼을 성공적으로 완료했습니다!`;
+                html = `<h2 class="text-3xl font-bold mb-4 text-center">${title}</h2><p class="text-center mb-6">${message}</p><div class="flex justify-center"><button onclick="location.reload()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">메인으로 돌아가기</button></div>`;
+            } else {
+                message = isWin ? `축하합니다! ${state.turn - 1}턴 만에 모든 빚을 갚고 토지를 지켜냈습니다!` : `약속된 ${state.turnLimit}턴 안에 빚을 갚지 못했습니다. 토지는 이제 빚쟁이들의 것입니다...`;
+                html = `<h2 class="text-3xl font-bold mb-4 text-center">${title}</h2><p class="text-center mb-6">${message}</p><div class="flex justify-center space-x-4"><button onclick="Game.init('normal')" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">기본 모드</button><button onclick="Game.init('hard')" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">하드 모드</button><button onclick="location.reload()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">메인으로</button></div>`;
+            }
+            this.showModal(html);
+        },
+        getCardDef(cardId) { return gameData.cards.find(c => c.id === cardId); },
+        selectCard(cardIndex) {
+            if (state.isProcessing) return;
+            if (cardIndex > 0 && (state.isTutorial && !state.tutorialGuidedStepsCompleted)) {
+                this.showToast('맨 앞의 카드부터 심어야 합니다.', 'warn'); return;
+            }
+            state.selectedCardIndex = cardIndex;
+            this.renderAll();
+            if (state.isTutorial) {
+                const currentStep = tutorialData.steps[state.tutorialStep];
+                if (currentStep && currentStep.waitFor.trigger === 'plant') Tutorial.lockActions('#board .slot');
+            }
+        },
+        plantCard(slotIndex) {
+            if (state.selectedCardIndex === -1) return;
+            const cardId = state.hand[state.selectedCardIndex];
+            const slot = state.slots[slotIndex];
+            const canPlant = (slot.cardId === null || slot.cardId === cardId) && slot.stack.length < gameData.config.stackMax;
+            if (canPlant) {
+                const plantedCardId = state.hand[state.selectedCardIndex];
+                if (slot.cardId === null) slot.cardId = plantedCardId;
+                slot.stack.push(plantedCardId);
+                state.hand.splice(state.selectedCardIndex, 1);
+                state.selectedCardIndex = -1;
+                this.renderAll();
+                if (state.isTutorial) Tutorial.checkTrigger('plant', { card: plantedCardId });
+            } else this.showToast('여기에 심을 수 없습니다.', 'error');
+        },
+        sellStack(slotIndex) {
+            if (state.isProcessing) return;
+            if (state.sellCount >= 1 && !(state.isTutorial && !state.tutorialGuidedStepsCompleted)) { this.showToast('판매는 턴 당 한 번만 가능합니다.', 'warn'); return; }
+            const slot = state.slots[slotIndex];
+            if (!slot || slot.stack.length === 0) return;
+            const cardDef = this.getCardDef(slot.cardId);
+            const stackSize = slot.stack.length;
+            let payout = 0;
+            for (const rule of cardDef.sellTable) { if (stackSize >= rule.need) payout = rule.coins; }
+            if (payout > 0) {
+                const soldCardId = slot.cardId;
+                state.coins += payout;
+                state.debt -= payout;
+                if (state.debt < 0) state.debt = 0;
+                if (!state.discard) state.discard = [];
+                state.discard.push(...slot.stack);
+                slot.cardId = null;
+                slot.stack = [];
+                state.sellCount++;
+                const slotElement = $$('#board .slot')[slotIndex];
+                this.showCoinAnimation(payout, slotElement);
+                this.renderAll();
+                if (state.isTutorial) Tutorial.checkTrigger('sell', { card: soldCardId });
+                if (state.debt <= 0 && !state.gameOver) {
+                    if (state.isTutorial) Tutorial.checkTrigger('debt_cleared');
+                    this.checkGameOver();
+                }
+            } else this.showToast('판매할 수 있는 수량이 아닙니다.', 'warn');
+        },
+        buyLand() {
+            const cost = this.getLandCost();
+            if (state.coins >= cost && state.slots.length < gameData.config.maxSlots) {
+                state.coins -= cost;
+                state.slots.push({ cardId: null, stack: [] });
+                this.renderAll();
+                if (state.isTutorial) Tutorial.checkTrigger('buy_land');
+            } else this.showToast('토지를 구매할 수 없습니다.', 'error');
+        },
+        discardCard(cardIndex) {
+            if (state.isTutorial && !state.tutorialGuidedStepsCompleted) {
+                this.showToast('튜토리얼 중에는 카드를 버릴 수 없습니다.', 'warn'); return;
+            }
+            if (cardIndex === 0) {
+                this.showToast('맨 앞의 카드는 버릴 수 없습니다. 반드시 심어야 합니다.', 'error'); return;
+            }
+            const [discardedCard] = state.hand.splice(cardIndex, 1);
+            state.discard.push(discardedCard);
+            this.showToast(`${this.getCardDef(discardedCard).name} 카드를 버렸습니다.`, 'info');
+            this.renderHand();
+        },
+        clearSlot(slotIndex) {
+            const cost = 1;
+            if (state.isTutorial && !state.tutorialGuidedStepsCompleted) {
+                this.showToast('튜토리얼 중에는 토지를 개간할 수 없습니다.', 'warn'); return;
+            }
+            if (state.coins < cost) {
+                this.showToast('비용이 부족하여 개간할 수 없습니다.', 'error'); return;
+            }
+            const slot = state.slots[slotIndex];
+            if (!slot || slot.stack.length === 0) return;
+            state.coins -= cost;
+            const cardName = this.getCardDef(slot.cardId).name;
+            if (!state.discard) state.discard = [];
+            state.discard.push(...slot.stack);
+            slot.cardId = null;
+            slot.stack = [];
+            this.showToast(`${cardName} 작물을 개간했습니다. (-1 코인)`, 'info');
+            this.renderAll();
+        },
+        getLandCost() { return gameData.config.landBaseCost + (state.slots.length - gameData.config.startingSlots) * gameData.config.landCostPerStage; },
+        renderAll() { this.updateUI(); this.renderBoard(); this.renderHand(); },
+        updateUI() {
+            elements.hud.turn.textContent = `${state.turn} / ${state.turnLimit}`;
+            elements.hud.debt.textContent = state.debt;
+            elements.hud.coins.textContent = state.coins;
+            elements.hud.land.textContent = `${state.slots.length} / ${gameData.config.maxSlots}`;
+            const landCost = this.getLandCost();
+            elements.actions.buyLandBtn.textContent = `토지 구매 (${landCost}원)`;
+            elements.actions.buyLandBtn.disabled = state.coins < landCost || state.slots.length >= gameData.config.maxSlots;
+        },
+        renderBoard() {
+            elements.board.innerHTML = '';
+            state.slots.forEach((slot, index) => {
+                const slotEl = document.createElement('div');
+                slotEl.className = 'slot relative border-2 border-dashed bg-gray-200/50 rounded-lg p-2 flex flex-col justify-between items-center min-h-[180px] transition-all';
+                if (state.selectedCardIndex !== -1) { // *** CHANGED *** - Simplified highlight logic
+                    slotEl.classList.add('highlight', 'cursor-pointer');
+                }
+                slotEl.dataset.slotIndex = index;
+                if (slot.cardId) {
+                    const cardDef = this.getCardDef(slot.cardId);
+                    const stackSize = slot.stack.length;
+                    let nextThreshold = Infinity, currentPayout = 0;
+                    for (const rule of cardDef.sellTable) {
+                        if (stackSize >= rule.need) currentPayout = rule.coins;
+                        else { nextThreshold = rule.need; break; }
+                    }
+                    const progress = nextThreshold === Infinity ? 100 : (stackSize / nextThreshold) * 100;
+                    const canClear = state.coins >= 1 && !(state.isTutorial && !state.tutorialGuidedStepsCompleted);
+                    slotEl.innerHTML = `<div class="w-full text-center"><h3 class="font-bold text-lg">${cardDef.name}</h3><p class="text-sm ${cardDef.rarity === 'common' || cardDef.rarity === 'uncommon' ? 'text-gray-600' : 'font-semibold text-purple-600'}">${cardDef.rarity}</p></div><div class="text-4xl font-black my-2">${stackSize}</div><div class="w-full text-center space-y-1"><div class="w-full bg-gray-300 rounded-full h-2.5 mb-1"><div class="bg-green-500 h-2.5 rounded-full" style="width: ${progress}%"></div></div><p class="text-xs">다음 구간: ${nextThreshold === Infinity ? '최대' : `${nextThreshold}장`} / 현재가치: ${currentPayout}원</p><button class="sell-btn w-full px-3 py-1 bg-yellow-400 text-yellow-900 font-bold rounded shadow hover:bg-yellow-500 disabled:bg-gray-400" ${state.sellCount >= 1 && !(state.isTutorial && !state.tutorialGuidedStepsCompleted) ? 'disabled' : ''}>판매</button><button class="clear-btn w-full px-3 py-1 bg-gray-500 text-white font-bold rounded shadow hover:bg-gray-600 disabled:bg-gray-400" ${!canClear ? 'disabled' : ''}>개간 (1원)</button></div>`;
+                    slotEl.classList.remove('bg-gray-200/50', 'border-dashed');
+                    slotEl.classList.add('bg-white', 'shadow-md', 'border-solid', 'border-gray-300');
+                } else slotEl.innerHTML = `<span class="text-gray-400">빈 토지</span>`;
+                elements.board.appendChild(slotEl);
+            });
+        },
+        renderHand() {
+            elements.hand.innerHTML = '';
+            state.hand.forEach((cardId, index) => {
+                const cardDef = this.getCardDef(cardId);
+                const cardEl = document.createElement('div');
+                cardEl.className = `card w-28 h-40 p-2 rounded-lg shadow-md flex flex-col justify-between cursor-pointer border-4 border-transparent rarity-${cardDef.rarity}`;
+                cardEl.dataset.cardIndex = index;
+                let discardBtnHtml = '';
+                if (index > 0) discardBtnHtml = `<button class="discard-btn" data-card-index="${index}">X</button>`;
+                cardEl.innerHTML = `${discardBtnHtml}<div class="text-center"><h4 class="font-bold">${cardDef.name}</h4><p class="text-xs font-semibold">${cardDef.rarity}</p></div><div class="text-center text-xs">${cardDef.sellTable.map(r => `<span>${r.need}→${r.coins}</span>`).join(' ')}</div>`;
+                if (index === 0) cardEl.classList.add('mandatory-card');
+                if (index === state.selectedCardIndex) cardEl.classList.add('ring-4', 'ring-blue-500', 'transform', 'translate-y-[-10px]');
+                elements.hand.appendChild(cardEl);
+            });
+        },
+        showModal(htmlContent) { elements.modal.content.innerHTML = htmlContent; elements.modal.container.classList.remove('hidden'); },
+        closeModal() { elements.modal.container.classList.add('hidden'); },
+        showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            const typeClasses = { info: 'bg-blue-500', success: 'bg-green-500', warn: 'bg-yellow-500', error: 'bg-red-500' };
+            toast.className = `fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all animate-bounce ${typeClasses[type]}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        },
+        async showCoinAnimation(amount, element) {
+            const rect = element.getBoundingClientRect();
+            const coinAnim = document.createElement('div');
+            coinAnim.className = 'animated-coin text-yellow-400 font-bold';
+            coinAnim.textContent = `+${amount}💰`;
+            coinAnim.style.left = `${rect.left + rect.width / 2 - 20}px`;
+            coinAnim.style.top = `${rect.top}px`;
+            document.body.appendChild(coinAnim);
+            setTimeout(() => coinAnim.remove(), 1500);
+        },
+        sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    };
+
+    const Tutorial = {
+        setHandForTurn(turn) { state.hand = tutorialData.turnHands[turn] ? [...tutorialData.turnHands[turn]] : []; },
+        checkTrigger(triggerType, data = {}) {
+            if (!state.isTutorial) return;
+            const currentStepData = tutorialData.steps[state.tutorialStep];
+            if (!currentStepData) return;
+            const waitCondition = currentStepData.waitFor;
+            let conditionMet = false;
+            if (waitCondition.trigger === triggerType) {
+                switch (triggerType) {
+                    case 'plant': case 'sell': if (waitCondition.card === data.card) conditionMet = true; break;
+                    case 'turn_start': if (waitCondition.turn === data.turn) conditionMet = true; break;
+                    case 'buy_land': case 'debt_cleared': conditionMet = true; break;
+                }
+            }
+            if (conditionMet) {
+                state.tutorialStep++;
+                const nextStepData = tutorialData.steps[state.tutorialStep];
+                if (nextStepData) setTimeout(() => this.showGuide(nextStepData.guide), 100);
+                else { this.clearGuide(); this.unlockAllActions(); }
+            }
+        },
+        showGuide(guide) {
+            this.clearGuide();
+            if (!guide) return;
+            let guideElementSelector = guide.element;
+            if (guide.element.startsWith('SLOT_WITH_CARD')) {
+                const cardIdToFind = guide.element.match(/\(([^)]+)\)/)[1];
+                const slotIndex = state.slots.findIndex(slot => slot.cardId === cardIdToFind);
+                if (slotIndex !== -1) guideElementSelector = `[data-slot-index="${slotIndex}"] .sell-btn`;
+                else guideElementSelector = '#board';
+            }
+            const targetElement = $(guideElementSelector);
+            if (!targetElement) {
+                const guideEl = document.createElement('div');
+                guideEl.className = 'tutorial-overlay fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2';
+                guideEl.innerHTML = `<p>${guide.text}</p>`;
+                elements.tutorialContainer.appendChild(guideEl);
+            } else {
+                const rect = targetElement.getBoundingClientRect();
+                const guideEl = document.createElement('div');
+                guideEl.className = 'tutorial-overlay';
+                guideEl.innerHTML = `<p>${guide.text}</p><div class="absolute w-4 h-4 bg-inherit transform rotate-45 -bottom-2 left-1/2 -translate-x-1/2"></div>`;
+                elements.tutorialContainer.appendChild(guideEl);
+                guideEl.style.left = `${Math.max(10, rect.left + rect.width / 2 - guideEl.offsetWidth / 2)}px`;
+                guideEl.style.top = `${rect.top - guideEl.offsetHeight - 10}px`;
+                if (rect.top - guideEl.offsetHeight - 10 < 0) {
+                    guideEl.style.top = `${rect.bottom + 10}px`;
+                    guideEl.querySelector('div').className = 'absolute w-4 h-4 bg-inherit transform rotate-45 -top-2 left-1/2 -translate-x-1/2';
+                }
+            }
+            if (guide.unlock) {
+                state.tutorialGuidedStepsCompleted = true;
+                this.unlockAllActions();
+                setTimeout(() => this.clearGuide(), 4000);
+            } else this.lockActions(guideElementSelector);
+        },
+        clearGuide() { elements.tutorialContainer.innerHTML = ''; },
+        lockActions(allowedSelector) {
+            this.unlockAllActions();
+            $$('#actions button, #hand .card, #board .slot, #board .slot .sell-btn, #board .slot .clear-btn').forEach(el => el.classList.add('tutorial-locked'));
+            if (allowedSelector) {
+                $$(allowedSelector).forEach(el => {
+                    el.classList.remove('tutorial-locked');
+                    if (el.classList.contains('sell-btn')) el.closest('.slot')?.classList.remove('tutorial-locked');
+                });
+            }
+        },
+        unlockAllActions() { $$('.tutorial-locked').forEach(el => el.classList.remove('tutorial-locked')); }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        $$('.start-btn').forEach(btn => btn.addEventListener('click', () => Game.init(btn.dataset.mode)));
+        elements.actions.endTurnBtn.addEventListener('click', () => Game.endTurn());
+        elements.actions.buyLandBtn.addEventListener('click', () => Game.buyLand());
+        elements.actions.shopBtn.addEventListener('click', () => Game.showShop());
+        elements.hand.addEventListener('click', (e) => {
+            const cardEl = e.target.closest('.card');
+            const discardBtn = e.target.closest('.discard-btn');
+            if (discardBtn && !discardBtn.classList.contains('tutorial-locked')) {
+                Game.discardCard(parseInt(discardBtn.dataset.cardIndex));
+            } else if (cardEl && !cardEl.classList.contains('tutorial-locked')) {
+                Game.selectCard(parseInt(cardEl.dataset.cardIndex));
+            }
+        });
+        elements.board.addEventListener('click', (e) => {
+            const slotEl = e.target.closest('.slot');
+            if (slotEl && !slotEl.classList.contains('tutorial-locked')) {
+                const slotIndex = parseInt(slotEl.dataset.slotIndex);
+                const sellBtn = e.target.closest('.sell-btn');
+                const clearBtn = e.target.closest('.clear-btn');
+                if (sellBtn && !sellBtn.classList.contains('tutorial-locked')) Game.sellStack(slotIndex);
+                else if (clearBtn && !clearBtn.classList.contains('tutorial-locked')) Game.clearSlot(slotIndex);
+                else if (state.selectedCardIndex !== -1) Game.plantCard(slotIndex);
+            }
+        });
+        elements.modal.container.addEventListener('click', (e) => { if (e.target === elements.modal.container) Game.closeModal(); });
+    });
+</script>
+</body>
+</html>
