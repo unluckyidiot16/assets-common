@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대한민국 대통령 되기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            touch-action: manipulation; /* 더블 탭 확대 방지 */
+        }
+        .indicator-bar-inner {
+            transition: width 0.5s ease-in-out;
+        }
+        .card {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform-style: preserve-3d;
+        }
+        .card.exit-left {
+            transform: translateX(-150%) rotate(-15deg);
+            opacity: 0;
+        }
+        .card.exit-right {
+            transform: translateX(150%) rotate(15deg);
+            opacity: 0;
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .choice-btn:active {
+            transform: scale(0.95);
+        }
+        .effect-popup {
+            animation: floatUp 1.5s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-60px); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<div id="game-container" class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-2xl p-4 md:p-6 text-gray-800 flex flex-col min-h-[600px] relative overflow-hidden">
+
+    <!-- 게임 시작 화면 -->
+    <div id="start-screen" class="absolute inset-0 bg-blue-500 z-30 flex flex-col items-center justify-center p-8 text-white text-center rounded-2xl">
+        <h1 class="text-4xl font-bold mb-4">대한민국 대통령 되기</h1>
+        <p class="mb-8">당신은 대한민국의 새로운 대통령입니다. <br>현명한 선택으로 나라를 이끌어주세요!</p>
+        <button id="start-btn" class="bg-white text-blue-500 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transition-transform transform hover:scale-105">게임 시작</button>
+    </div>
+
+    <!-- 게임 오버 화면 -->
+    <div id="game-over-screen" class="hidden absolute inset-0 bg-gray-800 z-30 flex flex-col items-center justify-center p-8 text-white text-center rounded-2xl">
+        <h1 id="game-over-title" class="text-4xl font-bold mb-4">임기 종료!</h1>
+        <p id="game-over-message" class="mb-6">당신의 임기 동안의 성과는 다음과 같습니다.</p>
+        <div id="final-stats" class="w-full mb-8"></div>
+        <button id="restart-btn" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-blue-600 transition-transform transform hover:scale-105">다시하기</button>
+    </div>
+
+    <!-- 용어 사전 모달 -->
+    <div id="glossary-modal" class="hidden absolute inset-0 z-20 flex items-center justify-center p-4 modal-backdrop rounded-2xl">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 relative">
+            <button id="close-glossary-btn" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            <h2 class="text-xl font-bold mb-4">알아두면 좋은 용어</h2>
+            <div id="glossary-content" class="text-left space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- 게임 UI -->
+    <header class="w-full mb-4">
+        <div class="flex justify-between items-center mb-2">
+            <h1 class="text-xl font-bold text-blue-600">대통령 집무실</h1>
+            <div id="turn-counter" class="text-sm font-bold bg-gray-200 text-gray-700 rounded-full px-3 py-1">1년차 1분기</div>
+        </div>
+        <div id="indicators-container" class="grid grid-cols-5 gap-2">
+            <!-- 지표 바가 여기에 동적으로 추가됩니다. -->
+        </div>
+    </header>
+
+    <main class="flex-grow flex flex-col items-center justify-center relative w-full">
+        <div id="effect-popup-container" class="absolute top-0 left-0 right-0 h-20 pointer-events-none z-10"></div>
+        <div id="card-container" class="w-full h-64 relative">
+            <div id="card" class="card absolute inset-0 bg-blue-50 border-2 border-blue-200 rounded-xl p-4 flex flex-col justify-between text-center shadow-lg">
+                <div>
+                    <button id="glossary-btn" class="absolute top-2 right-2 text-xl bg-blue-200 text-blue-700 rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-sm hover:bg-blue-300 transition">?</button>
+                    <h2 id="card-title" class="font-bold text-lg mt-4"></h2>
+                </div>
+                <p id="card-text" class="text-gray-700 text-md flex-grow flex items-center justify-center"></p>
+            </div>
+        </div>
+        <div id="choices-container" class="w-full flex justify-between gap-4 mt-4">
+            <button id="choice-left" class="choice-btn w-1/2 bg-red-500 text-white p-4 rounded-lg font-bold shadow-md hover:bg-red-600 transition"></button>
+            <button id="choice-right" class="choice-btn w-1/2 bg-green-500 text-white p-4 rounded-lg font-bold shadow-md hover:bg-green-600 transition"></button>
+        </div>
+    </main>
+
+    <footer class="mt-4 w-full h-20">
+        <h3 class="text-sm font-bold text-center mb-2 text-gray-500">진행 중인 프로젝트</h3>
+        <div id="projects-container" class="flex justify-center gap-2 h-full">
+            <!-- 프로젝트 슬롯 -->
+            <div class="project-slot"></div>
+            <div class="project-slot"></div>
+            <div class="project-slot"></div>
+        </div>
+    </footer>
+
+</div>
+
+<script>
+    const gameData = {
+        "indicators": [
+            {"key":"행복", "label":"😊 행복", "color":"bg-yellow-400"},
+            {"key":"예산", "label":"💰 예산", "color":"bg-green-500"},
+            {"key":"경제", "label":"📈 경제", "color":"bg-blue-500"},
+            {"key":"신뢰", "label":"🤝 신뢰", "color":"bg-purple-500"},
+            {"key":"지속", "label":"🌍 지속", "color":"bg-teal-500"}
+        ],
+        "stages": ["기초다지기","성장도전","미래준비"],
+        "glossary": [
+            {"term":"예산","short":"나라가 쓰고 모으는 돈 계획"},
+            {"term":"경제","short":"일자리와 돈이 도는 힘"},
+            {"term":"사회 신뢰","short":"서로 약속을 믿고 법을 지키는 힘"},
+            {"term":"지속가능성","short":"지금도 미래도 함께 좋은 상태를 지키는 힘"},
+            {"term":"세금","short":"모두가 함께 쓰는 일을 위해 내는 돈"},
+            {"term":"보조금","short":"힘든 곳을 도와주는 나라의 돈"},
+            {"term":"물가","short":"물건값의 높고 낮음"},
+            {"term":"쿠폰","short":"일부 물건을 싸게 사게 해주는 표"},
+            {"term":"규제","short":"안전과 공정을 위한 규칙"},
+            {"term":"규제 샌드박스","short":"새 아이디어를 시험해 보는 특별 구역"},
+            {"term":"수출","short":"우리 물건을 다른 나라에 파는 것"},
+            {"term":"세액공제","short":"내야 할 세금을 조금 깎아 주는 것"},
+            {"term":"연구개발","short":"새 지식·기술을 만드는 노력"},
+            {"term":"노동시간","short":"하루/주에 일하는 시간"},
+            {"term":"최저임금","short":"가장 적게 받아도 되는 시급"},
+            {"term":"공정경쟁","short":"반칙 없이 같은 규칙으로 경쟁"},
+            {"term":"공공요금","short":"버스·지하철 같은 공용 서비스 요금"},
+            {"term":"공공의료","short":"모두를 돌보는 병원 서비스"},
+            {"term":"탄소세","short":"탄소를 많이 내면 내는 세금"},
+            {"term":"바우처","short":"특정 도움을 받게 해주는 이용권"},
+            {"term":"출산·돌봄","short":"아이 낳고 키울 때 필요한 도움"},
+            {"term":"이민","short":"다른 나라 사람이 우리나라에 와서 사는 것"},
+            {"term":"재교육","short":"새 기술을 배우는 공부"},
+            {"term":"재생에너지","short":"다시 쓸 수 있는 에너지"},
+            {"term":"발전소","short":"전기를 만드는 시설"},
+            {"term":"도시 재생","short":"낡은 동네를 다시 좋게 만드는 일"},
+            {"term":"신도시","short":"새로 만든 큰 동네/도시"},
+            {"term":"디지털 문해","short":"컴퓨터·인터넷을 잘 쓰는 힘"},
+            {"term":"사이버 보안","short":"해킹을 막고 정보를 지키는 일"},
+            {"term":"데이터 개방","short":"안전하게 정보를 나누어 쓰는 일"},
+            {"term":"인구구조","short":"어린이·어른·노인의 비율과 수"},
+            {"term":"행복","short":"사람들이 기분 좋고 안전하고 건강한 정도"}
+        ],
+        "cards": [
+            {"id":"C001","stage":"기초다지기","title":"학교 보수 vs 도로 보수","text":"먼저 어디를 고칠까요?","glossary_refs":["예산","경제","행복"],"choices":[{"label":"학교 먼저", "effects":{"행복":2,"예산":-2,"경제":0,"신뢰":1,"지속":1}, "hint":"편한 학교는 아이들에게 좋아요."},{"label":"도로 먼저", "effects":{"행복":0,"예산":-2,"경제":2,"신뢰":0,"지속":0}, "hint":"길이 좋아지면 물건이 더 빨리 움직여요."}]},
+            {"id":"C002","stage":"기초다지기","title":"물가 안정 쿠폰","text":"장바구니 물가가 올랐습니다.","glossary_refs":["물가","쿠폰","예산"],"choices":[{"label":"쿠폰 시행", "effects":{"행복":2,"예산":-2,"경제":1,"신뢰":0,"지속":0}, "hint":"일부 물건을 싸게 살 수 있어요."},{"label":"시장 자율", "effects":{"행복":-1,"예산":0,"경제":1,"신뢰":1,"지속":0}, "hint":"가게가 스스로 가격을 정해요."}]},
+            {"id":"C003","stage":"기초다지기","title":"공공의료 인력 늘리기","text":"병원 사람이 부족해요.","glossary_refs":["공공의료","예산"],"choices":[{"label":"정원 확대", "effects":{"행복":2,"예산":-2,"경제":0,"신뢰":1,"지속":0}, "hint":"더 많은 의사·간호사가 생겨요."},{"label":"민간 협약", "effects":{"행복":1,"예산":-1,"경제":0,"신뢰":1,"지속":0}, "hint":"민간 병원과 손잡아요."}]},
+            {"id":"C004","stage":"기초다지기","title":"도시 공원 vs 주차장","text":"빈 땅을 어떻게 쓸까요?","glossary_refs":["지속가능성"],"choices":[{"label":"공원 조성", "effects":{"행복":2,"예산":-1,"경제":0,"신뢰":0,"지속":2}, "hint":"쉬는 곳이 늘어요."},{"label":"주차장 조성", "effects":{"행복":0,"예산":-1,"경제":1,"신뢰":0,"지속":-1}, "hint":"차 세우기 편해져요."}]},
+            {"id":"C005","stage":"기초다지기","title":"급식 지원 확대","text":"학교 급식 도움을 늘릴까요?","glossary_refs":["보조금","예산"],"choices":[{"label":"모두 확대", "effects":{"행복":2,"예산":-2,"경제":0,"신뢰":1,"지속":0}, "hint":"아이들이 골고루 먹어요."},{"label":"형편 집중", "effects":{"행복":1,"예산":-1,"경제":0,"신뢰":2,"지속":0}, "hint":"도움이 더 필요한 곳에 먼저."}]},
+            {"id":"C006","stage":"기초다지기","title":"지역 상권 보호","text":"동네 가게를 지킬까요?","glossary_refs":["규제","공정경쟁"],"choices":[{"label":"보호구역 지정", "effects":{"행복":1,"예산":-1,"경제":-1,"신뢰":1,"지속":0}, "hint":"동네 가게 숨 쉴 틈."},{"label":"야간시장 허용", "effects":{"행복":1,"예산":0,"경제":2,"신뢰":0,"지속":0}, "hint":"밤에도 활기! 관광객↑"}]},
+            {"id":"C007","stage":"기초다지기","title":"버스·지하철 요금","text":"요금을 어떻게 할까요?","glossary_refs":["공공요금","예산"],"choices":[{"label":"동결", "effects":{"행복":1,"예산":-2,"경제":0,"신뢰":1,"지속":0}, "hint":"시민 부담을 줄여요."},{"label":"소폭 인상", "effects":{"행복":-1,"예산":1,"경제":0,"신뢰":1,"지속":1}, "hint":"서비스 품질을 지켜요."}]},
+            {"id":"C008","stage":"성장도전","title":"수출기업 도우미","text":"해외 판매를 돕는 방안?","glossary_refs":["수출","공정경쟁","예산"],"choices":[{"label":"보증 확대", "effects":{"행복":0,"예산":-2,"경제":2,"신뢰":0,"지속":0}, "hint":"위험을 함께 나눠요."},{"label":"공정 강화", "effects":{"행복":0,"예산":0,"경제":1,"신뢰":2,"지속":0}, "hint":"반칙 없이 경쟁!"}]},
+            {"id":"C009","stage":"성장도전","title":"노동시간 관리","text":"근무시간을 어떻게?","glossary_refs":["노동시간"],"choices":[{"label":"상한 강화", "effects":{"행복":2,"예산":-1,"경제":-1,"신뢰":1,"지속":0}, "hint":"쉬어야 잘 일해요."},{"label":"자율+감시", "effects":{"행복":0,"예산":-1,"경제":1,"신뢰":1,"지속":0}, "hint":"자율은 하되 지켜봅니다."}]},
+            {"id":"C010","stage":"성장도전","title":"혁신 클러스터 세액공제","text":"창업 지역에 세금 혜택?","glossary_refs":["세액공제","연구개발","예산"],"choices":[{"label":"확대", "effects":{"행복":0,"예산":-2,"경제":2,"신뢰":-1,"지속":0}, "hint":"새 회사가 모여요.", "project":{"name":"혁신 클러스터","upkeep":1,"dur":6,"tick":{"경제":1}} },{"label":"현행 유지", "effects":{"행복":0,"예산":0,"경제":0,"신뢰":1,"지속":0}, "hint":"지금 속도로 갑니다."}]},
+            {"id":"C011","stage":"성장도전","title":"디지털 문해 교육","text":"누구에게 먼저 가르칠까요?","glossary_refs":["디지털 문해","예산"],"choices":[{"label":"전 국민 기초", "effects":{"행복":1,"예산":-2,"경제":1,"신뢰":1,"지속":0}, "hint":"모두의 기본을 튼튼히."},{"label":"핵심 인재", "effects":{"행복":0,"예산":-1,"경제":2,"신뢰":0,"지속":0}, "hint":"빠른 성과 노려요."}]},
+            {"id":"C012","stage":"성장도전","title":"규제 샌드박스","text":"새 기술, 먼저 시험해 볼까요?","glossary_refs":["규제 샌드박스","규제"],"choices":[{"label":"범위 확대", "effects":{"행복":0,"예산":-1,"경제":2,"신뢰":-1,"지속":0}, "hint":"빠르게 시도!"},{"label":"안전 우선", "effects":{"행복":0,"예산":0,"경제":0,"신뢰":2,"지속":0}, "hint":"천천히, 더 안전히."}]},
+            {"id":"C013","stage":"성장도전","title":"공공 데이터 개방","text":"기업과 시민이 쓰게 할까요?","glossary_refs":["데이터 개방"],"choices":[{"label":"개방 확대", "effects":{"행복":1,"예산":-1,"경제":1,"신뢰":1,"지속":0}, "hint":"새 서비스가 나와요."},{"label":"부분 개방", "effects":{"행복":0,"예산":0,"경제":0,"신뢰":1,"지속":0}, "hint":"조심스럽게 시작."}]},
+            {"id":"C014","stage":"성장도전","title":"산업 안전 점검","text":"안전을 위해 무엇을?","glossary_refs":["규제","신뢰"],"choices":[{"label":"강화", "effects":{"행복":1,"예산":-1,"경제":-1,"신뢰":2,"지속":1}, "hint":"사고를 줄여요."},{"label":"자율 점검", "effects":{"행복":0,"예산":0,"경제":1,"신뢰":0,"지속":0}, "hint":"기업 책임 강화."}]},
+            {"id":"C015","stage":"미래준비","title":"탄소세 도입","text":"지구를 덥히는 배출을 줄일까요?","glossary_refs":["탄소세","지속가능성"],"choices":[{"label":"즉시 도입", "effects":{"행복":-1,"예산":1,"경제":-2,"신뢰":1,"지속":3}, "hint":"오래가면 모두에게 이로워요."},{"label":"시범 운영", "effects":{"행복":0,"예산":0,"경제":-1,"신뢰":1,"지속":1}, "hint":"먼저 작게 시험."}]},
+            {"id":"C016","stage":"미래준비","title":"출산·돌봄 지원","text":"가정에 어떤 도움을?","glossary_refs":["바우처","출산·돌봄","인구구조","예산"],"choices":[{"label":"바우처 확대", "effects":{"행복":2,"예산":-2,"경제":0,"신뢰":1,"지속":1}, "hint":"바로 쓰는 도움."},{"label":"시설 투자", "effects":{"행복":1,"예산":-2,"경제":1,"신뢰":1,"지속":1}, "hint":"오래 쓰는 도움."}]},
+            {"id":"C017","stage":"미래준비","title":"숙련 이민 vs 재교육","text":"사람이 부족한 분야를 채웁니다.","glossary_refs":["이민","재교육"],"choices":[{"label":"숙련 이민", "effects":{"행복":0,"예산":-1,"경제":2,"신뢰":0,"지속":0}, "hint":"지금 필요한 실력 확보."},{"label":"국내 재교육", "effects":{"행복":1,"예산":-2,"경제":1,"신뢰":1,"지속":0}, "hint":"우리도 잘하게!"}]},
+            {"id":"C018","stage":"미래준비","title":"재생에너지 단지","text":"전기를 어떻게 늘릴까요?","glossary_refs":["재생에너지","발전소","예산"],"choices":[{"label":"대규모 착수", "effects":{"행복":0,"예산":-3,"경제":0,"신뢰":1,"지속":3}, "hint":"처음엔 돈이 들지만 오래 좋아요.", "project":{"name":"재생에너지 단지","upkeep":1,"dur":8,"tick":{"지속":1}} },{"label":"점진 설치", "effects":{"행복":0,"예산":-1,"경제":0,"신뢰":1,"지속":1}, "hint":"천천히, 꾸준히."}]},
+            {"id":"C019","stage":"미래준비","title":"노후도시 재생 vs 신도시","text":"어디에 먼저 힘을 쓸까요?","glossary_refs":["도시 재생","신도시","예산"],"choices":[{"label":"도시 재생", "effects":{"행복":2,"예산":-2,"경제":0,"신뢰":1,"지속":1}, "hint":"오래된 동네가 다시 활기."}, {"label":"신도시", "effects":{"행복":1,"예산":-2,"경제":1,"신뢰":0,"지속":0}, "hint":"새로운 집과 일터."}]},
+            {"id":"C020","stage":"미래준비","title":"사이버 보안 투자","text":"정보를 안전하게 지킬까요?","glossary_refs":["사이버 보안","디지털 문해","예산"],"choices":[{"label":"핵심 인프라 강화", "effects":{"행복":0,"예산":-2,"경제":0,"신뢰":2,"지속":0}, "hint":"큰 사고를 막아요."},{"label":"생활 편의 앱", "effects":{"행복":1,"예산":-1,"경제":1,"신뢰":0,"지속":0}, "hint":"생활이 편해져요."}]}
+        ]
+    };
+
+    // DOM 요소
+    const indicatorsContainer = document.getElementById('indicators-container');
+    const cardElement = document.getElementById('card');
+    const cardTitle = document.getElementById('card-title');
+    const cardText = document.getElementById('card-text');
+    const choiceLeft = document.getElementById('choice-left');
+    const choiceRight = document.getElementById('choice-right');
+    const glossaryBtn = document.getElementById('glossary-btn');
+    const glossaryModal = document.getElementById('glossary-modal');
+    const closeGlossaryBtn = document.getElementById('close-glossary-btn');
+    const glossaryContent = document.getElementById('glossary-content');
+    const projectsContainer = document.getElementById('projects-container');
+    const turnCounter = document.getElementById('turn-counter');
+    const startScreen = document.getElementById('start-screen');
+    const startBtn = document.getElementById('start-btn');
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const gameOverTitle = document.getElementById('game-over-title');
+    const gameOverMessage = document.getElementById('game-over-message');
+    const finalStats = document.getElementById('final-stats');
+    const restartBtn = document.getElementById('restart-btn');
+    const effectPopupContainer = document.getElementById('effect-popup-container');
+
+
+    // 게임 상태
+    let state = {};
+
+    function initGameState() {
+        state = {
+            indicators: { "행복": 5, "예산": 5, "경제": 5, "신뢰": 5, "지속": 5 },
+            turn: 0,
+            maxTurns: 20, // 대통령 임기 5년 * 4분기 = 20턴
+            stageIndex: 0,
+            deck: [],
+            currentCard: null,
+            activeProjects: [],
+            lastChoiceDirection: null,
+            fatigueCount: 0,
+            gameOver: false,
+        };
+    }
+
+    function setupIndicators() {
+        indicatorsContainer.innerHTML = '';
+        gameData.indicators.forEach(indicator => {
+            const indicatorEl = document.createElement('div');
+            // --- UPDATE: Increased height from h-2.5 to h-5 ---
+            indicatorEl.className = 'w-full bg-gray-200 rounded-full h-5 relative overflow-hidden';
+            indicatorEl.innerHTML = `
+                    <div id="bar-${indicator.key}" class="indicator-bar-inner ${indicator.color} h-5 rounded-full" style="width: 50%"></div>
+                    // --- UPDATE: Increased text size from text-xs to text-sm ---
+                    <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white" style="text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">${indicator.label}</div>
+                `;
+            indicatorsContainer.appendChild(indicatorEl);
+        });
+    }
+
+    function shuffleDeck(cards) {
+        for (let i = cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        return cards;
+    }
+
+    function setupDeck() {
+        const currentStage = gameData.stages[state.stageIndex];
+        const stageCards = gameData.cards.filter(card => card.stage === currentStage);
+        state.deck = shuffleDeck([...stageCards]);
+    }
+
+    function drawCard() {
+        if (state.deck.length === 0) {
+            state.stageIndex++;
+            if (state.stageIndex >= gameData.stages.length) {
+                endGame("임기 종료");
+                return;
+            }
+            setupDeck();
+        }
+        state.currentCard = state.deck.pop();
+    }
+
+    function updateUI() {
+        // 지표 업데이트
+        for (const key in state.indicators) {
+            const bar = document.getElementById(`bar-${key}`);
+            const value = Math.max(0, Math.min(10, state.indicators[key]));
+            bar.style.width = `${value * 10}%`;
+        }
+
+        // 카드 업데이트
+        if (state.currentCard) {
+            cardTitle.textContent = state.currentCard.title;
+            cardText.textContent = state.currentCard.text;
+            choiceLeft.textContent = state.currentCard.choices[0].label;
+            choiceRight.textContent = state.currentCard.choices[1].label;
+
+            // 힌트(툴팁) 추가
+            choiceLeft.title = state.currentCard.choices[0].hint;
+            choiceRight.title = state.currentCard.choices[1].hint;
+        }
+
+        // 턴 카운터 업데이트
+        const year = Math.floor(state.turn / 4) + 1;
+        const quarter = (state.turn % 4) + 1;
+        turnCounter.textContent = `${year}년차 ${quarter}분기`;
+
+        // 프로젝트 업데이트
+        const projectSlots = projectsContainer.querySelectorAll('.project-slot');
+        projectSlots.forEach((slot, index) => {
+            const project = state.activeProjects[index];
+            if (project) {
+                slot.innerHTML = `
+                        <div class="w-full h-full bg-gray-200 rounded-lg p-2 text-center flex flex-col justify-center items-center text-xs shadow">
+                            <span class="font-bold">${project.name}</span>
+                            <span>남은 턴: ${project.dur}</span>
+                            <span>유지비: ${project.upkeep}</span>
+                        </div>
+                    `;
+            } else {
+                slot.innerHTML = `<div class="w-full h-full border-2 border-dashed border-gray-300 rounded-lg"></div>`;
+            }
+        });
+    }
+
+    function showNewCard() {
+        cardElement.style.transition = 'none';
+        cardElement.classList.remove('exit-left', 'exit-right');
+        cardElement.style.transform = 'translateY(20px) scale(0.95)';
+        cardElement.style.opacity = '0';
+
+        setTimeout(() => {
+            cardElement.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+            cardElement.style.transform = 'translateY(0) scale(1)';
+            cardElement.style.opacity = '1';
+            drawCard();
+            updateUI();
+        }, 50);
+    }
+
+    function createEffectPopup(key, change) {
+        const indicator = gameData.indicators.find(ind => ind.key === key);
+        if (!indicator) return;
+
+        const popup = document.createElement('div');
+        const changeText = change > 0 ? `+${change}` : `${change}`;
+        const colorClass = change > 0 ? 'text-green-500' : 'text-red-500';
+
+        popup.className = `effect-popup absolute font-bold text-lg ${colorClass}`;
+        popup.textContent = `${indicator.label.split(' ')[1]} ${changeText}`;
+
+        const indicatorEl = document.getElementById(`bar-${key}`).parentElement;
+        const rect = indicatorEl.getBoundingClientRect();
+        const containerRect = effectPopupContainer.getBoundingClientRect();
+
+        popup.style.left = `${rect.left - containerRect.left + rect.width / 2 - popup.offsetWidth / 2}px`;
+        popup.style.top = `${rect.top - containerRect.top}px`;
+
+        effectPopupContainer.appendChild(popup);
+
+        setTimeout(() => popup.remove(), 1400);
+    }
+
+    function handleChoice(choiceIndex) {
+        if (state.gameOver) return;
+
+        const choice = state.currentCard.choices[choiceIndex];
+        const direction = choiceIndex === 0 ? 'left' : 'right';
+        cardElement.classList.add(direction === 'left' ? 'exit-left' : 'exit-right');
+
+        // 피로도 시스템
+        let fatiguePenalty = 0;
+        if (state.lastChoiceDirection === direction) {
+            state.fatigueCount++;
+        } else {
+            state.fatigueCount = 1;
+            state.lastChoiceDirection = direction;
+        }
+        if (state.fatigueCount >= 3) {
+            fatiguePenalty = -1;
+        }
+
+        // 효과 적용
+        for (const key in choice.effects) {
+            let change = choice.effects[key];
+            if (fatiguePenalty !== 0 && change !==0) {
+                change += fatiguePenalty; // 피로도 적용
+            }
+            state.indicators[key] += change;
+            state.indicators[key] = Math.max(0, Math.min(10, state.indicators[key]));
+
+            if (change !== 0) {
+                createEffectPopup(key, change);
+            }
+        }
+
+        // 프로젝트 추가
+        if (choice.project && state.activeProjects.length < 3) {
+            state.activeProjects.push({...choice.project});
+        }
+
+        // 턴 진행
+        state.turn++;
+        handleProjectTick();
+
+        setTimeout(() => {
+            if (checkGameOver()) {
+                return;
+            }
+            showNewCard();
+        }, 300);
+    }
+
+    function handleProjectTick() {
+        let totalUpkeep = 0;
+        state.activeProjects.forEach(p => {
+            for (const key in p.tick) {
+                const change = p.tick[key];
+                state.indicators[key] += change;
+                state.indicators[key] = Math.max(0, Math.min(10, state.indicators[key]));
+                if (change !== 0) createEffectPopup(key, change);
+            }
+            totalUpkeep += p.upkeep;
+            p.dur--;
+        });
+
+        state.indicators['예산'] -= totalUpkeep;
+        state.indicators['예산'] = Math.max(0, state.indicators['예산']);
+        if (totalUpkeep > 0) createEffectPopup('예산', -totalUpkeep);
+
+        state.activeProjects = state.activeProjects.filter(p => p.dur > 0);
+    }
+
+    function checkGameOver() {
+        let reason = null;
+        for (const key in state.indicators) {
+            if (state.indicators[key] <= 0) {
+                reason = `${key} 지표가 0이 되어 국가적 위기에 빠졌습니다.`;
+                break;
+            }
+        }
+        if (!reason && state.turn >= state.maxTurns) {
+            reason = "5년의 임기를 무사히 마쳤습니다!";
+        }
+
+        if (reason) {
+            endGame(reason);
+            return true;
+        }
+        return false;
+    }
+
+    function endGame(reason) {
+        state.gameOver = true;
+
+        const sortedIndicators = Object.entries(state.indicators).sort((a, b) => b[1] - a[1]);
+        const highestIndicator = sortedIndicators[0][0];
+
+        let title;
+        if (state.indicators[highestIndicator] <= 0) {
+            title = "국가 위기";
+        } else if (state.turn < state.maxTurns) {
+            title = "위기 발생";
+        }
+        else {
+            title = "임기 종료!";
+        }
+
+        let message = `당신은 '${getEndingTitle(highestIndicator)}' 대통령으로 기억될 것입니다.`;
+
+        gameOverTitle.textContent = title;
+        gameOverMessage.textContent = `${reason}\n${message}`;
+
+        finalStats.innerHTML = '';
+        gameData.indicators.forEach(indicator => {
+            const value = state.indicators[indicator.key];
+            const statEl = document.createElement('div');
+            statEl.className = 'w-full bg-gray-700 rounded-full h-6 mb-2 relative';
+            statEl.innerHTML = `
+                    <div class="indicator-bar-inner ${indicator.color} h-6 rounded-full" style="width: ${value * 10}%"></div>
+                     <span class="absolute inset-0 text-center font-bold text-white leading-6">${indicator.label.split(' ')[1]}: ${value.toFixed(1)}</span>
+                `;
+            finalStats.appendChild(statEl);
+        });
+
+        gameOverScreen.classList.remove('hidden');
+    }
+
+    function getEndingTitle(indicatorKey) {
+        switch(indicatorKey) {
+            case '행복': return '국민을 사랑한';
+            case '예산': return '나라살림을 아낀';
+            case '경제': return '경제를 발전시킨';
+            case '신뢰': return '사회를 통합한';
+            case '지속': return '미래를 준비한';
+            default: return '균형잡힌';
+        }
+    }
+
+    function showGlossary() {
+        glossaryContent.innerHTML = '';
+        if (state.currentCard && state.currentCard.glossary_refs) {
+            state.currentCard.glossary_refs.forEach(refTerm => {
+                const termData = gameData.glossary.find(g => g.term === refTerm);
+                if (termData) {
+                    const termEl = document.createElement('div');
+                    termEl.innerHTML = `<p><strong class="font-bold text-blue-600">${termData.term}:</strong> ${termData.short}</p>`;
+                    glossaryContent.appendChild(termEl);
+                }
+            });
+        }
+        glossaryModal.classList.remove('hidden');
+    }
+
+    function hideGlossary() {
+        glossaryModal.classList.add('hidden');
+    }
+
+    function startGame() {
+        startScreen.classList.add('hidden');
+        initGameState();
+        setupIndicators();
+        setupDeck();
+        showNewCard();
+    }
+
+    // 이벤트 리스너
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', () => {
+        gameOverScreen.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+    });
+
+    choiceLeft.addEventListener('click', () => handleChoice(0));
+    choiceRight.addEventListener('click', () => handleChoice(1));
+    glossaryBtn.addEventListener('click', showGlossary);
+    closeGlossaryBtn.addEventListener('click', hideGlossary);
+    glossaryModal.addEventListener('click', (e) => {
+        if (e.target === glossaryModal) {
+            hideGlossary();
+        }
+    });
+
+</script>
+</body>
+</html>
+
