@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Flappy Boat (최종 완성)</title>
+    <title>Flappy Boat (컨테이너선 추가)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -111,17 +111,18 @@
         { id: 'sailboat', name: '요트', src: 'https://unluckyidiot16.github.io/assets-common/FlappyBoat/sailboat.png', unlockScore: 25, width: 65, height: 75 },
         { id: 'boat', name: '크루즈', src: 'https://unluckyidiot16.github.io/assets-common/FlappyBoat/boat.png', unlockScore: 50, width: 60, height: 55 },
         { id: 'bigship', name: '함선', src: 'https://unluckyidiot16.github.io/assets-common/FlappyBoat/bigship.png', unlockScore: 75, width: 70, height: 70 },
+        { id: 'containership', name: '컨테이너선', src: 'https://unluckyidiot16.github.io/assets-common/FlappyBoat/containership.png', unlockScore: 100, width: 80, height: 70 },
     ];
 
     // --- 게임 상태 변수 ---
     let gameState = 'start';
     let gameMode = 'practice';
     let frame = 0, score = 0;
-    let highScore = localStorage.getItem('flappyBoatHighScore_v12') || 0;
-    let unlockedBoats = JSON.parse(localStorage.getItem('flappyBoatUnlocked_v12')) || ['paperboat'];
+    let highScore = localStorage.getItem('flappyBoatHighScore_v13') || 0;
+    let unlockedBoats = JSON.parse(localStorage.getItem('flappyBoatUnlocked_v13')) || ['paperboat'];
     let selectedBoat = BOATS[0];
     let boatImage = new Image();
-    let framesSinceLastPillar = 0; // 기둥 생성 타이머
+    let framesSinceLastPillar = 0;
 
     // --- 게임 설정 (초기값) ---
     const settings = {
@@ -148,9 +149,13 @@
 
             let content = `<img src="${b.src}" class="w-full h-full object-contain"><p class="absolute bottom-0 left-0 right-0 text-white text-xs bg-black/50 py-0.5">${b.name}</p>`;
             if (!isUnlocked) {
+                let unlockText = `${b.unlockScore}점`;
+                if (b.id === 'containership') {
+                    unlockText = `도전 ${b.unlockScore}점`;
+                }
                 content += `<div class="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                    <span class="text-white font-bold text-sm mt-1">${b.unlockScore}점</span>
+                                    <span class="text-white font-bold text-sm mt-1">${unlockText}</span>
                                 </div>`;
             }
             button.innerHTML = content;
@@ -189,7 +194,7 @@
         water = { level: boat.y + boat.height, waveAmplitude: 5, waveFrequency: 0.03 };
         pillars = [];
         score = 0;
-        framesSinceLastPillar = settings.pillarFrequency; // 첫 기둥이 바로 나오도록
+        framesSinceLastPillar = settings.pillarFrequency;
         gameState = 'playing';
 
         hud.classList.remove('hidden');
@@ -217,7 +222,7 @@
 
         if (framesSinceLastPillar >= settings.pillarFrequency) {
             spawnPillar();
-            framesSinceLastPillar = 0; // 타이머 리셋
+            framesSinceLastPillar = 0;
         }
         updatePillars();
         checkCollisions();
@@ -337,21 +342,35 @@
 
         if (score > highScore) {
             highScore = score;
-            localStorage.setItem('flappyBoatHighScore_v12', highScore);
+            localStorage.setItem('flappyBoatHighScore_v13', highScore);
         }
 
-        let newUnlock = false;
-        let unlockedBoatName = '';
+        let newUnlocks = [];
         BOATS.forEach(b => {
-            if (highScore >= b.unlockScore && !unlockedBoats.includes(b.id)) {
-                unlockedBoats.push(b.id);
-                newUnlock = true;
-                unlockedBoatName = b.name;
+            if (!unlockedBoats.includes(b.id)) { // 아직 잠금 해제되지 않은 보트만 확인
+                let canUnlock = false;
+                if (b.id === 'containership') {
+                    // 컨테이너선 특별 조건: '도전 모드'에서 현재 점수가 해금 점수 이상이어야 함
+                    if (gameMode === 'challenge' && score >= b.unlockScore) {
+                        canUnlock = true;
+                    }
+                } else {
+                    // 다른 보트들의 일반 조건: 최고 점수가 해금 점수 이상이어야 함
+                    if (highScore >= b.unlockScore) {
+                        canUnlock = true;
+                    }
+                }
+
+                if (canUnlock) {
+                    unlockedBoats.push(b.id);
+                    newUnlocks.push(b.name);
+                }
             }
         });
-        if (newUnlock) {
-            localStorage.setItem('flappyBoatUnlocked_v12', JSON.stringify(unlockedBoats));
-            unlockNotification.textContent = `🎉 '${unlockedBoatName}' 보트 잠금 해제! 🎉`;
+
+        if (newUnlocks.length > 0) {
+            localStorage.setItem('flappyBoatUnlocked_v13', JSON.stringify(unlockedBoats));
+            unlockNotification.textContent = `🎉 '${newUnlocks.join(', ')}' 보트 잠금 해제! 🎉`;
             unlockNotification.classList.remove('hidden');
         }
 
