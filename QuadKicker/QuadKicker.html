@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>콰드 만들기 (가져오기 & 키커)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .card {
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            user-select: none;
+        }
+        .card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .card.face-down {
+            background-color: #4b5563; /* gray-600 */
+        }
+        .player-hand .card {
+            cursor: pointer;
+        }
+        .player-area.active {
+            background-color: #fef9c3; /* yellow-100 */
+            border-color: #facc15; /* yellow-400 */
+        }
+        .modal-backdrop {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+        .open-quads .card {
+            width: 3rem; height: 4rem; font-size: 1rem;
+        }
+        #discard-log-area {
+            max-height: 128px; /* 8rem */
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-2 md:p-4">
+
+<div id="game-container" class="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-4 md:p-6 text-center">
+
+    <!-- 게임 시작 화면 -->
+    <div id="start-screen">
+        <h1 class="text-4xl font-bold text-gray-800 mb-2">콰드 만들기</h1>
+        <p class="text-gray-500 mb-8">운을 기술로 바꾸는 카드 게임</p>
+        <div class="max-w-sm mx-auto">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">난이도 선택</h2>
+            <div class="space-y-3">
+                <button class="difficulty-btn w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition" data-difficulty="4">어려움 (36장)</button>
+                <button class="difficulty-btn w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition" data-difficulty="5">보통 (45장)</button>
+                <button class="difficulty-btn w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition" data-difficulty="6">쉬움 (54장)</button>
+            </div>
+        </div>
+        <div class="mt-8 p-4 bg-gray-50 rounded-lg text-left text-sm text-gray-600 max-w-lg mx-auto">
+            <h3 class="font-bold mb-2 text-center text-base">게임 규칙 💡</h3>
+            <p><strong>목표:</strong> 같은 숫자 4장(콰드) + 아무 숫자 1장(키커)을 가장 먼저 만드세요.</p>
+            <p><strong>턴:</strong> 덱이나 버려진 카드 더미에서 1장을 가져온 후, 손에서 1장을 버립니다.</p>
+            <p><strong>가져오기(호출):</strong> 다른 사람이 버린 카드로 콰드를 완성할 수 있다면, 즉시 '가져오기'를 외쳐 획득할 수 있습니다!</p>
+        </div>
+    </div>
+
+    <!-- 게임 진행 화면 -->
+    <div id="game-screen" class="hidden">
+        <!-- 상대 플레이어 영역 -->
+        <div id="opponents-area" class="flex justify-around mb-4 space-x-2 md:space-x-4">
+            <!-- 봇 플레이어 UI 생성 위치 -->
+        </div>
+
+        <!-- 테이블 중앙 영역 -->
+        <div id="table-area" class="flex justify-center items-center my-4 md:my-8 h-32 space-x-4 md:space-x-8">
+            <div id="deck-pile" class="w-24 h-32 card face-down flex items-center justify-center text-white font-bold cursor-pointer relative">
+                <span>덱</span>
+                <span id="deck-count" class="absolute bottom-1 right-1 text-xs bg-black bg-opacity-50 px-1 rounded"></span>
+            </div>
+            <div id="discard-pile" class="w-24 h-32 relative">
+                <!-- 버려진 카드 표시 위치 -->
+            </div>
+            <div class="w-48 h-32 bg-gray-100 rounded-lg p-2 text-left">
+                <h4 class="font-bold text-sm border-b pb-1 mb-1">버린 패 로그</h4>
+                <div id="discard-log-area" class="text-xs space-y-1">
+                    <!-- 로그 내용 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 플레이어 영역 -->
+        <div id="player-area-human" class="player-area p-4 bg-gray-50 border-2 border-transparent rounded-lg">
+            <div class="flex justify-between items-center mb-2">
+                <div class="text-left">
+                    <h2 class="font-bold text-lg">플레이어 (나)</h2>
+                    <div class="text-sm">점수: <span id="player-score-human" class="font-semibold">0</span></div>
+                    <div id="player-d-info-human" class="text-sm text-blue-600 font-bold"></div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="declare-d-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 transition">d 선언</button>
+                </div>
+            </div>
+            <div id="player-open-quads-human" class="open-quads flex justify-center items-center mb-2 h-16"></div>
+            <div id="player-hand-human" class="player-hand flex justify-center space-x-2">
+                <!-- 플레이어 카드 생성 위치 -->
+            </div>
+        </div>
+        <div id="game-message" class="mt-4 font-semibold text-indigo-600 h-6"></div>
+    </div>
+</div>
+
+<!-- 모달 창들 -->
+<div id="d-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden modal-backdrop">
+    <div class="bg-white rounded-lg p-6 w-full max-w-xs text-center">
+        <h2 class="text-xl font-bold mb-4">d 보너스 선언</h2>
+        <p class="text-sm text-gray-600 mb-4">이번 라운드에 도전할 d값(2~9)을 입력하세요. (라운드당 1회)</p>
+        <input type="number" id="d-input" min="2" max="9" class="w-full border-2 border-gray-300 p-2 rounded text-center text-lg focus:border-blue-500 focus:ring-0">
+        <div class="flex justify-center space-x-4 mt-4">
+            <button id="confirm-d-btn" class="bg-blue-500 text-white px-6 py-2 rounded-md">확인</button>
+            <button id="cancel-d-btn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-md">취소</button>
+        </div>
+    </div>
+</div>
+
+<div id="take-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden modal-backdrop">
+    <div class="bg-white rounded-lg p-6 w-full max-w-xs text-center">
+        <h2 class="text-2xl font-bold mb-2 text-yellow-500">가져오기!</h2>
+        <p class="text-gray-700 mb-4">버려진 카드로 콰드를 완성할 수 있습니다. 가져오시겠습니까?</p>
+        <div id="take-card-display" class="flex justify-center mb-4"></div>
+        <div class="flex justify-center space-x-4 mt-4">
+            <button id="confirm-take-btn" class="bg-yellow-500 text-white px-6 py-2 rounded-md">가져오기</button>
+            <button id="cancel-take-btn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-md">패스</button>
+        </div>
+    </div>
+</div>
+
+<div id="round-end-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden modal-backdrop">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md text-center">
+        <h2 id="round-end-title" class="text-3xl font-bold mb-4">라운드 종료!</h2>
+        <div id="round-winner-info" class="mb-4"></div>
+        <div id="score-details" class="text-left bg-gray-50 p-4 rounded-md space-y-2 mb-6"></div>
+        <button id="next-round-btn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg">다음 라운드</button>
+    </div>
+</div>
+
+<script>
+    // --- 게임 설정 ---
+    const PLAYER_COUNT = 3;
+    const BOT_NAMES = ["Bot Alpha", "Bot Bravo"];
+    const HAND_SIZE = 5;
+    const CARD_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const SUITS_BASE = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+    // --- 게임 상태 관리 ---
+    let gameState = {};
+
+    function resetGameState() {
+        gameState = {
+            players: [],
+            deck: [],
+            discardPile: [],
+            discardLog: [],
+            currentTurnIndex: 0,
+            gamePhase: 'setup',
+            takeOpportunity: null,
+            turnCounter: 0,
+            difficulty: 4, // 기본값: 어려움(4장)
+        };
+    }
+
+    // --- DOM 요소 ---
+    const getEl = (id) => document.getElementById(id);
+    const startScreen = getEl('start-screen');
+    const gameScreen = getEl('game-screen');
+    const deckPile = getEl('deck-pile');
+    const discardPileDiv = getEl('discard-pile');
+    const gameMessage = getEl('game-message');
+
+    // --- 렌더링 함수 ---
+    function renderCard(card, faceUp = true) {
+        const isFaceDown = !faceUp || !card;
+        const value = card ? card.value : '';
+        const bgColor = isFaceDown ? 'bg-gray-700' : 'bg-white';
+        const textColor = isFaceDown ? 'text-transparent' : 'text-gray-800';
+        return `
+        <div class="card w-20 h-28 ${bgColor} border-2 border-gray-300 rounded-lg flex items-center justify-center text-3xl font-bold ${textColor}" data-value="${value}">
+            ${value}
+        </div>
+    `;
+    }
+
+    function renderSmallCard(value) {
+        return `<div class="card w-12 h-16 bg-white border-2 border-gray-300 rounded-md flex items-center justify-center text-lg font-bold" data-value="${value}">${value}</div>`;
+    }
+
+    function renderDiscardLog() {
+        const logArea = getEl('discard-log-area');
+        logArea.innerHTML = gameState.discardLog
+            .map(entry => `<div><span class="font-semibold">${entry.playerName}</span> → <span class="font-bold text-red-600">${entry.cardValue}</span></div>`)
+            .reverse()
+            .join('');
+        logArea.scrollTop = 0;
+    }
+
+    function renderAll() {
+        const opponentsArea = getEl('opponents-area');
+        opponentsArea.innerHTML = '';
+        gameState.players.forEach((player, index) => {
+            if (index === 0) return;
+
+            let openQuadsHTML = player.openQuads.map(q => renderSmallCard(q.value).repeat(4)).join('');
+
+            opponentsArea.innerHTML += `
+            <div id="player-area-${index}" class="player-area flex-1 p-3 bg-gray-50 border-2 border-transparent rounded-lg">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="font-bold">${player.name}</h2>
+                        <div class="text-sm">점수: <span class="font-semibold">${player.score}</span></div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-lg">${player.hand.length} 장</div>
+                    </div>
+                </div>
+                <div id="player-open-quads-${index}" class="open-quads flex justify-center items-center mt-2 h-16 gap-1">${openQuadsHTML}</div>
+            </div>
+        `;
+        });
+
+        getEl('deck-count').textContent = gameState.deck.length;
+        discardPileDiv.innerHTML = renderCard(gameState.discardPile[gameState.discardPile.length - 1]);
+        renderDiscardLog();
+
+        const humanPlayer = gameState.players[0];
+        getEl('player-score-human').textContent = humanPlayer.score;
+        const handDiv = getEl('player-hand-human');
+        handDiv.innerHTML = humanPlayer.hand.map(card => renderCard(card)).join('');
+
+        let openQuadsHTML = humanPlayer.openQuads.map(q => renderSmallCard(q.value).repeat(4)).join('');
+        getEl('player-open-quads-human').innerHTML = openQuadsHTML;
+
+        const dInfo = getEl('player-d-info-human');
+        if (humanPlayer.declaredD) {
+            dInfo.textContent = `선언한 d = ${humanPlayer.declaredD}`;
+            getEl('declare-d-btn').disabled = true;
+        } else {
+            dInfo.textContent = '';
+            getEl('declare-d-btn').disabled = false;
+        }
+
+        document.querySelectorAll('.player-area').forEach(el => el.classList.remove('active'));
+        if (gameState.gamePhase !== 'round-over') {
+            const activeArea = getEl(`player-area-${gameState.currentTurnIndex === 0 ? 'human' : gameState.currentTurnIndex}`);
+            if(activeArea) activeArea.classList.add('active');
+        }
+    }
+
+    // --- 게임 로직 ---
+    function createDeck(difficulty) {
+        const deck = [];
+        const suits = SUITS_BASE.slice(0, difficulty);
+        CARD_NUMBERS.forEach(num => {
+            suits.forEach(suit => {
+                deck.push({ value: num, id: `${num}-${suit}` });
+            });
+        });
+        return deck;
+    }
+
+    function shuffleDeck(deck) {
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        return deck;
+    }
+
+    function checkWinCondition(hand, openQuads) {
+        if (hand.length === HAND_SIZE && openQuads.length === 0) {
+            const counts = {};
+            hand.forEach(card => { counts[card.value] = (counts[card.value] || 0) + 1; });
+            let quadValue = null, kickerValue = null;
+            for (const value in counts) {
+                if (counts[value] === 4) quadValue = parseInt(value);
+                else if (counts[value] === 1) kickerValue = parseInt(value);
+            }
+            if (quadValue !== null && kickerValue !== null) {
+                return { isWin: true, quadValue, kickerValue, type: 'closed' };
+            }
+        }
+
+        if (hand.length === 1 && openQuads.length === 1) {
+            return { isWin: true, quadValue: openQuads[0].value, kickerValue: hand[0].value, type: 'open' };
+        }
+
+        return { isWin: false };
+    }
+
+    function calculateScores(winnerIndex) {
+        const winner = gameState.players[winnerIndex];
+        let scoreDetailsHTML = '';
+        const winInfo = checkWinCondition(winner.hand, winner.openQuads);
+        if (!winInfo.isWin) return;
+        let totalScore = 0;
+        const baseScore = winInfo.quadValue * 2 + 5;
+        totalScore += baseScore;
+        scoreDetailsHTML += `<div class="p-2 rounded-md bg-white"><strong>${winner.name} (승자)</strong>`;
+        scoreDetailsHTML += `<p>기본 점수 (콰드 ${winInfo.quadValue} × 2 + 5): <span class="font-bold text-green-600">+${baseScore}</span></p>`;
+        if (winInfo.kickerValue <= 4) {
+            const kickerBonus = 5 - winInfo.kickerValue;
+            totalScore += kickerBonus;
+            scoreDetailsHTML += `<p>키커 보너스 (5 - ${winInfo.kickerValue}): <span class="font-bold text-green-600">+${kickerBonus}</span></p>`;
+        }
+        if (winner.declaredD && (winInfo.quadValue - winInfo.kickerValue) % winner.declaredD === 0) {
+            totalScore += 4;
+            scoreDetailsHTML += `<p>d 보너스 ((${winInfo.quadValue} - ${winInfo.kickerValue}) % ${winner.declaredD} == 0): <span class="font-bold text-green-600">+4</span></p>`;
+        }
+        if (winInfo.type === 'closed') {
+            totalScore += 2;
+            scoreDetailsHTML += `<p>클로즈드 보너스 (비공개 완성): <span class="font-bold text-green-600">+2</span></p>`;
+        }
+        if (winner.turnCount <= 3) {
+            totalScore += 2;
+            scoreDetailsHTML += `<p>스피드 보너스 (3턴 이내 완성): <span class="font-bold text-green-600">+2</span></p>`;
+        }
+        winner.score += totalScore;
+        scoreDetailsHTML += `</div>`;
+        gameState.players.forEach((player, index) => {
+            if (index === winnerIndex) return;
+            const counts = {};
+            player.hand.forEach(card => { counts[card.value] = (counts[card.value] || 0) + 1; });
+            let compensation = 0;
+            let reason = "보상 없음";
+            if (Object.values(counts).includes(3)) {
+                compensation = 2;
+                reason = "트리플 보유";
+            } else if (Object.values(counts).includes(2)) {
+                compensation = 1;
+                reason = "페어 보유";
+            }
+            player.score += compensation;
+            scoreDetailsHTML += `<div class="p-2 rounded-md bg-white mt-1"><strong>${player.name}</strong>`;
+            scoreDetailsHTML += `<p>${reason}: <span class="font-bold text-blue-600">+${compensation}</span></p></div>`;
+        });
+        getEl('score-details').innerHTML = scoreDetailsHTML;
+    }
+
+    function startRound() {
+        gameState.deck = shuffleDeck(createDeck(gameState.difficulty));
+        gameState.discardPile = [];
+        gameState.discardLog = [];
+        gameState.turnCounter = 0;
+        gameState.players.forEach(player => {
+            player.hand = gameState.deck.splice(0, HAND_SIZE);
+            player.openQuads = [];
+            player.declaredD = null;
+            player.turnCount = 0;
+        });
+        gameState.discardPile.push(gameState.deck.pop());
+        const firstDiscard = gameState.discardPile[0];
+        gameState.discardLog.push({ playerName: "시스템", cardValue: firstDiscard.value });
+        gameState.currentTurnIndex = 0;
+        executeTurn();
+    }
+
+    function advanceTurn() {
+        gameState.currentTurnIndex = (gameState.currentTurnIndex + 1) % PLAYER_COUNT;
+        if (gameState.currentTurnIndex === 0) {
+            gameState.turnCounter++;
+            gameState.players[0].turnCount++;
+        }
+        executeTurn();
+    }
+
+    function executeTurn() {
+        renderAll();
+        const currentPlayer = gameState.players[gameState.currentTurnIndex];
+        if (currentPlayer.isBot) {
+            gameMessage.textContent = `${currentPlayer.name}의 턴입니다...`;
+            setTimeout(executeBotTurn, 1500);
+        } else {
+            gameMessage.textContent = "카드를 드로우하세요 (덱 또는 버린 카드).";
+            gameState.gamePhase = 'player-draw';
+        }
+    }
+
+    function handleDraw(source) {
+        if (gameState.gamePhase !== 'player-draw' || gameState.currentTurnIndex !== 0) return;
+        const player = gameState.players[0];
+        if (source === 'deck') {
+            if (gameState.deck.length === 0) {
+                if (gameState.discardPile.length > 1) {
+                    const topCard = gameState.discardPile.pop();
+                    gameState.deck = shuffleDeck(gameState.discardPile);
+                    gameState.discardPile = [topCard];
+                    gameMessage.textContent = "덱을 셔플합니다.";
+                } else {
+                    gameMessage.textContent = "덱에 카드가 없습니다.";
+                    return;
+                }
+            }
+            player.hand.push(gameState.deck.pop());
+        } else if (source === 'discard') {
+            player.hand.push(gameState.discardPile.pop());
+        }
+        gameState.gamePhase = 'player-discard';
+        gameMessage.textContent = "버릴 카드를 선택하세요.";
+        renderAll();
+    }
+
+    function handleDiscard(cardValue) {
+        if (gameState.gamePhase !== 'player-discard' || gameState.currentTurnIndex !== 0) return;
+        const player = gameState.players[0];
+        const cardIndex = player.hand.findIndex(card => card.value === cardValue);
+        if (cardIndex === -1) return;
+
+        const [discardedCard] = player.hand.splice(cardIndex, 1);
+
+        if (checkWinCondition(player.hand, player.openQuads).isWin) {
+            gameState.discardPile.push(discardedCard);
+            gameState.discardLog.push({ playerName: player.name, cardValue: discardedCard.value });
+            handleRoundEnd(0);
+            return;
+        }
+
+        gameState.discardPile.push(discardedCard);
+        gameState.discardLog.push({ playerName: player.name, cardValue: discardedCard.value });
+        gameState.gamePhase = 'post-discard-check';
+        checkForTake(discardedCard);
+    }
+
+    function checkForTake(discardedCard) {
+        let takeFound = false;
+        for (let i = 0; i < PLAYER_COUNT; i++) {
+            if (i === gameState.currentTurnIndex) continue;
+            const player = gameState.players[i];
+            const counts = {};
+            player.hand.forEach(c => { counts[c.value] = (counts[c.value] || 0) + 1; });
+            if (counts[discardedCard.value] === 3) {
+                gameState.takeOpportunity = { playerIndex: i, card: discardedCard };
+                if (player.isBot) {
+                    gameMessage.textContent = `${player.name}이(가) '가져오기'를 외쳤습니다!`;
+                    setTimeout(() => handleTake(true), 1500);
+                } else {
+                    getEl('take-card-display').innerHTML = renderCard(discardedCard);
+                    getEl('take-modal').classList.remove('hidden');
+                }
+                takeFound = true;
+                break;
+            }
+        }
+        if (!takeFound) {
+            advanceTurn();
+        }
+    }
+
+    function handleTake(isConfirm) {
+        const { playerIndex, card } = gameState.takeOpportunity;
+        const player = gameState.players[playerIndex];
+        getEl('take-modal').classList.add('hidden');
+        gameState.takeOpportunity = null;
+        if (!isConfirm) {
+            if (playerIndex === 0) { advanceTurn(); }
+            return;
+        }
+        const takenCard = gameState.discardPile.pop();
+        player.hand = player.hand.filter(c => c.value !== takenCard.value);
+        player.openQuads.push({ value: takenCard.value });
+        if(checkWinCondition(player.hand, player.openQuads).isWin) {
+            handleRoundEnd(playerIndex);
+            return;
+        }
+        gameState.currentTurnIndex = playerIndex;
+        renderAll();
+        if (player.isBot) {
+            gameMessage.textContent = `${player.name}이(가) 버릴 카드를 선택 중...`;
+            setTimeout(() => {
+                const cardToDiscard = getBotDiscardChoice(player.hand);
+                const cardIndex = player.hand.findIndex(c => c.id === cardToDiscard.id);
+                const [discardedCard] = player.hand.splice(cardIndex, 1);
+                gameState.discardPile.push(discardedCard);
+                gameState.discardLog.push({ playerName: player.name, cardValue: discardedCard.value });
+                checkForTake(discardedCard);
+            }, 1500);
+        } else {
+            gameState.gamePhase = 'player-discard';
+            gameMessage.textContent = "카드를 가져왔으므로, 버릴 카드를 선택하세요.";
+        }
+    }
+
+    function handleRoundEnd(winnerIndex) {
+        gameState.gamePhase = 'round-over';
+        const winner = gameState.players[winnerIndex];
+        getEl('round-end-title').textContent = `${winner.name}의 승리!`;
+        calculateScores(winnerIndex);
+        renderAll();
+        setTimeout(() => getEl('round-end-modal').classList.remove('hidden'), 500);
+    }
+
+    function getBotDiscardChoice(hand) {
+        const counts = {};
+        hand.forEach(c => { counts[c.value] = (counts[c.value] || 0) + 1 });
+        let singleCards = [];
+        for (const card of hand) {
+            if (counts[card.value] === 1) { singleCards.push(card); }
+        }
+        if (singleCards.length > 0) {
+            return singleCards.sort((a, b) => b.value - a.value)[0];
+        }
+        return hand.sort((a,b) => a.value - b.value)[0];
+    }
+
+    function executeBotTurn() {
+        const bot = gameState.players[gameState.currentTurnIndex];
+        bot.turnCount++;
+        const discardTop = gameState.discardPile[gameState.discardPile.length - 1];
+        const counts = {};
+        bot.hand.forEach(c => { counts[c.value] = (counts[c.value] || 0) + 1; });
+        let drawnCard;
+        if (discardTop && counts[discardTop.value] >= 2) {
+            drawnCard = gameState.discardPile.pop();
+        } else {
+            drawnCard = gameState.deck.pop();
+        }
+        bot.hand.push(drawnCard);
+        setTimeout(() => {
+            const cardToDiscard = getBotDiscardChoice(bot.hand);
+            const cardIndex = bot.hand.findIndex(c => c.id === cardToDiscard.id);
+            const [discardedCard] = bot.hand.splice(cardIndex, 1);
+
+            if(checkWinCondition(bot.hand, bot.openQuads).isWin) {
+                gameState.discardPile.push(discardedCard);
+                gameState.discardLog.push({ playerName: bot.name, cardValue: discardedCard.value });
+                handleRoundEnd(gameState.currentTurnIndex);
+                return;
+            }
+
+            gameState.discardPile.push(discardedCard);
+            gameState.discardLog.push({ playerName: bot.name, cardValue: discardedCard.value });
+            checkForTake(discardedCard);
+        }, 1000);
+    }
+
+    function initGame(difficulty) {
+        resetGameState();
+        gameState.difficulty = difficulty;
+        gameState.players.push({ name: "플레이어", isBot: false, score: 0, hand: [], openQuads: [] });
+        BOT_NAMES.forEach(name => {
+            gameState.players.push({ name: name, isBot: true, score: 0, hand: [], openQuads: [] });
+        });
+        startScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+        startRound();
+    }
+
+    // --- 이벤트 리스너 ---
+    document.querySelectorAll('.difficulty-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const difficulty = parseInt(button.dataset.difficulty);
+            initGame(difficulty);
+        });
+    });
+
+    deckPile.addEventListener('click', () => handleDraw('deck'));
+    discardPileDiv.addEventListener('click', () => handleDraw('discard'));
+    getEl('player-hand-human').addEventListener('click', (e) => {
+        const cardDiv = e.target.closest('.card');
+        if (cardDiv && cardDiv.dataset.value) {
+            handleDiscard(parseInt(cardDiv.dataset.value));
+        }
+    });
+    getEl('declare-d-btn').addEventListener('click', () => {
+        getEl('d-modal').classList.remove('hidden');
+    });
+    getEl('cancel-d-btn').addEventListener('click', () => {
+        getEl('d-modal').classList.add('hidden');
+    });
+    getEl('confirm-d-btn').addEventListener('click', () => {
+        const dValue = parseInt(getEl('d-input').value);
+        if (dValue >= 2 && dValue <= 9) {
+            gameState.players[0].declaredD = dValue;
+            getEl('d-modal').classList.add('hidden');
+            renderAll();
+        } else {
+            alert("2에서 9 사이의 숫자를 입력하세요.");
+        }
+    });
+
+    getEl('next-round-btn').addEventListener('click', () => {
+        getEl('round-end-modal').classList.add('hidden');
+        startRound();
+    });
+    getEl('confirm-take-btn').addEventListener('click', () => handleTake(true));
+    getEl('cancel-take-btn').addEventListener('click', () => handleTake(false));
+</script>
+
+</body>
+</html>
+
