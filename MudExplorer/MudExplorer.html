@@ -317,7 +317,7 @@
         },
 
         loadPlayerData() {
-            const savedData = localStorage.getItem('tidal_flat_playerData_v5'); // v5 for click bonus
+            const savedData = localStorage.getItem('tidal_flat_playerData_v5');
             if (savedData) {
                 const parsedData = JSON.parse(savedData);
                 this.playerData.currentStageIndex = parsedData.currentStageIndex || 0;
@@ -597,12 +597,37 @@
                 this.state.isFirstClick = false;
                 if (this.state.boardData[r][c].creatureId) this.moveCreature(r, c);
             }
-            this.revealTile(r, c);
+
+            // 변경점: 연쇄 반응 로직을 onTileClick 내에서 처리
+            const cell = this.state.boardData[r][c];
+            this.revealTile(r, c, true); // 첫 클릭은 항상 횟수 차감
+
+            if (cell.creatureId === null && cell.adjacent === 0) {
+                const queue = [[r,c]];
+                const visited = new Set([`${r},${c}`]);
+
+                while(queue.length > 0) {
+                    const [curR, curC] = queue.shift();
+
+                    this.getNeighbors(curR, curC).forEach(([nr, nc]) => {
+                        const neighborPos = `${nr},${nc}`;
+                        if(!this.state.revealed.has(neighborPos) && !visited.has(neighborPos)) {
+                            visited.add(neighborPos);
+                            const neighborCell = this.state.boardData[nr][nc];
+                            this.revealTile(nr, nc, false); // 연쇄 반응은 횟수 차감 안함
+                            if (neighborCell.adjacent === 0) {
+                                queue.push([nr, nc]);
+                            }
+                        }
+                    });
+                }
+            }
+
             this.updateStats();
             this.checkGameStatus();
         },
 
-        revealTile(r, c, isByShovel = false) {
+        revealTile(r, c, consumesClick = false) {
             const pos = `${r},${c}`;
             if (this.state.revealed.has(pos)) return;
             this.state.revealed.add(pos);
@@ -610,7 +635,7 @@
             const tileEl = this.elements.board.querySelector(`[data-r='${r}'][data-c='${c}']`);
             this.updateTileAppearance(tileEl, r, c);
 
-            if (!isByShovel) {
+            if (consumesClick) {
                 this.state.clicksMade++;
                 this.state.clicksLeft--;
             }
@@ -691,7 +716,9 @@
 
             area.forEach(([ar, ac]) => {
                 if (ar >= 0 && ar < this.state.height && ac >= 0 && ac < this.state.width) {
-                    if (!this.state.boardData[ar][ac].creatureId) this.revealTile(ar, ac, true);
+                    if (!this.state.boardData[ar][ac].creatureId) {
+                        this.revealTile(ar, ac, false); // 조개삽은 횟수 차감 안함
+                    }
                 }
             });
 
