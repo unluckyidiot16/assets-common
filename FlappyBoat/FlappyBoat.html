@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Flappy Boat (컨테이너선 추가)</title>
+    <title>Flappy Boat (키보드 지원)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -347,15 +347,13 @@
 
         let newUnlocks = [];
         BOATS.forEach(b => {
-            if (!unlockedBoats.includes(b.id)) { // 아직 잠금 해제되지 않은 보트만 확인
+            if (!unlockedBoats.includes(b.id)) {
                 let canUnlock = false;
                 if (b.id === 'containership') {
-                    // 컨테이너선 특별 조건: '도전 모드'에서 현재 점수가 해금 점수 이상이어야 함
                     if (gameMode === 'challenge' && score >= b.unlockScore) {
                         canUnlock = true;
                     }
                 } else {
-                    // 다른 보트들의 일반 조건: 최고 점수가 해금 점수 이상이어야 함
                     if (highScore >= b.unlockScore) {
                         canUnlock = true;
                     }
@@ -399,10 +397,18 @@
             startGame();
         });
         restartButton.addEventListener('click', backToMenu);
+
+        // 입력 이벤트 리스너
         document.addEventListener('mousedown', handleInput);
         document.addEventListener('touchstart', (e) => {
             e.preventDefault();
             handleInput();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault(); // 스페이스바 기본 동작(스크롤) 방지
+                handleInput();
+            }
         });
 
         highScoreEl.textContent = highScore;
