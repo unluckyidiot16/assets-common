@@ -1,547 +1,547 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>10 만들기: 최종 버전</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Jua', sans-serif;
-      touch-action: manipulation;
-    }
-    .tile {
-      transition: all 0.2s ease;
-      transform-style: preserve-3d;
-    }
-    .tile-selected {
-      transform: scale(1.1) rotate(3deg);
-      box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
-      z-index: 10;
-    }
-    .tile-cleared {
-      transform: scale(0);
-      opacity: 0;
-    }
-    .grid-container {
-      display: grid;
-      gap: 8px; /* Default gap */
-      padding: 8px; /* Default padding */
-      background-color: #4a5568;
-      border-radius: 12px;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    }
-    .progress-bar-container {
-      background-color: #e0e0e0;
-      border-radius: 9999px;
-      overflow: hidden;
-      height: 1.25rem;
-      border: 2px solid #a0aec0;
-    }
-    .progress-bar {
-      background-color: #48bb78;
-      height: 100%;
-      transition: width 0.5s ease-in-out;
-      border-radius: 9999px;
-    }
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-      20%, 40%, 60%, 80% { transform: translateX(5px); }
-    }
-    .shake-animation {
-      animation: shake 0.5s;
-    }
-    /* Challenge mode specific styles */
-    .challenge-grid-wrapper {
-      width: 100%;
-      max-width: 95vw; /* Fit the screen width */
-      margin: 0 auto;
-      aspect-ratio: 20 / 15; /* Maintain aspect ratio */
-    }
-    .challenge-grid {
-      grid-template-columns: repeat(20, minmax(0, 1fr));
-      gap: 2px;
-      padding: 2px;
-      height: 100%;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 만들기: 최종 버전</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            touch-action: manipulation;
+        }
+        .tile {
+            transition: all 0.2s ease;
+            transform-style: preserve-3d;
+        }
+        .tile-selected {
+            transform: scale(1.1) rotate(3deg);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
+            z-index: 10;
+        }
+        .tile-cleared {
+            transform: scale(0);
+            opacity: 0;
+        }
+        .grid-container {
+            display: grid;
+            gap: 8px; /* Default gap */
+            padding: 8px; /* Default padding */
+            background-color: #4a5568;
+            border-radius: 12px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .progress-bar-container {
+            background-color: #e0e0e0;
+            border-radius: 9999px;
+            overflow: hidden;
+            height: 1.25rem;
+            border: 2px solid #a0aec0;
+        }
+        .progress-bar {
+            background-color: #48bb78;
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+            border-radius: 9999px;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake-animation {
+            animation: shake 0.5s;
+        }
+        /* Challenge mode specific styles */
+        .challenge-grid-wrapper {
+            width: 100%;
+            max-width: 95vw; /* Fit the screen width */
+            margin: 0 auto;
+            aspect-ratio: 20 / 15; /* Maintain aspect ratio */
+        }
+        .challenge-grid {
+            grid-template-columns: repeat(20, minmax(0, 1fr));
+            gap: 2px;
+            padding: 2px;
+            height: 100%;
+        }
+    </style>
 </head>
 <body class="bg-slate-800 text-white flex items-center justify-center min-h-screen p-2 sm:p-4">
 
 <div id="game-container" class="w-full max-w-6xl mx-auto text-center hidden">
 
-  <header class="mb-2 sm:mb-4">
-    <h1 class="text-4xl sm:text-5xl font-bold text-yellow-300 mb-2">10 만들기</h1>
-    <div id="game-mode-display" class="text-xl sm:text-2xl text-cyan-300 font-bold mb-2"></div>
-    <div class="flex justify-around items-center bg-slate-700 p-3 rounded-lg shadow-lg text-base sm:text-xl">
-      <div>
-        <span class="text-gray-400">스테이지</span>
-        <span id="stage" class="font-bold text-green-400">1</span>
-      </div>
-      <div>
-        <span class="text-gray-400">점수</span>
-        <span id="score" class="font-bold text-blue-400">0</span>
-      </div>
-      <div>
-        <span class="text-gray-400">현재 합</span>
-        <span id="current-sum" class="font-bold text-yellow-400">0</span>
-      </div>
+    <header class="mb-2 sm:mb-4">
+        <h1 class="text-4xl sm:text-5xl font-bold text-yellow-300 mb-2">10 만들기</h1>
+        <div id="game-mode-display" class="text-xl sm:text-2xl text-cyan-300 font-bold mb-2"></div>
+        <div class="flex justify-around items-center bg-slate-700 p-3 rounded-lg shadow-lg text-base sm:text-xl">
+            <div>
+                <span class="text-gray-400">스테이지</span>
+                <span id="stage" class="font-bold text-green-400">1</span>
+            </div>
+            <div>
+                <span class="text-gray-400">점수</span>
+                <span id="score" class="font-bold text-blue-400">0</span>
+            </div>
+            <div>
+                <span class="text-gray-400">현재 합</span>
+                <span id="current-sum" class="font-bold text-yellow-400">0</span>
+            </div>
+        </div>
+    </header>
+
+    <div id="timer-container" class="my-2 sm:my-4">
+        <div class="progress-bar-container w-full">
+            <div id="time-bar" class="progress-bar"></div>
+        </div>
     </div>
-  </header>
 
-  <div id="timer-container" class="my-2 sm:my-4">
-    <div class="progress-bar-container w-full">
-      <div id="time-bar" class="progress-bar"></div>
+    <div id="grid-wrapper">
+        <main id="grid-container" class="grid-container mx-auto"></main>
     </div>
-  </div>
 
-  <div id="grid-wrapper">
-    <main id="grid-container" class="grid-container mx-auto"></main>
-  </div>
-
-  <div id="controls" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-    <button id="deselect-button" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 sm:py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-      선택 취소
-    </button>
-    <button id="restart-button" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 sm:py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hidden">
-      다시하기
-    </button>
-    <button id="main-menu-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 sm:py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 col-span-2 sm:col-span-1">
-      메인 메뉴로
-    </button>
-  </div>
+    <div id="controls" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+        <button id="deselect-button" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 sm:py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+            선택 취소
+        </button>
+        <button id="restart-button" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 sm:py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hidden">
+            다시하기
+        </button>
+        <button id="main-menu-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 sm:py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 col-span-2 sm:col-span-1">
+            메인 메뉴로
+        </button>
+    </div>
 </div>
 
 <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-  <div class="bg-slate-700 p-6 sm:p-8 rounded-2xl shadow-2xl text-center w-full max-w-md transform transition-all scale-100">
-    <h2 id="modal-title" class="text-3xl sm:text-4xl font-bold mb-6 text-yellow-300">게임 모드 선택</h2>
-    <div id="modal-button-container" class="flex flex-col gap-4">
-      <div>
-        <button data-mode="puzzle" class="game-mode-btn w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-full text-lg sm:text-xl shadow-lg transition-transform transform hover:scale-105">
-          퍼즐 스테이지
-        </button>
-        <p class="text-gray-400 text-sm mt-2">정해진 퍼즐을 푸는 클래식 모드입니다.</p>
-      </div>
-      <div>
-        <button data-mode="challenge" class="game-mode-btn w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full text-lg sm:text-xl shadow-lg transition-transform transform hover:scale-105">
-          도전 모드
-        </button>
-        <p class="text-gray-400 text-sm mt-2">거대한 보드에서 최고 점수에 도전하세요!<br>(모바일은 가로 모드를 권장합니다)</p>
-      </div>
-      <div>
-        <button data-mode="infinite" class="game-mode-btn w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-lg sm:text-xl shadow-lg transition-transform transform hover:scale-105">
-          무한 모드
-        </button>
-        <p class="text-gray-400 text-sm mt-2">6x6 보드에서 제한 시간 내에 최고 점수에 도전하는 순발력 테스트입니다.</p>
-      </div>
+    <div class="bg-slate-700 p-6 sm:p-8 rounded-2xl shadow-2xl text-center w-full max-w-md transform transition-all scale-100">
+        <h2 id="modal-title" class="text-3xl sm:text-4xl font-bold mb-6 text-yellow-300">게임 모드 선택</h2>
+        <div id="modal-button-container" class="flex flex-col gap-4">
+            <div>
+                <button data-mode="puzzle" class="game-mode-btn w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-full text-lg sm:text-xl shadow-lg transition-transform transform hover:scale-105">
+                    퍼즐 스테이지
+                </button>
+                <p class="text-gray-400 text-sm mt-2">정해진 퍼즐을 푸는 클래식 모드입니다.</p>
+            </div>
+            <div>
+                <button data-mode="challenge" class="game-mode-btn w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full text-lg sm:text-xl shadow-lg transition-transform transform hover:scale-105">
+                    도전 모드
+                </button>
+                <p class="text-gray-400 text-sm mt-2">거대한 보드에서 최고 점수에 도전하세요!<br>(모바일은 가로 모드를 권장합니다)</p>
+            </div>
+            <div>
+                <button data-mode="infinite" class="game-mode-btn w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-lg sm:text-xl shadow-lg transition-transform transform hover:scale-105">
+                    무한 모드
+                </button>
+                <p class="text-gray-400 text-sm mt-2">6x6 보드에서 제한 시간 내에 최고 점수에 도전하는 순발력 테스트입니다.</p>
+            </div>
+        </div>
+        <div id="modal-single-button-container" class="hidden mt-6">
+            <button id="modal-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-xl sm:text-2xl shadow-lg transition-transform transform hover:scale-110">
+                시작!
+            </button>
+        </div>
     </div>
-    <div id="modal-single-button-container" class="hidden mt-6">
-      <button id="modal-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-xl sm:text-2xl shadow-lg transition-transform transform hover:scale-110">
-        시작!
-      </button>
-    </div>
-  </div>
 </div>
 
 <script>
-  const gameContainer = document.getElementById('game-container');
-  const gridWrapper = document.getElementById('grid-wrapper');
-  const gridContainer = document.getElementById('grid-container');
-  const stageEl = document.getElementById('stage');
-  const scoreEl = document.getElementById('score');
-  const currentSumEl = document.getElementById('current-sum');
-  const timeBar = document.getElementById('time-bar');
-  const timerContainer = document.getElementById('timer-container');
-  const deselectButton = document.getElementById('deselect-button');
-  const restartButton = document.getElementById('restart-button');
-  const mainMenuButton = document.getElementById('main-menu-button');
-  const gameModeDisplay = document.getElementById('game-mode-display');
-  const modal = document.getElementById('modal');
-  const modalTitle = document.getElementById('modal-title');
-  const modalButtonContainer = document.getElementById('modal-button-container');
-  const modalSingleButtonContainer = document.getElementById('modal-single-button-container');
-  const modalButton = document.getElementById('modal-button');
-  const modalMessage = document.querySelector('#modal p'); // Re-purposed for dynamic messages
+    const gameContainer = document.getElementById('game-container');
+    const gridWrapper = document.getElementById('grid-wrapper');
+    const gridContainer = document.getElementById('grid-container');
+    const stageEl = document.getElementById('stage');
+    const scoreEl = document.getElementById('score');
+    const currentSumEl = document.getElementById('current-sum');
+    const timeBar = document.getElementById('time-bar');
+    const timerContainer = document.getElementById('timer-container');
+    const deselectButton = document.getElementById('deselect-button');
+    const restartButton = document.getElementById('restart-button');
+    const mainMenuButton = document.getElementById('main-menu-button');
+    const gameModeDisplay = document.getElementById('game-mode-display');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalButtonContainer = document.getElementById('modal-button-container');
+    const modalSingleButtonContainer = document.getElementById('modal-single-button-container');
+    const modalButton = document.getElementById('modal-button');
+    const modalMessage = document.querySelector('#modal p'); // Re-purposed for dynamic messages
 
-  let gameState = {
-    grid: [],
-    selectedTiles: [],
-    currentSum: 0,
-    score: 0,
-    stage: 1,
-    gridSize: { w: 0, h: 0 },
-    gameActive: false,
-    timerId: null,
-    timeLeft: 0,
-    totalTime: 0,
-    gameMode: null,
-    currentPuzzle: [],
-  };
+    let gameState = {
+        grid: [],
+        selectedTiles: [],
+        currentSum: 0,
+        score: 0,
+        stage: 1,
+        gridSize: { w: 0, h: 0 },
+        gameActive: false,
+        timerId: null,
+        timeLeft: 0,
+        totalTime: 0,
+        gameMode: null,
+        currentPuzzle: [],
+    };
 
-  const TILE_COLORS = ['bg-blue-500', 'bg-green-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-teal-500'];
+    const TILE_COLORS = ['bg-blue-500', 'bg-green-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-teal-500'];
 
-  const combinations = {
-    2: [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5]],
-    3: [[1, 2, 7], [1, 3, 6], [1, 4, 5], [2, 3, 5], [2, 2, 6], [2, 4, 4], [3, 3, 4]],
-    4: [[1, 1, 1, 7], [1, 1, 2, 6], [1, 1, 3, 5], [1, 1, 4, 4], [1, 2, 2, 5], [1, 2, 3, 4], [2, 2, 2, 4], [2, 2, 3, 3]],
-    5: [[1, 1, 1, 1, 6], [1, 1, 1, 2, 5], [1, 1, 1, 3, 4], [1, 1, 2, 2, 4], [1, 1, 2, 3, 3], [1, 2, 2, 2, 3], [2, 2, 2, 2, 2]]
-  };
+    const combinations = {
+        2: [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5]],
+        3: [[1, 2, 7], [1, 3, 6], [1, 4, 5], [2, 3, 5], [2, 2, 6], [2, 4, 4], [3, 3, 4]],
+        4: [[1, 1, 1, 7], [1, 1, 2, 6], [1, 1, 3, 5], [1, 1, 4, 4], [1, 2, 2, 5], [1, 2, 3, 4], [2, 2, 2, 4], [2, 2, 3, 3]],
+        5: [[1, 1, 1, 1, 6], [1, 1, 1, 2, 5], [1, 1, 1, 3, 4], [1, 1, 2, 2, 4], [1, 1, 2, 3, 3], [1, 2, 2, 2, 3], [2, 2, 2, 2, 2]]
+    };
 
-  function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
-
-  function generatePuzzle(size) {
-    const totalCells = size * size;
-    let solutions = [];
-    for (let r = 0; r * 5 <= totalCells; r++) {
-      for (let q = 0; r * 5 + q * 4 <= totalCells; q++) {
-        for (let p = 0; r * 5 + q * 4 + p * 3 <= totalCells; p++) {
-          let remainder = totalCells - (r * 5 + q * 4 + p * 3);
-          if (remainder % 2 === 0) {
-            solutions.push({ o: remainder / 2, p, q, r });
-          }
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
-      }
-    }
-    if (solutions.length === 0) {
-      const fallbackNumbers = Array(totalCells).fill(5);
-      shuffle(fallbackNumbers);
-      const puzzle = [];
-      for(let i=0; i<size; i++) puzzle.push(fallbackNumbers.slice(i*size, (i+1)*size));
-      return puzzle;
-    }
-    solutions.sort((a, b) => (b.r + b.q) - (a.r + a.q));
-    const topSolutions = solutions.slice(0, Math.ceil(solutions.length / 2));
-    const chosenSolution = topSolutions[Math.floor(Math.random() * topSolutions.length)];
-    const numbersToPlace = [];
-    for (let i = 0; i < chosenSolution.o; i++) numbersToPlace.push(...combinations[2][Math.floor(Math.random() * combinations[2].length)]);
-    for (let i = 0; i < chosenSolution.p; i++) numbersToPlace.push(...combinations[3][Math.floor(Math.random() * combinations[3].length)]);
-    for (let i = 0; i < chosenSolution.q; i++) numbersToPlace.push(...combinations[4][Math.floor(Math.random() * combinations[4].length)]);
-    for (let i = 0; i < chosenSolution.r; i++) numbersToPlace.push(...combinations[5][Math.floor(Math.random() * combinations[5].length)]);
-    shuffle(numbersToPlace);
-    const puzzle = [];
-    for (let i = 0; i < size; i++) {
-      puzzle.push(numbersToPlace.slice(i * size, (i + 1) * size));
-    }
-    return puzzle;
-  }
-
-  function startGame(mode) {
-    gameState.gameMode = mode;
-    gameState.stage = 1;
-    gameState.score = 0;
-    gameContainer.style.display = 'block';
-    startStage();
-  }
-
-  function startStage() {
-    gameState.selectedTiles = [];
-    gameState.currentSum = 0;
-    gameState.gameActive = true;
-    restartButton.style.display = 'none';
-
-    if (gameState.gameMode === 'infinite') {
-      gameState.gridSize = { w: 6, h: 6 };
-      timerContainer.style.display = 'block';
-      gameModeDisplay.textContent = '무한 모드';
-      gameState.totalTime = 90; // 90초 시간 제한
-      gameState.timeLeft = gameState.totalTime;
-      gameState.stage = 1; // 무한 모드에서는 스테이지가 1로 고정
-      startTimer();
-    } else if (gameState.gameMode === 'puzzle') {
-      if (gameState.stage > 15) {
-        gameOver('모든 퍼즐 클리어!');
-        return;
-      }
-      const size = Math.min(6, 2 + Math.floor((gameState.stage - 1) / 3));
-      gameState.gridSize = { w: size, h: size };
-      gameState.currentPuzzle = generatePuzzle(size);
-      timerContainer.style.display = 'none';
-      gameModeDisplay.textContent = `퍼즐 스테이지 ${gameState.stage}`;
-      restartButton.style.display = 'block';
-    } else if (gameState.gameMode === 'challenge') {
-      gameState.gridSize = { w: 20, h: 15 };
-      timerContainer.style.display = 'block';
-      gameModeDisplay.textContent = '도전 모드';
-      gameState.totalTime = 180;
-      gameState.timeLeft = gameState.totalTime;
-      startTimer();
+        return array;
     }
 
-    updateDisplay();
-    generateGrid();
-    modal.style.display = 'none';
-  }
-
-  function restartStage() {
-    if(gameState.gameMode !== 'puzzle') return;
-    deselectAll();
-    generateGrid();
-  }
-
-  function generateGrid() {
-    gridContainer.innerHTML = '';
-    gameState.grid = [];
-    const { w, h } = gameState.gridSize;
-
-    if (gameState.gameMode === 'challenge') {
-      gridWrapper.classList.add('challenge-grid-wrapper');
-      gridContainer.className = 'grid-container challenge-grid';
-    } else {
-      gridWrapper.classList.remove('challenge-grid-wrapper');
-      gridContainer.className = 'grid-container';
-      gridContainer.style.width = 'auto'; // Reset width for other modes
-      gridContainer.style.gridTemplateColumns = `repeat(${w}, minmax(0, 1fr))`;
+    function generatePuzzle(size) {
+        const totalCells = size * size;
+        let solutions = [];
+        for (let r = 0; r * 5 <= totalCells; r++) {
+            for (let q = 0; r * 5 + q * 4 <= totalCells; q++) {
+                for (let p = 0; r * 5 + q * 4 + p * 3 <= totalCells; p++) {
+                    let remainder = totalCells - (r * 5 + q * 4 + p * 3);
+                    if (remainder % 2 === 0) {
+                        solutions.push({ o: remainder / 2, p, q, r });
+                    }
+                }
+            }
+        }
+        if (solutions.length === 0) {
+            const fallbackNumbers = Array(totalCells).fill(5);
+            shuffle(fallbackNumbers);
+            const puzzle = [];
+            for(let i=0; i<size; i++) puzzle.push(fallbackNumbers.slice(i*size, (i+1)*size));
+            return puzzle;
+        }
+        solutions.sort((a, b) => (b.r + b.q) - (a.r + a.q));
+        const topSolutions = solutions.slice(0, Math.ceil(solutions.length / 2));
+        const chosenSolution = topSolutions[Math.floor(Math.random() * topSolutions.length)];
+        const numbersToPlace = [];
+        for (let i = 0; i < chosenSolution.o; i++) numbersToPlace.push(...combinations[2][Math.floor(Math.random() * combinations[2].length)]);
+        for (let i = 0; i < chosenSolution.p; i++) numbersToPlace.push(...combinations[3][Math.floor(Math.random() * combinations[3].length)]);
+        for (let i = 0; i < chosenSolution.q; i++) numbersToPlace.push(...combinations[4][Math.floor(Math.random() * combinations[4].length)]);
+        for (let i = 0; i < chosenSolution.r; i++) numbersToPlace.push(...combinations[5][Math.floor(Math.random() * combinations[5].length)]);
+        shuffle(numbersToPlace);
+        const puzzle = [];
+        for (let i = 0; i < size; i++) {
+            puzzle.push(numbersToPlace.slice(i * size, (i + 1) * size));
+        }
+        return puzzle;
     }
 
-    const isPuzzle = gameState.gameMode === 'puzzle';
+    function startGame(mode) {
+        gameState.gameMode = mode;
+        gameState.stage = 1;
+        gameState.score = 0;
+        gameContainer.style.display = 'block';
+        startStage();
+    }
 
-    for (let r = 0; r < h; r++) {
-      gameState.grid[r] = [];
-      for (let c = 0; c < w; c++) {
-        const value = isPuzzle ? gameState.currentPuzzle[r][c] : Math.floor(Math.random() * 9) + 1;
-        const tile = document.createElement('div');
+    function startStage() {
+        gameState.selectedTiles = [];
+        gameState.currentSum = 0;
+        gameState.gameActive = true;
+        restartButton.style.display = 'none';
+
+        if (gameState.gameMode === 'infinite') {
+            gameState.gridSize = { w: 6, h: 6 };
+            timerContainer.style.display = 'block';
+            gameModeDisplay.textContent = '무한 모드';
+            gameState.totalTime = 90; // 90초 시간 제한
+            gameState.timeLeft = gameState.totalTime;
+            gameState.stage = 1; // 무한 모드에서는 스테이지가 1로 고정
+            startTimer();
+        } else if (gameState.gameMode === 'puzzle') {
+            if (gameState.stage > 15) {
+                gameOver('모든 퍼즐 클리어!');
+                return;
+            }
+            const size = Math.min(6, 2 + Math.floor((gameState.stage - 1) / 3));
+            gameState.gridSize = { w: size, h: size };
+            gameState.currentPuzzle = generatePuzzle(size);
+            timerContainer.style.display = 'none';
+            gameModeDisplay.textContent = `퍼즐 스테이지 ${gameState.stage}`;
+            restartButton.style.display = 'block';
+        } else if (gameState.gameMode === 'challenge') {
+            gameState.gridSize = { w: 20, h: 15 };
+            timerContainer.style.display = 'block';
+            gameModeDisplay.textContent = '도전 모드';
+            gameState.totalTime = 180;
+            gameState.timeLeft = gameState.totalTime;
+            startTimer();
+        }
+
+        updateDisplay();
+        generateGrid();
+        modal.style.display = 'none';
+    }
+
+    function restartStage() {
+        if(gameState.gameMode !== 'puzzle') return;
+        deselectAll();
+        generateGrid();
+    }
+
+    function generateGrid() {
+        gridContainer.innerHTML = '';
+        gameState.grid = [];
+        const { w, h } = gameState.gridSize;
+
+        if (gameState.gameMode === 'challenge') {
+            gridWrapper.classList.add('challenge-grid-wrapper');
+            gridContainer.className = 'grid-container challenge-grid';
+        } else {
+            gridWrapper.classList.remove('challenge-grid-wrapper');
+            gridContainer.className = 'grid-container';
+            gridContainer.style.width = 'auto'; // Reset width for other modes
+            gridContainer.style.gridTemplateColumns = `repeat(${w}, minmax(0, 1fr))`;
+        }
+
+        const isPuzzle = gameState.gameMode === 'puzzle';
+
+        for (let r = 0; r < h; r++) {
+            gameState.grid[r] = [];
+            for (let c = 0; c < w; c++) {
+                const value = isPuzzle ? gameState.currentPuzzle[r][c] : Math.floor(Math.random() * 9) + 1;
+                const tile = document.createElement('div');
+                const tileSizeClass = gameState.gameMode === 'challenge' ? 'text-xs sm:text-sm' : 'text-xl sm:text-3xl';
+                const tileRounding = gameState.gameMode === 'challenge' ? 'rounded-sm' : 'rounded-lg';
+                tile.className = `tile flex items-center justify-center font-bold cursor-pointer aspect-square shadow-md ${tileSizeClass} ${tileRounding}`;
+
+                if (value > 0) tile.classList.add(TILE_COLORS[value - 1]);
+                else tile.classList.add('bg-slate-600', 'opacity-0');
+                tile.dataset.row = r;
+                tile.dataset.col = c;
+                tile.textContent = value > 0 ? value : '';
+                tile.addEventListener('click', () => handleTileClick(r, c));
+                gridContainer.appendChild(tile);
+                gameState.grid[r][c] = { value, element: tile };
+            }
+        }
+    }
+
+    function handleTileClick(r, c) {
+        if (!gameState.gameActive) return;
+        const tileData = gameState.grid[r][c];
+        if (!tileData || tileData.value === 0) return;
+        const isAlreadySelected = gameState.selectedTiles.some(t => t.r === r && t.c === c);
+        if (isAlreadySelected) return;
+        if (gameState.selectedTiles.length > 0) {
+            const lastTile = gameState.selectedTiles[gameState.selectedTiles.length - 1];
+            if (!isAdjacent(lastTile, { r, c })) {
+                deselectAll();
+                return;
+            }
+        }
+        gameState.selectedTiles.push({ r, c, value: tileData.value });
+        gameState.currentSum += tileData.value;
+        tileData.element.classList.add('tile-selected');
+        updateDisplay();
+        if (gameState.currentSum === 10) {
+            gameState.score += 10 + (gameState.selectedTiles.length * 5);
+            processClear();
+        } else if (gameState.currentSum > 10) {
+            currentSumEl.parentElement.classList.add('shake-animation');
+            setTimeout(() => {
+                currentSumEl.parentElement.classList.remove('shake-animation');
+                deselectAll();
+            }, 500);
+        }
+    }
+
+    function isAdjacent(tile1, tile2) {
+        const rowDiff = Math.abs(tile1.r - tile2.r);
+        const colDiff = Math.abs(tile1.c - tile2.c);
+        return rowDiff <= 1 && colDiff <= 1;
+    }
+
+    function processClear() {
+        gameState.gameActive = false;
+        gameState.selectedTiles.forEach(tile => {
+            const tileData = gameState.grid[tile.r][tile.c];
+            tileData.element.classList.add('tile-cleared');
+            tileData.value = 0;
+        });
+        setTimeout(() => {
+            if (gameState.gameMode === 'infinite') {
+                applyGravity();
+                fillEmptyTiles();
+            }
+            deselectAll();
+            checkStageClear();
+            gameState.gameActive = true;
+        }, 300);
+    }
+
+    function applyGravity() {
+        const { w, h } = gameState.gridSize;
+        for (let c = 0; c < w; c++) {
+            let emptyRow = h - 1;
+            for (let r = h - 1; r >= 0; r--) {
+                if (gameState.grid[r][c].value !== 0) {
+                    if (r !== emptyRow) {
+                        gameState.grid[emptyRow][c].value = gameState.grid[r][c].value;
+                        gameState.grid[r][c].value = 0;
+                        updateTileElement(emptyRow, c, gameState.grid[emptyRow][c].value);
+                        updateTileElement(r, c, 0);
+                    }
+                    emptyRow--;
+                }
+            }
+        }
+    }
+
+    function fillEmptyTiles() {
+        const { w, h } = gameState.gridSize;
+        for (let r = 0; r < h; r++) {
+            for (let c = 0; c < w; c++) {
+                if (gameState.grid[r][c].value === 0) {
+                    const newValue = Math.floor(Math.random() * 9) + 1;
+                    gameState.grid[r][c].value = newValue;
+                    updateTileElement(r, c, newValue);
+                    const tileEl = gameState.grid[r][c].element;
+                    tileEl.classList.remove('tile-cleared');
+                    tileEl.style.transition = 'none';
+                    tileEl.style.transform = 'scale(0)';
+                    setTimeout(() => {
+                        tileEl.style.transition = 'all 0.2s ease';
+                        tileEl.style.transform = 'scale(1)';
+                    }, 50);
+                }
+            }
+        }
+    }
+
+    function updateTileElement(r, c, value) {
+        const tileEl = gameState.grid[r][c].element;
         const tileSizeClass = gameState.gameMode === 'challenge' ? 'text-xs sm:text-sm' : 'text-xl sm:text-3xl';
         const tileRounding = gameState.gameMode === 'challenge' ? 'rounded-sm' : 'rounded-lg';
-        tile.className = `tile flex items-center justify-center font-bold cursor-pointer aspect-square shadow-md ${tileSizeClass} ${tileRounding}`;
-
-        if (value > 0) tile.classList.add(TILE_COLORS[value - 1]);
-        else tile.classList.add('bg-slate-600', 'opacity-0');
-        tile.dataset.row = r;
-        tile.dataset.col = c;
-        tile.textContent = value > 0 ? value : '';
-        tile.addEventListener('click', () => handleTileClick(r, c));
-        gridContainer.appendChild(tile);
-        gameState.grid[r][c] = { value, element: tile };
-      }
-    }
-  }
-
-  function handleTileClick(r, c) {
-    if (!gameState.gameActive) return;
-    const tileData = gameState.grid[r][c];
-    if (!tileData || tileData.value === 0) return;
-    const isAlreadySelected = gameState.selectedTiles.some(t => t.r === r && t.c === c);
-    if (isAlreadySelected) return;
-    if (gameState.selectedTiles.length > 0) {
-      const lastTile = gameState.selectedTiles[gameState.selectedTiles.length - 1];
-      if (!isAdjacent(lastTile, { r, c })) {
-        deselectAll();
-        return;
-      }
-    }
-    gameState.selectedTiles.push({ r, c, value: tileData.value });
-    gameState.currentSum += tileData.value;
-    tileData.element.classList.add('tile-selected');
-    updateDisplay();
-    if (gameState.currentSum === 10) {
-      gameState.score += 10 + (gameState.selectedTiles.length * 5);
-      processClear();
-    } else if (gameState.currentSum > 10) {
-      currentSumEl.parentElement.classList.add('shake-animation');
-      setTimeout(() => {
-        currentSumEl.parentElement.classList.remove('shake-animation');
-        deselectAll();
-      }, 500);
-    }
-  }
-
-  function isAdjacent(tile1, tile2) {
-    const rowDiff = Math.abs(tile1.r - tile2.r);
-    const colDiff = Math.abs(tile1.c - tile2.c);
-    return rowDiff <= 1 && colDiff <= 1;
-  }
-
-  function processClear() {
-    gameState.gameActive = false;
-    gameState.selectedTiles.forEach(tile => {
-      const tileData = gameState.grid[tile.r][tile.c];
-      tileData.element.classList.add('tile-cleared');
-      tileData.value = 0;
-    });
-    setTimeout(() => {
-      if (gameState.gameMode === 'infinite') {
-        applyGravity();
-        fillEmptyTiles();
-      }
-      deselectAll();
-      checkStageClear();
-      gameState.gameActive = true;
-    }, 300);
-  }
-
-  function applyGravity() {
-    const { w, h } = gameState.gridSize;
-    for (let c = 0; c < w; c++) {
-      let emptyRow = h - 1;
-      for (let r = h - 1; r >= 0; r--) {
-        if (gameState.grid[r][c].value !== 0) {
-          if (r !== emptyRow) {
-            gameState.grid[emptyRow][c].value = gameState.grid[r][c].value;
-            gameState.grid[r][c].value = 0;
-            updateTileElement(emptyRow, c, gameState.grid[emptyRow][c].value);
-            updateTileElement(r, c, 0);
-          }
-          emptyRow--;
+        if (value === 0) {
+            tileEl.textContent = '';
+            tileEl.className = `tile flex items-center justify-center font-bold aspect-square bg-slate-600 ${tileSizeClass} ${tileRounding}`;
+        } else {
+            tileEl.textContent = value;
+            tileEl.className = `tile flex items-center justify-center font-bold cursor-pointer aspect-square shadow-md ${tileSizeClass} ${tileRounding} ${TILE_COLORS[value-1]}`;
         }
-      }
     }
-  }
 
-  function fillEmptyTiles() {
-    const { w, h } = gameState.gridSize;
-    for (let r = 0; r < h; r++) {
-      for (let c = 0; c < w; c++) {
-        if (gameState.grid[r][c].value === 0) {
-          const newValue = Math.floor(Math.random() * 9) + 1;
-          gameState.grid[r][c].value = newValue;
-          updateTileElement(r, c, newValue);
-          const tileEl = gameState.grid[r][c].element;
-          tileEl.classList.remove('tile-cleared');
-          tileEl.style.transition = 'none';
-          tileEl.style.transform = 'scale(0)';
-          setTimeout(() => {
-            tileEl.style.transition = 'all 0.2s ease';
-            tileEl.style.transform = 'scale(1)';
-          }, 50);
-        }
-      }
+    function deselectAll() {
+        gameState.selectedTiles.forEach(t => {
+            if(gameState.grid[t.r] && gameState.grid[t.r][t.c]) {
+                const tileData = gameState.grid[t.r][t.c];
+                if(tileData && tileData.element) tileData.element.classList.remove('tile-selected');
+            }
+        });
+        gameState.selectedTiles = [];
+        gameState.currentSum = 0;
+        updateDisplay();
     }
-  }
 
-  function updateTileElement(r, c, value) {
-    const tileEl = gameState.grid[r][c].element;
-    const tileSizeClass = gameState.gameMode === 'challenge' ? 'text-xs sm:text-sm' : 'text-xl sm:text-3xl';
-    const tileRounding = gameState.gameMode === 'challenge' ? 'rounded-sm' : 'rounded-lg';
-    if (value === 0) {
-      tileEl.textContent = '';
-      tileEl.className = `tile flex items-center justify-center font-bold aspect-square bg-slate-600 ${tileSizeClass} ${tileRounding}`;
-    } else {
-      tileEl.textContent = value;
-      tileEl.className = `tile flex items-center justify-center font-bold cursor-pointer aspect-square shadow-md ${tileSizeClass} ${tileRounding} ${TILE_COLORS[value-1]}`;
+    function updateDisplay() {
+        stageEl.textContent = gameState.stage;
+        scoreEl.textContent = gameState.score;
+        currentSumEl.textContent = gameState.currentSum;
     }
-  }
 
-  function deselectAll() {
-    gameState.selectedTiles.forEach(t => {
-      if(gameState.grid[t.r] && gameState.grid[t.r][t.c]) {
-        const tileData = gameState.grid[t.r][t.c];
-        if(tileData && tileData.element) tileData.element.classList.remove('tile-selected');
-      }
-    });
-    gameState.selectedTiles = [];
-    gameState.currentSum = 0;
-    updateDisplay();
-  }
-
-  function updateDisplay() {
-    stageEl.textContent = gameState.stage;
-    scoreEl.textContent = gameState.score;
-    currentSumEl.textContent = gameState.currentSum;
-  }
-
-  function startTimer() {
-    clearInterval(gameState.timerId);
-    gameState.timerId = setInterval(() => {
-      gameState.timeLeft--;
-      const timePercentage = (gameState.timeLeft / gameState.totalTime) * 100;
-      timeBar.style.width = `${timePercentage}%`;
-      if (timePercentage < 20) timeBar.style.backgroundColor = '#e53e3e';
-      else if (timePercentage < 50) timeBar.style.backgroundColor = '#dd6b20';
-      else timeBar.style.backgroundColor = '#48bb78';
-      if (gameState.timeLeft <= 0) {
+    function startTimer() {
         clearInterval(gameState.timerId);
-        gameOver('시간 초과!');
-      }
-    }, 1000);
-  }
-
-  function checkStageClear() {
-    if (gameState.gameMode === 'infinite') {
-      // 무한 모드에서는 스테이지 클리어 조건이 없습니다.
-      return;
-    } else if (gameState.gameMode === 'puzzle') {
-      const isAllCleared = gameState.grid.every(row => row.every(tile => tile.value === 0));
-      if (isAllCleared) {
-        gameState.stage++;
-        showModal('stage-clear');
-      }
+        gameState.timerId = setInterval(() => {
+            gameState.timeLeft--;
+            const timePercentage = (gameState.timeLeft / gameState.totalTime) * 100;
+            timeBar.style.width = `${timePercentage}%`;
+            if (timePercentage < 20) timeBar.style.backgroundColor = '#e53e3e';
+            else if (timePercentage < 50) timeBar.style.backgroundColor = '#dd6b20';
+            else timeBar.style.backgroundColor = '#48bb78';
+            if (gameState.timeLeft <= 0) {
+                clearInterval(gameState.timerId);
+                gameOver('시간 초과!');
+            }
+        }, 1000);
     }
-  }
 
-  function gameOver(message) {
-    gameState.gameActive = false;
-    clearInterval(gameState.timerId);
-    if(gameState.stage > 15 && gameState.gameMode === 'puzzle') {
-      showModal('game-clear', message);
-    } else {
-      showModal('game-over', message);
+    function checkStageClear() {
+        if (gameState.gameMode === 'infinite') {
+            // 무한 모드에서는 스테이지 클리어 조건이 없습니다.
+            return;
+        } else if (gameState.gameMode === 'puzzle') {
+            const isAllCleared = gameState.grid.every(row => row.every(tile => tile.value === 0));
+            if (isAllCleared) {
+                gameState.stage++;
+                showModal('stage-clear');
+            }
+        }
     }
-  }
 
-  function showModal(type, message = '') {
-    modal.style.display = 'flex';
-    const modalContent = modal.querySelector('div');
-    modalContent.style.transform = 'scale(0.7)';
-    modalContent.style.opacity = '0';
-    setTimeout(() => {
-      modalContent.style.transform = 'scale(1)';
-      modalContent.style.opacity = '1';
-    }, 100);
-    modalButtonContainer.style.display = 'none';
-    modalSingleButtonContainer.style.display = 'block';
-
-    const dynamicMessageEl = modal.querySelector('.text-gray-400');
-
-    switch (type) {
-      case 'start':
-        gameContainer.style.display = 'none';
-        modalTitle.textContent = '게임 모드 선택';
-        modalButtonContainer.style.display = 'flex';
-        modalSingleButtonContainer.style.display = 'none';
-        break;
-      case 'game-over':
-        modalTitle.textContent = '게임 종료';
-        dynamicMessageEl.textContent = `${message} 최종 점수: ${gameState.score}`;
-        modalButton.textContent = '메인 메뉴로';
-        modalButton.onclick = () => showModal('start');
-        break;
-      case 'stage-clear':
-        modalTitle.textContent = `스테이지 ${gameState.stage - 1} 클리어!`;
-        dynamicMessageEl.textContent = `축하합니다! 다음 스테이지로 이동합니다.`;
-        modalButton.textContent = `스테이지 ${gameState.stage} 시작`;
-        modalButton.onclick = startStage;
-        break;
-      case 'game-clear':
-        modalTitle.textContent = '퍼즐 마스터!';
-        dynamicMessageEl.textContent = `모든 퍼즐을 클리어하셨습니다! 대단해요!`;
-        modalButton.textContent = '메인 메뉴로';
-        modalButton.onclick = () => showModal('start');
-        break;
+    function gameOver(message) {
+        gameState.gameActive = false;
+        clearInterval(gameState.timerId);
+        if(gameState.stage > 15 && gameState.gameMode === 'puzzle') {
+            showModal('game-clear', message);
+        } else {
+            showModal('game-over', message);
+        }
     }
-  }
 
-  deselectButton.addEventListener('click', deselectAll);
-  restartButton.addEventListener('click', restartStage);
-  mainMenuButton.addEventListener('click', () => {
-    clearInterval(gameState.timerId);
-    showModal('start');
-  });
+    function showModal(type, message = '') {
+        modal.style.display = 'flex';
+        const modalContent = modal.querySelector('div');
+        modalContent.style.transform = 'scale(0.7)';
+        modalContent.style.opacity = '0';
+        setTimeout(() => {
+            modalContent.style.transform = 'scale(1)';
+            modalContent.style.opacity = '1';
+        }, 100);
+        modalButtonContainer.style.display = 'none';
+        modalSingleButtonContainer.style.display = 'block';
 
-  document.querySelectorAll('.game-mode-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-      startGame(e.target.dataset.mode);
+        const dynamicMessageEl = modal.querySelector('.text-gray-400');
+
+        switch (type) {
+            case 'start':
+                gameContainer.style.display = 'none';
+                modalTitle.textContent = '게임 모드 선택';
+                modalButtonContainer.style.display = 'flex';
+                modalSingleButtonContainer.style.display = 'none';
+                break;
+            case 'game-over':
+                modalTitle.textContent = '게임 종료';
+                dynamicMessageEl.textContent = `${message} 최종 점수: ${gameState.score}`;
+                modalButton.textContent = '메인 메뉴로';
+                modalButton.onclick = () => showModal('start');
+                break;
+            case 'stage-clear':
+                modalTitle.textContent = `스테이지 ${gameState.stage - 1} 클리어!`;
+                dynamicMessageEl.textContent = `축하합니다! 다음 스테이지로 이동합니다.`;
+                modalButton.textContent = `스테이지 ${gameState.stage} 시작`;
+                modalButton.onclick = startStage;
+                break;
+            case 'game-clear':
+                modalTitle.textContent = '퍼즐 마스터!';
+                dynamicMessageEl.textContent = `모든 퍼즐을 클리어하셨습니다! 대단해요!`;
+                modalButton.textContent = '메인 메뉴로';
+                modalButton.onclick = () => showModal('start');
+                break;
+        }
+    }
+
+    deselectButton.addEventListener('click', deselectAll);
+    restartButton.addEventListener('click', restartStage);
+    mainMenuButton.addEventListener('click', () => {
+        clearInterval(gameState.timerId);
+        showModal('start');
     });
-  });
 
-  window.onload = () => showModal('start');
+    document.querySelectorAll('.game-mode-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            startGame(e.target.dataset.mode);
+        });
+    });
+
+    window.onload = () => showModal('start');
 </script>
 </body>
 </html>
