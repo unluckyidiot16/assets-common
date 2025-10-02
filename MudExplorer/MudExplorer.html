@@ -282,7 +282,8 @@
                 this.playerData.gold = parsedData.gold || 0;
                 this.playerData.shovels = parsedData.shovels || 0;
             } else {
-                this.playerData.shovels = 2;
+                // 변경점: 첫 시작 시 조개삽 0개로 수정
+                this.playerData.shovels = 0;
                 this.savePlayerData();
             }
             this.elements.startScreenGold.textContent = this.playerData.gold;
@@ -382,15 +383,17 @@
             let goldEarned = 0;
             if (isWin) {
                 goldEarned = this.state.specimens * (this.state.stageIndex + 1) * 10;
-                this.playerData.gold += goldEarned;
                 const unlockedCreatureId = this.state.creatureId;
                 if (!this.playerData.unlockedCreatures.has(unlockedCreatureId)) {
                     this.state.isNewUnlock = true;
                     this.playerData.unlockedCreatures.add(unlockedCreatureId);
                 }
                 this.playerData.currentStageIndex = this.state.stageIndex + 1;
+            } else {
+                goldEarned = this.state.creaturesFound * 10;
             }
 
+            this.playerData.gold += goldEarned;
             this.playerData.shovels = this.state.shovelsLeft;
             this.savePlayerData();
 
@@ -506,21 +509,27 @@
         },
 
         revealTile(r, c, isByShovel = false) {
-            if (this.state.revealed.has(`${r},${c}`)) return;
-            this.state.revealed.add(`${r},${c}`);
+            const pos = `${r},${c}`;
+            if (this.state.revealed.has(pos)) return;
+            this.state.revealed.add(pos);
+
             const tileEl = this.elements.board.querySelector(`[data-r='${r}'][data-c='${c}']`);
             this.updateTileAppearance(tileEl, r, c);
+
             if (!isByShovel) {
                 this.state.clicksMade++;
                 this.state.clicksLeft--;
             }
-            if (this.state.boardData[r][c].creatureId) {
+
+            const cell = this.state.boardData[r][c];
+            if (cell.creatureId) {
                 this.state.creaturesFound++;
                 this.state.score += 100 + (this.state.combo * 20);
                 this.state.combo++;
                 if (this.state.combo > this.state.maxCombo) this.state.maxCombo = this.state.combo;
             } else {
                 this.state.combo = 0;
+                // 변경점: 연쇄 반응(Flood Fill) 기능 제거
             }
         },
 
