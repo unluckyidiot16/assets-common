@@ -3,13 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>10 만들기: 최종 버전</title>
+    <title>10 만들기: 최종 반응형 버전</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
     <style>
+        html, body {
+            overscroll-behavior: none;
+            overflow: hidden;
+            height: 100%;
+        }
         body {
             font-family: 'Jua', sans-serif;
             touch-action: manipulation;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Fallback for older browsers */
+            height: 100dvh; /* Use dynamic viewport height for mobile */
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        #game-container > header,
+        #game-container > #timer-container,
+        #game-container > #controls {
+            flex-shrink: 0; /* Prevent these from shrinking */
+        }
+        #grid-wrapper {
+            flex-grow: 1; /* Allow grid to take up available space */
+            min-height: 0; /* Crucial for flexbox shrinking */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .tile {
             transition: all 0.2s ease;
@@ -26,8 +51,8 @@
         }
         .grid-container {
             display: grid;
-            gap: 8px; /* Default gap */
-            padding: 8px; /* Default padding */
+            gap: 4px;
+            padding: 4px;
             background-color: #4a5568;
             border-radius: 12px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
@@ -53,22 +78,14 @@
         .shake-animation {
             animation: shake 0.5s;
         }
-        /* Challenge mode specific styles */
-        .challenge-grid-wrapper {
-            width: 100%;
-            max-width: 95vw; /* Fit the screen width */
-            margin: 0 auto;
-            aspect-ratio: 20 / 15; /* Maintain aspect ratio */
-        }
         .challenge-grid {
             grid-template-columns: repeat(20, minmax(0, 1fr));
             gap: 2px;
             padding: 2px;
-            height: 100%;
         }
     </style>
 </head>
-<body class="bg-slate-800 text-white flex items-center justify-center min-h-screen p-2 sm:p-4">
+<body class="bg-slate-800 text-white flex items-center justify-center min-h-screen">
 
 <div id="game-container" class="w-full max-w-6xl mx-auto text-center hidden">
 
@@ -237,7 +254,7 @@
         gameState.gameMode = mode;
         gameState.stage = 1;
         gameState.score = 0;
-        gameContainer.style.display = 'block';
+        gameContainer.style.display = 'flex';
         startStage();
     }
 
@@ -251,9 +268,9 @@
             gameState.gridSize = { w: 6, h: 6 };
             timerContainer.style.display = 'block';
             gameModeDisplay.textContent = '무한 모드';
-            gameState.totalTime = 90; // 90초 시간 제한
+            gameState.totalTime = 90;
             gameState.timeLeft = gameState.totalTime;
-            gameState.stage = 1; // 무한 모드에서는 스테이지가 1로 고정
+            gameState.stage = 1;
             startTimer();
         } else if (gameState.gameMode === 'puzzle') {
             if (gameState.stage > 15) {
@@ -291,13 +308,30 @@
         gameState.grid = [];
         const { w, h } = gameState.gridSize;
 
+        gridContainer.style.width = '';
+        gridContainer.style.height = '';
+
+        const wrapperRect = gridWrapper.getBoundingClientRect();
+        const availableWidth = wrapperRect.width;
+        const availableHeight = wrapperRect.height;
+        const targetRatio = w / h;
+
+        let targetWidth, targetHeight;
+        if ((availableWidth / availableHeight) > targetRatio) {
+            targetHeight = availableHeight;
+            targetWidth = targetHeight * targetRatio;
+        } else {
+            targetWidth = availableWidth;
+            targetHeight = targetWidth / targetRatio;
+        }
+
+        gridContainer.style.width = `${targetWidth}px`;
+        gridContainer.style.height = `${targetHeight}px`;
+
         if (gameState.gameMode === 'challenge') {
-            gridWrapper.classList.add('challenge-grid-wrapper');
             gridContainer.className = 'grid-container challenge-grid';
         } else {
-            gridWrapper.classList.remove('challenge-grid-wrapper');
             gridContainer.className = 'grid-container';
-            gridContainer.style.width = 'auto'; // Reset width for other modes
             gridContainer.style.gridTemplateColumns = `repeat(${w}, minmax(0, 1fr))`;
         }
 
@@ -308,9 +342,8 @@
             for (let c = 0; c < w; c++) {
                 const value = isPuzzle ? gameState.currentPuzzle[r][c] : Math.floor(Math.random() * 9) + 1;
                 const tile = document.createElement('div');
-                const tileSizeClass = gameState.gameMode === 'challenge' ? 'text-xs sm:text-sm' : 'text-xl sm:text-3xl';
                 const tileRounding = gameState.gameMode === 'challenge' ? 'rounded-sm' : 'rounded-lg';
-                tile.className = `tile flex items-center justify-center font-bold cursor-pointer aspect-square shadow-md ${tileSizeClass} ${tileRounding}`;
+                tile.className = `tile flex items-center justify-center font-bold cursor-pointer aspect-square shadow-md ${tileRounding}`;
 
                 if (value > 0) tile.classList.add(TILE_COLORS[value - 1]);
                 else tile.classList.add('bg-slate-600', 'opacity-0');
@@ -322,6 +355,23 @@
                 gameState.grid[r][c] = { value, element: tile };
             }
         }
+
+        requestAnimationFrame(() => {
+            const firstTile = gridContainer.querySelector('.tile');
+            if (firstTile) {
+                const tileWidth = firstTile.getBoundingClientRect().width;
+                let fontSize;
+                if (gameState.gameMode === 'challenge') {
+                    fontSize = tileWidth * 0.7;
+                } else {
+                    fontSize = tileWidth * 0.6;
+                }
+                const allTiles = gridContainer.querySelectorAll('.tile');
+                allTiles.forEach(tile => {
+                    tile.style.fontSize = `${fontSize}px`;
+                });
+            }
+        });
     }
 
     function handleTileClick(r, c) {
@@ -418,14 +468,13 @@
 
     function updateTileElement(r, c, value) {
         const tileEl = gameState.grid[r][c].element;
-        const tileSizeClass = gameState.gameMode === 'challenge' ? 'text-xs sm:text-sm' : 'text-xl sm:text-3xl';
         const tileRounding = gameState.gameMode === 'challenge' ? 'rounded-sm' : 'rounded-lg';
         if (value === 0) {
             tileEl.textContent = '';
-            tileEl.className = `tile flex items-center justify-center font-bold aspect-square bg-slate-600 ${tileSizeClass} ${tileRounding}`;
+            tileEl.className = `tile flex items-center justify-center font-bold aspect-square bg-slate-600 ${tileRounding}`;
         } else {
             tileEl.textContent = value;
-            tileEl.className = `tile flex items-center justify-center font-bold cursor-pointer aspect-square shadow-md ${tileSizeClass} ${tileRounding} ${TILE_COLORS[value-1]}`;
+            tileEl.className = `tile flex items-center justify-center font-bold cursor-pointer aspect-square shadow-md ${tileRounding} ${TILE_COLORS[value-1]}`;
         }
     }
 
@@ -465,7 +514,6 @@
 
     function checkStageClear() {
         if (gameState.gameMode === 'infinite') {
-            // 무한 모드에서는 스테이지 클리어 조건이 없습니다.
             return;
         } else if (gameState.gameMode === 'puzzle') {
             const isAllCleared = gameState.grid.every(row => row.every(tile => tile.value === 0));
@@ -539,6 +587,16 @@
         button.addEventListener('click', (e) => {
             startGame(e.target.dataset.mode);
         });
+    });
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (gameState.gameActive) {
+                generateGrid();
+            }
+        }, 250);
     });
 
     window.onload = () => showModal('start');
