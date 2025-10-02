@@ -1,607 +1,624 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>갯벌 탐사대</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Noto Sans KR', sans-serif;
-      touch-action: manipulation;
-    }
-    .tile {
-      width: 100%;
-      height: 100%;
-      aspect-ratio: 1 / 1;
-      transition: all 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .tile-hidden {
-      background-color: #d2b48c;
-      border: 2px solid #a08464;
-    }
-    .tile-hidden:hover {
-      background-color: #e0c8a6;
-    }
-    .tile-revealed {
-      background-color: #f5deb3;
-      border: 1px solid #d2b48c;
-      font-weight: bold;
-      font-size: 1.5rem;
-    }
-    .tile-creature {
-      animation: pop-in 0.3s ease-out;
-      padding: 2px;
-    }
-    @keyframes pop-in {
-      0% { transform: scale(0.5); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .color-1 { color: #1e90ff; }
-    .color-2 { color: #32cd32; }
-    .color-3 { color: #ff4500; }
-    .color-4 { color: #4b0082; }
-    .color-5 { color: #a0522d; }
-    .color-6 { color: #00ced1; }
-    .color-7 { color: #000000; }
-    .color-8 { color: #808080; }
-    .modal {
-      animation: fade-in 0.3s ease-out;
-    }
-    @keyframes fade-in {
-      0% { opacity: 0; transform: translateY(-20px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-    .shovel-active {
-      box-shadow: 0 0 20px 5px rgba(255, 223, 186, 0.9);
-      transform: scale(1.05);
-    }
-    .dot-pattern { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px; width: 80%; height: 80%; }
-    .dot { width: 6px; height: 6px; background-color: currentColor; border-radius: 50%; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>갯벌 탐사대</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            touch-action: manipulation;
+        }
+        .tile {
+            width: 100%;
+            height: 100%;
+            aspect-ratio: 1 / 1;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tile-hidden {
+            background-color: #d2b48c;
+            border: 2px solid #a08464;
+        }
+        .tile-hidden:hover {
+            background-color: #e0c8a6;
+        }
+        .tile-revealed {
+            background-color: #f5deb3;
+            border: 1px solid #d2b48c;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .tile-creature {
+            animation: pop-in 0.3s ease-out;
+            padding: 2px;
+        }
+        @keyframes pop-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .color-1 { color: #1e90ff; }
+        .color-2 { color: #32cd32; }
+        .color-3 { color: #ff4500; }
+        .color-4 { color: #4b0082; }
+        .color-5 { color: #a0522d; }
+        .color-6 { color: #00ced1; }
+        .color-7 { color: #000000; }
+        .color-8 { color: #808080; }
+        .modal {
+            animation: fade-in 0.3s ease-out;
+        }
+        @keyframes fade-in {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .shovel-active {
+            box-shadow: 0 0 20px 5px rgba(255, 223, 186, 0.9);
+            transform: scale(1.05);
+        }
+        .dot-pattern { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px; width: 80%; height: 80%; }
+        .dot { width: 6px; height: 6px; background-color: currentColor; border-radius: 50%; }
 
-    /* 도감 카드 스타일 */
-    .card {
-      background-color: #4a5568;
-      border: 2px solid #718096;
-      transition: transform 0.2s;
-    }
-    .card-locked {
-      background-color: #2d3748;
-      color: #a0aec0;
-    }
-    .card:not(.card-locked):hover {
-      transform: scale(1.05);
-      border-color: #a0aec0;
-    }
-  </style>
+        .card {
+            background-color: #4a5568;
+            border: 2px solid #718096;
+            transition: transform 0.2s;
+        }
+        .card-locked {
+            background-color: #2d3748;
+            color: #a0aec0;
+        }
+        .card:not(.card-locked):hover {
+            transform: scale(1.05);
+            border-color: #a0aec0;
+        }
+    </style>
 </head>
 <body class="bg-slate-800 text-white flex flex-col items-center justify-center min-h-screen p-4">
 
 <div id="game-container" class="w-full max-w-2xl mx-auto hidden">
-  <!-- 상단 정보 UI -->
-  <header class="bg-slate-700 p-4 rounded-t-lg shadow-lg">
-    <div class="flex justify-between items-center text-lg md:text-xl">
-      <div id="stage-name" class="font-bold"></div>
-      <div class="flex space-x-4 md:space-x-6">
-        <div class="flex items-center"><span class="text-yellow-400 mr-2">🖱️</span><span id="clicks-left"></span></div>
-        <div class="flex items-center"><span id="creature-icon" class="mr-2 h-8 w-8 flex items-center justify-center"></span><span id="creatures-left"></span></div>
-        <div class="flex items-center"><span class="text-xl mr-2">🐚</span><span id="shovels-left"></span></div>
-      </div>
-    </div>
-  </header>
+    <!-- 상단 정보 UI -->
+    <header class="bg-slate-700 p-4 rounded-t-lg shadow-lg">
+        <div class="flex justify-between items-center text-lg md:text-xl">
+            <div id="stage-name" class="font-bold"></div>
+            <div class="flex items-center space-x-4 md:space-x-6">
+                <div class="flex items-center"><span class="text-yellow-400 mr-2">💰</span><span id="player-gold"></span></div>
+                <div class="flex items-center"><span class="text-yellow-400 mr-2">🖱️</span><span id="clicks-left"></span></div>
+                <div class="flex items-center"><span id="creature-icon" class="mr-2 h-8 w-8 flex items-center justify-center"></span><span id="creatures-left"></span></div>
+                <div class="flex items-center"><span class="text-xl mr-2">🐚</span><span id="shovels-left"></span></div>
+            </div>
+        </div>
+    </header>
 
-  <!-- 게임 보드 -->
-  <main id="game-board" class="bg-amber-100 p-2 md:p-4 rounded-b-lg shadow-lg grid gap-1"></main>
+    <!-- 게임 보드 -->
+    <main id="game-board" class="bg-amber-100 p-2 md:p-4 rounded-b-lg shadow-lg grid gap-1"></main>
 
-  <!-- 하단 컨트롤 UI -->
-  <footer class="mt-4 flex justify-between items-center w-full">
-    <button id="shovel-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center">
-      <img src="https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/trowel.png" alt="조개삽 아이콘" class="h-12 w-12 object-contain">
-      <div class="ml-2 text-left leading-tight"><span class="block font-semibold">조개삽</span><span class="block text-sm">사용</span></div>
-    </button>
-    <div class="flex items-center space-x-2"><label for="dot-pattern-toggle" class="text-sm cursor-pointer">점 패턴</label><input type="checkbox" id="dot-pattern-toggle" class="form-checkbox h-5 w-5 text-blue-600 rounded"></div>
-  </footer>
+    <!-- 하단 컨트롤 UI -->
+    <footer class="mt-4 flex justify-between items-center w-full">
+        <div class="flex space-x-2">
+            <button id="shovel-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center disabled:bg-gray-500 disabled:cursor-not-allowed">
+                <img src="https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/trowel.png" alt="조개삽 아이콘" class="h-12 w-12 object-contain">
+                <div class="ml-2 text-left leading-tight"><span class="block font-semibold">조개삽</span><span class="block text-sm">사용</span></div>
+            </button>
+        </div>
+        <div class="flex items-center space-x-2"><label for="dot-pattern-toggle" class="text-sm cursor-pointer">점 패턴</label><input type="checkbox" id="dot-pattern-toggle" class="form-checkbox h-5 w-5 text-blue-600 rounded"></div>
+    </footer>
 </div>
 
 <!-- 시작 화면 -->
 <div id="start-screen" class="text-center">
-  <h1 class="text-5xl font-bold mb-4">갯벌 탐사대</h1>
-  <p class="text-slate-300 mb-8">갯벌에 숨어있는 생물들을 찾아보세요!</p>
-  <div class="space-y-4">
-    <button id="start-game-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-lg shadow-lg text-xl transition-transform transform hover:scale-105">게임 시작</button>
-    <button id="encyclopedia-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-lg shadow-lg text-xl transition-transform transform hover:scale-105">도감 보기</button>
-  </div>
+    <h1 class="text-5xl font-bold mb-4">갯벌 탐사대</h1>
+    <p class="text-slate-300 mb-6">갯벌에 숨어있는 생물들을 찾아보세요!</p>
+    <div id="player-assets" class="my-6 flex justify-center space-x-6 text-xl">
+        <div class="flex items-center"><span class="text-yellow-400 mr-2">💰</span><span id="start-screen-gold">0</span></div>
+        <div class="flex items-center"><span class="text-xl mr-2">🐚</span><span id="start-screen-shovels">0</span></div>
+    </div>
+    <div class="space-y-4">
+        <button id="start-game-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-lg shadow-lg text-xl transition-transform transform hover:scale-105">게임 시작</button>
+        <button id="encyclopedia-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-lg shadow-lg text-xl transition-transform transform hover:scale-105">도감 보기</button>
+        <button id="shop-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-10 rounded-lg shadow-lg text-xl transition-transform transform hover:scale-105">상점</button>
+    </div>
 </div>
 
 <!-- 결과 모달 -->
 <div id="result-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-  <div class="modal bg-slate-700 rounded-lg p-8 max-w-lg w-full">
-    <h2 id="result-title" class="text-4xl font-bold text-center mb-4"></h2>
-    <div id="result-stars" class="text-5xl text-center mb-6"></div>
-    <div class="grid grid-cols-2 gap-4 text-lg mb-6">
-      <p><strong>🏅 점수:</strong> <span id="result-score"></span></p>
-      <p><strong>🎯 정확도:</strong> <span id="result-accuracy"></span></p>
-      <p><strong>🖱️ 남은 클릭:</strong> <span id="result-clicks"></span></p>
-      <p><strong>🔥 최대 콤보:</strong> <span id="result-combo"></span></p>
+    <div class="modal bg-slate-700 rounded-lg p-8 max-w-lg w-full">
+        <h2 id="result-title" class="text-4xl font-bold text-center mb-4"></h2>
+        <div id="result-stars" class="text-5xl text-center mb-6"></div>
+        <div class="grid grid-cols-2 gap-4 text-lg mb-6">
+            <p><strong>🏅 점수:</strong> <span id="result-score"></span></p>
+            <p><strong>🎯 정확도:</strong> <span id="result-accuracy"></span></p>
+            <p><strong>💰 획득 골드:</strong> <span id="result-gold"></span></p>
+            <p><strong>🔥 최대 콤보:</strong> <span id="result-combo"></span></p>
+        </div>
+        <div id="new-unlocks-container" class="hidden"><h3 class="text-xl font-bold text-center mb-2">✨ 업적 달성! 새로운 생물 발견!</h3><div id="new-unlocks" class="flex justify-center"></div></div>
+        <div class="flex justify-center space-x-4 mt-8">
+            <button id="restart-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg">다시하기</button>
+            <button id="next-stage-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">다음</button>
+            <button id="main-menu-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg">메인으로</button>
+        </div>
     </div>
-    <div id="new-unlocks-container" class="hidden"><h3 class="text-xl font-bold text-center mb-2">✨ 업적 달성! 새로운 생물 발견!</h3><div id="new-unlocks" class="flex justify-center"></div></div>
-    <div class="flex justify-center space-x-4 mt-8">
-      <button id="restart-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg">다시하기</button>
-      <button id="next-stage-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">다음</button>
-      <button id="main-menu-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg">메인으로</button>
-    </div>
-  </div>
 </div>
 
 <!-- 도감 모달 -->
 <div id="encyclopedia-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 p-4 sm:p-8 z-50 overflow-y-auto">
-  <div class="relative max-w-4xl mx-auto">
-    <h2 class="text-4xl font-bold text-center mb-6">생물 도감</h2>
-    <div id="encyclopedia-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <!-- JS로 카드 생성 -->
+    <div class="relative max-w-4xl mx-auto">
+        <h2 class="text-4xl font-bold text-center mb-6">생물 도감</h2>
+        <div id="encyclopedia-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        <button id="close-encyclopedia-btn" class="absolute top-0 right-0 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full h-10 w-10 flex items-center justify-center text-2xl">&times;</button>
     </div>
-    <button id="close-encyclopedia-btn" class="absolute top-0 right-0 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full h-10 w-10 flex items-center justify-center text-2xl">&times;</button>
-  </div>
+</div>
+
+<!-- 상점 모달 -->
+<div id="shop-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+    <div class="modal bg-slate-700 rounded-lg p-8 max-w-lg w-full relative">
+        <h2 class="text-4xl font-bold text-center mb-4">상점</h2>
+        <div class="text-right mb-4">
+            <span class="text-xl">💰 <span id="shop-gold">0</span></span>
+        </div>
+        <div class="bg-slate-600 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <img src="https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/trowel.png" alt="조개삽" class="h-16 w-16 object-contain mr-4">
+                    <div>
+                        <h3 class="text-2xl font-bold">조개삽</h3>
+                        <p class="text-slate-300">3x3 영역의 퇴적물을 열어봅니다.</p>
+                    </div>
+                </div>
+                <button id="shop-buy-shovel-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed">
+                    구매 (150 G)
+                </button>
+            </div>
+        </div>
+        <button id="close-shop-btn" class="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full h-10 w-10 flex items-center justify-center text-2xl">&times;</button>
+    </div>
 </div>
 
 <script>
-  const game = {
-    // --- DOM 요소 ---
-    elements: {
-      gameContainer: document.getElementById('game-container'),
-      startScreen: document.getElementById('start-screen'),
-      board: document.getElementById('game-board'),
-      stageName: document.getElementById('stage-name'),
-      clicksLeft: document.getElementById('clicks-left'),
-      creaturesLeft: document.getElementById('creatures-left'),
-      shovelsLeft: document.getElementById('shovels-left'),
-      creatureIcon: document.getElementById('creature-icon'),
-      shovelButton: document.getElementById('shovel-button'),
-      dotPatternToggle: document.getElementById('dot-pattern-toggle'),
-      resultModal: document.getElementById('result-modal'),
-      resultTitle: document.getElementById('result-title'),
-      resultStars: document.getElementById('result-stars'),
-      resultScore: document.getElementById('result-score'),
-      resultAccuracy: document.getElementById('result-accuracy'),
-      resultClicks: document.getElementById('result-clicks'),
-      resultCombo: document.getElementById('result-combo'),
-      newUnlocksContainer: document.getElementById('new-unlocks-container'),
-      newUnlocks: document.getElementById('new-unlocks'),
-      restartBtn: document.getElementById('restart-btn'),
-      nextStageBtn: document.getElementById('next-stage-btn'),
-      mainMenuBtn: document.getElementById('main-menu-btn'),
-      startGameBtn: document.getElementById('start-game-btn'),
-      encyclopediaBtn: document.getElementById('encyclopedia-btn'),
-      encyclopediaModal: document.getElementById('encyclopedia-modal'),
-      encyclopediaGrid: document.getElementById('encyclopedia-grid'),
-      closeEncyclopediaBtn: document.getElementById('close-encyclopedia-btn'),
-    },
+    const game = {
+        elements: {
+            gameContainer: document.getElementById('game-container'),
+            startScreen: document.getElementById('start-screen'),
+            board: document.getElementById('game-board'),
+            stageName: document.getElementById('stage-name'),
+            clicksLeft: document.getElementById('clicks-left'),
+            creaturesLeft: document.getElementById('creatures-left'),
+            shovelsLeft: document.getElementById('shovels-left'),
+            creatureIcon: document.getElementById('creature-icon'),
+            playerGold: document.getElementById('player-gold'),
+            shovelButton: document.getElementById('shovel-button'),
+            dotPatternToggle: document.getElementById('dot-pattern-toggle'),
+            resultModal: document.getElementById('result-modal'),
+            resultTitle: document.getElementById('result-title'),
+            resultStars: document.getElementById('result-stars'),
+            resultScore: document.getElementById('result-score'),
+            resultAccuracy: document.getElementById('result-accuracy'),
+            resultGold: document.getElementById('result-gold'),
+            resultCombo: document.getElementById('result-combo'),
+            newUnlocksContainer: document.getElementById('new-unlocks-container'),
+            newUnlocks: document.getElementById('new-unlocks'),
+            restartBtn: document.getElementById('restart-btn'),
+            nextStageBtn: document.getElementById('next-stage-btn'),
+            mainMenuBtn: document.getElementById('main-menu-btn'),
+            startGameBtn: document.getElementById('start-game-btn'),
+            encyclopediaBtn: document.getElementById('encyclopedia-btn'),
+            encyclopediaModal: document.getElementById('encyclopedia-modal'),
+            encyclopediaGrid: document.getElementById('encyclopedia-grid'),
+            closeEncyclopediaBtn: document.getElementById('close-encyclopedia-btn'),
+            startScreenGold: document.getElementById('start-screen-gold'),
+            startScreenShovels: document.getElementById('start-screen-shovels'),
+            shopBtn: document.getElementById('shop-btn'),
+            shopModal: document.getElementById('shop-modal'),
+            closeShopBtn: document.getElementById('close-shop-btn'),
+            shopGold: document.getElementById('shop-gold'),
+            shopBuyShovelBtn: document.getElementById('shop-buy-shovel-btn'),
+        },
 
-    // --- 게임 설정 및 데이터 ---
-    config: {
-      stages: [
-        { id: "1-1", name: "바지락 밭", width: 8, height: 8, specimens: 8, clicksLimit: 30, shellShovel: 1, creatureId: 'bajirak' },
-        { id: "1-2", name: "갯지렁이 굴", width: 8, height: 8, specimens: 10, clicksLimit: 30, shellShovel: 1, creatureId: 'mudworm' },
-        { id: "1-3", name: "달팽이 언덕", width: 9, height: 9, specimens: 12, clicksLimit: 32, shellShovel: 1, creatureId: 'mudSnail' },
-        { id: "1-4", name: "작은 게 군락", width: 9, height: 9, specimens: 14, clicksLimit: 34, shellShovel: 2, creatureId: 'smallCrab' },
-        { id: "1-5", name: "대합 서식지", width: 10, height: 10, specimens: 16, clicksLimit: 36, shellShovel: 2, creatureId: 'daehap' },
-        { id: "1-6", name: "망둥어 웅덩이", width: 10, height: 10, specimens: 18, clicksLimit: 40, shellShovel: 2, creatureId: 'mangdungeo' },
-        { id: "1-7", name: "농게 마을", width: 11, height: 11, specimens: 20, clicksLimit: 45, shellShovel: 3, creatureId: 'nongge' },
-        { id: "1-8", name: "짱뚱어 펄", width: 11, height: 11, specimens: 22, clicksLimit: 48, shellShovel: 3, creatureId: 'jjangddungeo' },
-        { id: "1-9", name: "칠게 해변", width: 12, height: 12, specimens: 25, clicksLimit: 55, shellShovel: 3, creatureId: 'chilge' },
-        { id: "1-10", name: "낙지 동굴", width: 12, height: 12, specimens: 28, clicksLimit: 60, shellShovel: 3, creatureId: 'nakji' }
-      ],
-      creatures: [
-        { id: "bajirak", nameKo: "바지락", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/bajirak.png", desc: "갯벌의 가장 흔한 조개로, 표면에 방사상 무늬가 있습니다. 칼국수나 찜 요리에 많이 사용되어 우리에게 친숙합니다." },
-        { id: "mudworm", nameKo: "갯지렁이", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/mudworm.png", desc: "갯벌 퇴적물 속에 굴을 파고 사는 환형동물입니다. 낚시 미끼로 유명하며, 갯벌 생태계의 중요한 분해자 역할을 합니다." },
-        { id: "mudSnail", nameKo: "갯벌 달팽이", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/mudSnail.png", desc: "갯벌 표면을 기어 다니며 유기물을 먹고 삽니다. 느릿느릿 움직이며 갯벌을 깨끗하게 만드는 청소부입니다." },
-        { id: "smallCrab", nameKo: "작은 게", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/smallCrab.png", desc: "갯벌에는 칠게, 방게 등 다양한 작은 게들이 삽니다. 옆으로 재빠르게 움직이며 숨는 모습이 인상적인 갯벌의 무법자입니다." },
-        { id: "daehap", nameKo: "대합", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/daehap.png", desc: "바지락보다 크고 껍데기가 두꺼운 조개입니다. 깊은 모래 속에 서식하며, 시원한 국물 맛이 일품이라 탕 요리에 제격입니다." },
-        { id: "mangdungeo", nameKo: "망둥어", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/mangdungeo.png", desc: "갯벌의 물웅덩이에서 흔히 보이는 물고기입니다. 가슴지느러미를 이용해 펄 위를 기어 다니는 신기한 능력을 가졌습니다." },
-        { id: "nongge", nameKo: "농게", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/nongge.png", desc: "수컷의 한쪽 집게발이 거대한 것이 특징입니다. 이 큰 집게발을 흔들며 암컷에게 구애하거나 다른 수컷과 싸우기도 합니다." },
-        { id: "jjangddungeo", nameKo: "짱뚱어", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/jjangddungeo.png", desc: "머리 위로 툭 튀어나온 눈이 매력적인 물고기입니다. 피부로도 호흡할 수 있어 갯벌 위에서 오랫동안 돌아다닐 수 있습니다." },
-        { id: "chilge", nameKo: "칠게", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/chilge.png", desc: "갯벌에서 가장 흔하게 볼 수 있는 게 중 하나입니다. 등껍질에 7개의 점이 있는 것처럼 보여 칠게라는 이름이 붙었습니다." },
-        { id: "nakji", nameKo: "낙지", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/nakji.png", desc: "갯벌의 돌 틈이나 굴에 사는 대표적인 연체동물입니다. '쓰러진 소도 일으킨다'는 말이 있을 정도로 유명한 보양식입니다." }
-      ],
-    },
+        config: {
+            stages: [
+                { id: "1-1", name: "바지락 밭", width: 8, height: 8, specimens: 8, clicksLimit: 30, creatureId: 'bajirak' },
+                { id: "1-2", name: "갯지렁이 굴", width: 8, height: 8, specimens: 10, clicksLimit: 30, creatureId: 'mudworm' },
+                { id: "1-3", name: "달팽이 언덕", width: 9, height: 9, specimens: 12, clicksLimit: 32, creatureId: 'mudSnail' },
+                { id: "1-4", name: "작은 게 군락", width: 9, height: 9, specimens: 14, clicksLimit: 34, creatureId: 'smallCrab' },
+                { id: "1-5", name: "대합 서식지", width: 10, height: 10, specimens: 16, clicksLimit: 36, creatureId: 'daehap' },
+                { id: "1-6", name: "망둥어 웅덩이", width: 10, height: 10, specimens: 18, clicksLimit: 40, creatureId: 'mangdungeo' },
+                { id: "1-7", name: "농게 마을", width: 11, height: 11, specimens: 20, clicksLimit: 45, creatureId: 'nongge' },
+                { id: "1-8", name: "짱뚱어 펄", width: 11, height: 11, specimens: 22, clicksLimit: 48, creatureId: 'jjangddungeo' },
+                { id: "1-9", name: "칠게 해변", width: 12, height: 12, specimens: 25, clicksLimit: 55, creatureId: 'chilge' },
+                { id: "1-10", name: "낙지 동굴", width: 12, height: 12, specimens: 28, clicksLimit: 60, creatureId: 'nakji' }
+            ],
+            creatures: [
+                { id: "bajirak", nameKo: "바지락", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/bajirak.png", desc: "갯벌의 가장 흔한 조개로, 표면에 방사상 무늬가 있습니다. 칼국수나 찜 요리에 많이 사용되어 우리에게 친숙합니다." },
+                { id: "mudworm", nameKo: "갯지렁이", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/mudworm.png", desc: "갯벌 퇴적물 속에 굴을 파고 사는 환형동물입니다. 낚시 미끼로 유명하며, 갯벌 생태계의 중요한 분해자 역할을 합니다." },
+                { id: "mudSnail", nameKo: "갯벌 달팽이", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/mudSnail.png", desc: "갯벌 표면을 기어 다니며 유기물을 먹고 삽니다. 느릿느릿 움직이며 갯벌을 깨끗하게 만드는 청소부입니다." },
+                { id: "smallCrab", nameKo: "작은 게", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/smallCrab.png", desc: "갯벌에는 칠게, 방게 등 다양한 작은 게들이 삽니다. 옆으로 재빠르게 움직이며 숨는 모습이 인상적인 갯벌의 무법자입니다." },
+                { id: "daehap", nameKo: "대합", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/daehap.png", desc: "바지락보다 크고 껍데기가 두꺼운 조개입니다. 깊은 모래 속에 서식하며, 시원한 국물 맛이 일품이라 탕 요리에 제격입니다." },
+                { id: "mangdungeo", nameKo: "망둥어", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/mangdungeo.png", desc: "갯벌의 물웅덩이에서 흔히 보이는 물고기입니다. 가슴지느러미를 이용해 펄 위를 기어 다니는 신기한 능력을 가졌습니다." },
+                { id: "nongge", nameKo: "농게", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/nongge.png", desc: "수컷의 한쪽 집게발이 거대한 것이 특징입니다. 이 큰 집게발을 흔들며 암컷에게 구애하거나 다른 수컷과 싸우기도 합니다." },
+                { id: "jjangddungeo", nameKo: "짱뚱어", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/jjangddungeo.png", desc: "머리 위로 툭 튀어나온 눈이 매력적인 물고기입니다. 피부로도 호흡할 수 있어 갯벌 위에서 오랫동안 돌아다닐 수 있습니다." },
+                { id: "chilge", nameKo: "칠게", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/chilge.png", desc: "갯벌에서 가장 흔하게 볼 수 있는 게 중 하나입니다. 등껍질에 7개의 점이 있는 것처럼 보여 칠게라는 이름이 붙었습니다." },
+                { id: "nakji", nameKo: "낙지", image: "https://unluckyidiot16.github.io/assets-common/MudAnimalAutoBattle/nakji.png", desc: "갯벌의 돌 틈이나 굴에 사는 대표적인 연체동물입니다. '쓰러진 소도 일으킨다'는 말이 있을 정도로 유명한 보양식입니다." }
+            ],
+            shovelPrice: 150,
+        },
 
-    // --- 게임 상태 ---
-    state: {},
-    playerData: {
-      currentStageIndex: 0,
-      unlockedCreatures: new Set(),
-    },
+        state: {},
+        playerData: {
+            currentStageIndex: 0,
+            unlockedCreatures: new Set(),
+            gold: 0,
+            shovels: 0,
+        },
 
-    // --- 초기화 ---
-    init() {
-      this.loadPlayerData();
-      this.bindEvents();
-    },
+        init() {
+            this.loadPlayerData();
+            this.bindEvents();
+        },
 
-    bindEvents() {
-      this.elements.shovelButton.addEventListener('click', () => this.toggleShovelMode());
-      this.elements.dotPatternToggle.addEventListener('change', () => this.renderBoard(false));
-      this.elements.restartBtn.addEventListener('click', () => this.startStage(this.state.stageIndex));
-      this.elements.nextStageBtn.addEventListener('click', () => this.startNextStage());
-      this.elements.mainMenuBtn.addEventListener('click', () => this.showStartScreen());
-      this.elements.startGameBtn.addEventListener('click', () => this.startStage(this.playerData.currentStageIndex));
-      this.elements.encyclopediaBtn.addEventListener('click', () => this.showEncyclopedia());
-      this.elements.closeEncyclopediaBtn.addEventListener('click', () => this.hideEncyclopedia());
-    },
+        bindEvents() {
+            this.elements.shovelButton.addEventListener('click', () => this.toggleShovelMode());
+            this.elements.dotPatternToggle.addEventListener('change', () => this.renderBoard(false));
+            this.elements.restartBtn.addEventListener('click', () => this.startStage(this.state.stageIndex));
+            this.elements.nextStageBtn.addEventListener('click', () => this.startNextStage());
+            this.elements.mainMenuBtn.addEventListener('click', () => this.showStartScreen());
+            this.elements.startGameBtn.addEventListener('click', () => this.startStage(this.playerData.currentStageIndex));
+            this.elements.encyclopediaBtn.addEventListener('click', () => this.showEncyclopedia());
+            this.elements.closeEncyclopediaBtn.addEventListener('click', () => this.hideEncyclopedia());
+            this.elements.shopBtn.addEventListener('click', () => this.showShop());
+            this.elements.closeShopBtn.addEventListener('click', () => this.hideShop());
+            this.elements.shopBuyShovelBtn.addEventListener('click', () => this.buyShovel());
+        },
 
-    // --- 데이터 관리 ---
-    loadPlayerData() {
-      const savedData = localStorage.getItem('tidal_flat_playerData');
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        this.playerData.currentStageIndex = parsedData.currentStageIndex;
-        this.playerData.unlockedCreatures = new Set(parsedData.unlockedCreatures);
-      }
-    },
+        loadPlayerData() {
+            const savedData = localStorage.getItem('tidal_flat_playerData_v2');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                this.playerData.currentStageIndex = parsedData.currentStageIndex || 0;
+                this.playerData.unlockedCreatures = new Set(parsedData.unlockedCreatures || []);
+                this.playerData.gold = parsedData.gold || 0;
+                this.playerData.shovels = parsedData.shovels || 0;
+            } else {
+                this.playerData.shovels = 2;
+                this.savePlayerData();
+            }
+            this.elements.startScreenGold.textContent = this.playerData.gold;
+            this.elements.startScreenShovels.textContent = this.playerData.shovels;
+        },
 
-    savePlayerData() {
-      const dataToSave = {
-        currentStageIndex: this.playerData.currentStageIndex,
-        unlockedCreatures: Array.from(this.playerData.unlockedCreatures)
-      };
-      localStorage.setItem('tidal_flat_playerData', JSON.stringify(dataToSave));
-    },
+        savePlayerData() {
+            const dataToSave = {
+                currentStageIndex: this.playerData.currentStageIndex,
+                unlockedCreatures: Array.from(this.playerData.unlockedCreatures),
+                gold: this.playerData.gold,
+                shovels: this.playerData.shovels,
+            };
+            localStorage.setItem('tidal_flat_playerData_v2', JSON.stringify(dataToSave));
+        },
 
-    // --- 화면 전환 ---
-    showStartScreen() {
-      this.elements.resultModal.classList.add('hidden');
-      this.elements.gameContainer.classList.add('hidden');
-      this.elements.startScreen.classList.remove('hidden');
-    },
+        showStartScreen() {
+            this.elements.resultModal.classList.add('hidden');
+            this.elements.gameContainer.classList.add('hidden');
+            this.elements.startScreen.classList.remove('hidden');
+            this.elements.startScreenGold.textContent = this.playerData.gold;
+            this.elements.startScreenShovels.textContent = this.playerData.shovels;
+        },
 
-    showEncyclopedia() {
-      this.renderEncyclopedia();
-      this.elements.encyclopediaModal.classList.remove('hidden');
-    },
+        showEncyclopedia() {
+            this.renderEncyclopedia();
+            this.elements.encyclopediaModal.classList.remove('hidden');
+        },
 
-    hideEncyclopedia() {
-      this.elements.encyclopediaModal.classList.add('hidden');
-    },
+        hideEncyclopedia() {
+            this.elements.encyclopediaModal.classList.add('hidden');
+        },
 
-    // --- 도감 렌더링 ---
-    renderEncyclopedia() {
-      this.elements.encyclopediaGrid.innerHTML = '';
-      this.config.creatures.forEach(creature => {
-        const stage = this.config.stages.find(s => s.creatureId === creature.id);
-        const isUnlocked = this.playerData.unlockedCreatures.has(creature.id);
+        showShop() {
+            this.elements.shopGold.textContent = this.playerData.gold;
+            this.elements.shopBuyShovelBtn.disabled = this.playerData.gold < this.config.shovelPrice;
+            this.elements.shopModal.classList.remove('hidden');
+        },
 
-        const card = document.createElement('div');
-        card.className = `card rounded-lg p-4 text-center ${isUnlocked ? '' : 'card-locked'}`;
+        hideShop() {
+            this.elements.shopModal.classList.add('hidden');
+        },
 
-        if (isUnlocked) {
-          card.innerHTML = `
-                    <h3 class="text-xl font-bold mb-2">${creature.nameKo}</h3>
-                    <img src="${creature.image}" alt="${creature.nameKo}" class="w-24 h-24 mx-auto object-contain bg-slate-600 rounded-full p-1 mb-3">
-                    <p class="text-sm text-slate-300">${creature.desc}</p>
-                `;
-        } else {
-          card.innerHTML = `
-                    <h3 class="text-xl font-bold mb-2">?</h3>
-                    <div class="w-24 h-24 mx-auto flex items-center justify-center bg-slate-800 rounded-full text-4xl font-bold mb-3">?</div>
-                    <p class="text-sm"><strong>해금 조건:</strong><br>Stage ${stage.id} 클리어</p>
-                `;
-        }
-        this.elements.encyclopediaGrid.appendChild(card);
-      });
-    },
-
-    // --- 게임 시작/종료 ---
-    startStage(stageIndex) {
-      if (stageIndex >= this.config.stages.length) {
-        alert("모든 스테이지를 클리어했습니다! 첫 스테이지부터 다시 시작합니다.");
-        stageIndex = 0;
-        this.playerData.currentStageIndex = 0;
-        this.savePlayerData();
-      }
-
-      this.elements.resultModal.classList.add('hidden');
-      this.elements.startScreen.classList.add('hidden');
-      this.elements.gameContainer.classList.remove('hidden');
-
-      const stage = this.config.stages[stageIndex];
-      const creature = this.config.creatures.find(c => c.id === stage.creatureId);
-
-      this.state = { stageIndex, ...stage, boardData: [], revealed: new Set(), creaturesFound: 0, clicksMade: 0, clicksLeft: stage.clicksLimit, shovelsLeft: stage.shellShovel, score: 0, combo: 0, maxCombo: 0, isFirstClick: true, isShovelMode: false, isGameOver: false, isNewUnlock: false };
-
-      this.elements.stageName.textContent = `Stage ${stage.id}: ${stage.name}`;
-      this.elements.creatureIcon.innerHTML = `<img src="${creature.image}" alt="${creature.nameKo}" class="h-full w-full object-contain">`;
-
-      this.generateBoard();
-      this.renderBoard(true);
-      this.updateStats();
-    },
-
-    startNextStage() {
-      this.startStage(this.playerData.currentStageIndex);
-    },
-
-    endGame(isWin) {
-      if (this.state.isGameOver) return;
-      this.state.isGameOver = true;
-
-      if (isWin) {
-        const unlockedCreatureId = this.state.creatureId;
-        if (!this.playerData.unlockedCreatures.has(unlockedCreatureId)) {
-          this.state.isNewUnlock = true;
-          this.playerData.unlockedCreatures.add(unlockedCreatureId);
-        }
-        this.playerData.currentStageIndex = this.state.stageIndex + 1;
-        this.savePlayerData();
-      }
-
-      // 점수 계산 및 표시
-      const accuracy = this.state.clicksMade > 0 ? (this.state.creaturesFound / this.state.clicksMade * 100).toFixed(1) : 0;
-      let finalScore = this.state.score;
-      if (isWin) {
-        finalScore += this.state.clicksLeft * 10;
-        finalScore += this.state.shovelsLeft * 50;
-      }
-
-      let stars = 0;
-      if(isWin) {
-        stars++;
-        if (accuracy >= 60) stars++;
-        if (this.state.clicksLeft / this.state.clicksLimit >= 0.2) stars++;
-      }
-
-      this.elements.resultModal.classList.remove('hidden');
-      this.elements.resultTitle.textContent = isWin ? "탐사 성공!" : "탐사 실패...";
-      this.elements.resultTitle.className = `text-4xl font-bold text-center mb-4 ${isWin ? 'text-yellow-300' : 'text-red-500'}`;
-      this.elements.resultStars.innerHTML = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
-      this.elements.resultScore.textContent = finalScore;
-      this.elements.resultAccuracy.textContent = `${accuracy}%`;
-      this.elements.resultClicks.textContent = this.state.clicksLeft;
-      this.elements.resultCombo.textContent = this.state.maxCombo;
-      this.elements.nextStageBtn.style.display = isWin ? 'inline-block' : 'none';
-
-      // 신규 해금 표시
-      if (this.state.isNewUnlock) {
-        this.elements.newUnlocksContainer.classList.remove('hidden');
-        const creatureData = this.config.creatures.find(c => c.id === this.state.creatureId);
-        this.elements.newUnlocks.innerHTML = `<div class="bg-slate-600 p-2 rounded text-center"><img src="${creatureData.image}" alt="${creatureData.nameKo}" class="w-16 h-16 mx-auto object-contain mb-1"><div class="font-bold">${creatureData.nameKo}</div></div>`;
-      } else {
-        this.elements.newUnlocksContainer.classList.add('hidden');
-      }
-    },
-
-    // --- 보드 생성 및 렌더링 ---
-    generateBoard() {
-      // ... (이하 동일, 변경 없음)
-      const { width, height, specimens, creatureId } = this.state;
-      this.state.boardData = Array(height).fill(null).map(() => Array(width).fill(null).map(() => ({ creatureId: null, adjacent: 0 })));
-
-      let placed = 0;
-      while (placed < specimens) {
-        const r = Math.floor(Math.random() * height);
-        const c = Math.floor(Math.random() * width);
-        if (!this.state.boardData[r][c].creatureId) {
-          this.state.boardData[r][c].creatureId = creatureId;
-          placed++;
-        }
-      }
-
-      for (let r = 0; r < height; r++) {
-        for (let c = 0; c < width; c++) {
-          if (!this.state.boardData[r][c].creatureId) {
-            let count = 0;
-            this.getNeighbors(r, c).forEach(([nr, nc]) => {
-              if (this.state.boardData[nr][nc].creatureId) {
-                count++;
-              }
+        renderEncyclopedia() {
+            this.elements.encyclopediaGrid.innerHTML = '';
+            this.config.creatures.forEach(creature => {
+                const stage = this.config.stages.find(s => s.creatureId === creature.id);
+                const isUnlocked = this.playerData.unlockedCreatures.has(creature.id);
+                const card = document.createElement('div');
+                card.className = `card rounded-lg p-4 text-center ${isUnlocked ? '' : 'card-locked'}`;
+                if (isUnlocked) {
+                    card.innerHTML = `<h3 class="text-xl font-bold mb-2">${creature.nameKo}</h3><img src="${creature.image}" alt="${creature.nameKo}" class="w-24 h-24 mx-auto object-contain bg-slate-600 rounded-full p-1 mb-3"><p class="text-sm text-slate-300">${creature.desc}</p>`;
+                } else {
+                    card.innerHTML = `<h3 class="text-xl font-bold mb-2">?</h3><div class="w-24 h-24 mx-auto flex items-center justify-center bg-slate-800 rounded-full text-4xl font-bold mb-3">?</div><p class="text-sm"><strong>해금 조건:</strong><br>Stage ${stage.id} 클리어</p>`;
+                }
+                this.elements.encyclopediaGrid.appendChild(card);
             });
-            this.state.boardData[r][c].adjacent = count;
-          }
-        }
-      }
-    },
+        },
 
-    renderBoard(isInitial) {
-      // ... (이하 동일, 변경 없음)
-      this.elements.board.innerHTML = '';
-      const { width } = this.state;
-      this.elements.board.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
+        startStage(stageIndex) {
+            if (stageIndex >= this.config.stages.length) {
+                alert("모든 스테이지를 클리어했습니다! 첫 스테이지부터 다시 시작합니다.");
+                stageIndex = 0;
+                this.playerData.currentStageIndex = 0;
+                this.savePlayerData();
+            }
 
-      for (let r = 0; r < this.state.height; r++) {
-        for (let c = 0; c < this.state.width; c++) {
-          const tileEl = document.createElement('button');
-          tileEl.className = 'tile rounded-md tile-hidden';
-          tileEl.dataset.r = r;
-          tileEl.dataset.c = c;
+            this.elements.resultModal.classList.add('hidden');
+            this.elements.startScreen.classList.add('hidden');
+            this.elements.gameContainer.classList.remove('hidden');
 
-          const pos = `${r},${c}`;
-          if (this.state.revealed.has(pos)) {
+            const stage = this.config.stages[stageIndex];
+            const creature = this.config.creatures.find(c => c.id === stage.creatureId);
+
+            this.state = {
+                stageIndex, ...stage, boardData: [], revealed: new Set(), creaturesFound: 0, clicksMade: 0,
+                clicksLeft: stage.clicksLimit, shovelsLeft: this.playerData.shovels, score: 0, combo: 0,
+                maxCombo: 0, isFirstClick: true, isShovelMode: false, isGameOver: false, isNewUnlock: false
+            };
+
+            this.elements.stageName.textContent = `Stage ${stage.id}: ${stage.name}`;
+            this.elements.creatureIcon.innerHTML = `<img src="${creature.image}" alt="${creature.nameKo}" class="h-full w-full object-contain">`;
+
+            this.generateBoard();
+            this.renderBoard(true);
+            this.updateStats();
+        },
+
+        startNextStage() {
+            this.startStage(this.playerData.currentStageIndex);
+        },
+
+        endGame(isWin) {
+            if (this.state.isGameOver) return;
+            this.state.isGameOver = true;
+
+            let goldEarned = 0;
+            if (isWin) {
+                goldEarned = this.state.specimens * (this.state.stageIndex + 1) * 10;
+                this.playerData.gold += goldEarned;
+                const unlockedCreatureId = this.state.creatureId;
+                if (!this.playerData.unlockedCreatures.has(unlockedCreatureId)) {
+                    this.state.isNewUnlock = true;
+                    this.playerData.unlockedCreatures.add(unlockedCreatureId);
+                }
+                this.playerData.currentStageIndex = this.state.stageIndex + 1;
+            }
+
+            this.playerData.shovels = this.state.shovelsLeft;
+            this.savePlayerData();
+
+            const accuracy = this.state.clicksMade > 0 ? (this.state.creaturesFound / this.state.clicksMade * 100).toFixed(1) : 0;
+            let finalScore = this.state.score;
+            if (isWin) finalScore += this.state.clicksLeft * 10;
+
+            let stars = 0;
+            if(isWin) {
+                stars++;
+                if (accuracy >= 60) stars++;
+                if (this.state.clicksLeft / this.state.clicksLimit >= 0.2) stars++;
+            }
+
+            this.elements.resultModal.classList.remove('hidden');
+            this.elements.resultTitle.textContent = isWin ? "탐사 성공!" : "탐사 실패...";
+            this.elements.resultTitle.className = `text-4xl font-bold text-center mb-4 ${isWin ? 'text-yellow-300' : 'text-red-500'}`;
+            this.elements.resultStars.innerHTML = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+            this.elements.resultScore.textContent = finalScore;
+            this.elements.resultAccuracy.textContent = `${accuracy}%`;
+            this.elements.resultGold.textContent = `${goldEarned} G`;
+            this.elements.resultCombo.textContent = this.state.maxCombo;
+            this.elements.nextStageBtn.style.display = isWin ? 'inline-block' : 'none';
+
+            if (this.state.isNewUnlock) {
+                this.elements.newUnlocksContainer.classList.remove('hidden');
+                const creatureData = this.config.creatures.find(c => c.id === this.state.creatureId);
+                this.elements.newUnlocks.innerHTML = `<div class="bg-slate-600 p-2 rounded text-center"><img src="${creatureData.image}" alt="${creatureData.nameKo}" class="w-16 h-16 mx-auto object-contain mb-1"><div class="font-bold">${creatureData.nameKo}</div></div>`;
+            } else {
+                this.elements.newUnlocksContainer.classList.add('hidden');
+            }
+        },
+
+        generateBoard() {
+            const { width, height, specimens, creatureId } = this.state;
+            this.state.boardData = Array(height).fill(null).map(() => Array(width).fill(null).map(() => ({ creatureId: null, adjacent: 0 })));
+            let placed = 0;
+            while (placed < specimens) {
+                const r = Math.floor(Math.random() * height);
+                const c = Math.floor(Math.random() * width);
+                if (!this.state.boardData[r][c].creatureId) {
+                    this.state.boardData[r][c].creatureId = creatureId;
+                    placed++;
+                }
+            }
+            for (let r = 0; r < height; r++) {
+                for (let c = 0; c < width; c++) {
+                    if (!this.state.boardData[r][c].creatureId) {
+                        let count = 0;
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                const nr = r + dr, nc = c + dc;
+                                if (nr >= 0 && nr < height && nc >= 0 && nc < width && this.state.boardData[nr][nc].creatureId) count++;
+                            }
+                        }
+                        this.state.boardData[r][c].adjacent = count;
+                    }
+                }
+            }
+        },
+
+        renderBoard(isInitial) {
+            this.elements.board.innerHTML = '';
+            const { width } = this.state;
+            this.elements.board.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
+            for (let r = 0; r < this.state.height; r++) {
+                for (let c = 0; c < this.state.width; c++) {
+                    const tileEl = document.createElement('button');
+                    tileEl.className = 'tile rounded-md tile-hidden';
+                    tileEl.dataset.r = r;
+                    tileEl.dataset.c = c;
+                    if (this.state.revealed.has(`${r},${c}`)) this.updateTileAppearance(tileEl, r, c);
+                    if (isInitial) tileEl.addEventListener('click', () => this.onTileClick(r, c));
+                    this.elements.board.appendChild(tileEl);
+                }
+            }
+        },
+
+        updateTileAppearance(tileEl, r, c) {
+            const cell = this.state.boardData[r][c];
+            tileEl.disabled = true;
+            tileEl.classList.remove('tile-hidden');
+            tileEl.classList.add('tile-revealed');
+            if (cell.creatureId) {
+                const creature = this.config.creatures.find(cr => cr.id === cell.creatureId);
+                tileEl.innerHTML = `<img src="${creature.image}" alt="${creature.nameKo}" class="w-full h-full object-contain tile-creature">`;
+            } else if (cell.adjacent > 0) {
+                if (this.elements.dotPatternToggle.checked) {
+                    const patternContainer = document.createElement('div');
+                    patternContainer.className = `dot-pattern color-${cell.adjacent}`;
+                    for (let i = 0; i < cell.adjacent; i++) patternContainer.innerHTML += `<div class="dot"></div>`;
+                    tileEl.appendChild(patternContainer);
+                } else {
+                    tileEl.textContent = cell.adjacent;
+                    tileEl.classList.add(`color-${cell.adjacent}`);
+                }
+            }
+        },
+
+        onTileClick(r, c) {
+            if (this.state.isGameOver || this.state.revealed.has(`${r},${c}`)) return;
+            if (this.state.isShovelMode) {
+                this.useShovel(r, c);
+                return;
+            }
+            if (this.state.isFirstClick) {
+                this.state.isFirstClick = false;
+                if (this.state.boardData[r][c].creatureId) this.moveCreature(r, c);
+            }
+            this.revealTile(r, c);
+            this.updateStats();
+            this.checkGameStatus();
+        },
+
+        revealTile(r, c, isByShovel = false) {
+            if (this.state.revealed.has(`${r},${c}`)) return;
+            this.state.revealed.add(`${r},${c}`);
+            const tileEl = this.elements.board.querySelector(`[data-r='${r}'][data-c='${c}']`);
             this.updateTileAppearance(tileEl, r, c);
-          }
+            if (!isByShovel) {
+                this.state.clicksMade++;
+                this.state.clicksLeft--;
+            }
+            if (this.state.boardData[r][c].creatureId) {
+                this.state.creaturesFound++;
+                this.state.score += 100 + (this.state.combo * 20);
+                this.state.combo++;
+                if (this.state.combo > this.state.maxCombo) this.state.maxCombo = this.state.combo;
+            } else {
+                this.state.combo = 0;
+            }
+        },
 
-          if (isInitial) {
-            tileEl.addEventListener('click', () => this.onTileClick(r, c));
-          }
-          this.elements.board.appendChild(tileEl);
-        }
-      }
-    },
+        moveCreature(r, c) {
+            const creatureId = this.state.boardData[r][c].creatureId;
+            for (let newR = 0; newR < this.state.height; newR++) {
+                for (let newC = 0; newC < this.state.width; newC++) {
+                    if (!this.state.boardData[newR][newC].creatureId) {
+                        this.state.boardData[r][c].creatureId = null;
+                        this.state.boardData[newR][newC].creatureId = creatureId;
+                        this.recalculateNumbers();
+                        return;
+                    }
+                }
+            }
+        },
 
-    updateTileAppearance(tileEl, r, c) {
-      // ... (이하 동일, 변경 없음)
-      const cell = this.state.boardData[r][c];
-      tileEl.disabled = true;
-      tileEl.classList.remove('tile-hidden');
-      tileEl.classList.add('tile-revealed');
+        recalculateNumbers() {
+            for (let r = 0; r < this.state.height; r++) {
+                for (let c = 0; c < this.state.width; c++) {
+                    if (!this.state.boardData[r][c].creatureId) {
+                        let count = 0;
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                const nr = r + dr, nc = c + dc;
+                                if (nr >= 0 && nr < this.state.height && nc >= 0 && nc < this.state.width && this.state.boardData[nr][nc].creatureId) count++;
+                            }
+                        }
+                        this.state.boardData[r][c].adjacent = count;
+                    }
+                }
+            }
+        },
 
-      if (cell.creatureId) {
-        const creature = this.config.creatures.find(cr => cr.id === cell.creatureId);
-        tileEl.classList.add('tile-creature');
-        tileEl.innerHTML = `<img src="${creature.image}" alt="${creature.nameKo}" class="w-full h-full object-contain">`;
-      } else if (cell.adjacent > 0) {
-        const useDotPattern = this.elements.dotPatternToggle.checked;
-        if(useDotPattern) {
-          const patternContainer = document.createElement('div');
-          patternContainer.className = `dot-pattern color-${cell.adjacent}`;
-          for(let i=0; i < cell.adjacent; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'dot';
-            patternContainer.appendChild(dot);
-          }
-          tileEl.appendChild(patternContainer);
-        } else {
-          tileEl.textContent = cell.adjacent;
-          tileEl.classList.add(`color-${cell.adjacent}`);
-        }
-      }
-    },
+        toggleShovelMode() {
+            if (this.state.isGameOver || this.state.shovelsLeft <= 0) return;
+            this.state.isShovelMode = !this.state.isShovelMode;
+            this.elements.shovelButton.classList.toggle('shovel-active', this.state.isShovelMode);
+            this.elements.board.style.cursor = this.state.isShovelMode ? 'crosshair' : 'pointer';
+        },
 
-    // --- 게임 로직 ---
-    onTileClick(r, c) {
-      // ... (이하 동일, 변경 없음)
-      if (this.state.isGameOver || this.state.revealed.has(`${r},${c}`)) return;
-
-      if (this.state.isShovelMode) {
-        this.useShovel(r, c);
-        return;
-      }
-
-      if (this.state.isFirstClick) {
-        this.state.isFirstClick = false;
-        if (this.state.boardData[r][c].creatureId) {
-          this.moveCreature(r, c);
-        }
-      }
-
-      this.revealTile(r, c);
-      this.updateStats();
-      this.checkGameStatus();
-    },
-
-    revealTile(r, c, isByShovel = false) {
-      const pos = `${r},${c}`;
-      if (this.state.revealed.has(pos)) return 0;
-
-      this.state.revealed.add(pos);
-      const cell = this.state.boardData[r][c];
-      const tileEl = this.elements.board.querySelector(`[data-r='${r}'][data-c='${c}']`);
-      this.updateTileAppearance(tileEl, r, c);
-
-      if (!isByShovel) {
-        this.state.clicksMade++;
-        this.state.clicksLeft--;
-      }
-
-      if (cell.creatureId) {
-        this.state.creaturesFound++;
-        this.state.score += 100 + (this.state.combo * 20);
-        this.state.combo++;
-        if (this.state.combo > this.state.maxCombo) {
-          this.state.maxCombo = this.state.combo;
-        }
-      } else {
-        this.state.combo = 0;
-      }
-
-      return 1;
-    },
-
-    moveCreature(r, c) {
-      let moved = false;
-      const creatureId = this.state.boardData[r][c].creatureId;
-      for (let newR = 0; newR < this.state.height; newR++) {
-        for (let newC = 0; newC < this.state.width; newC++) {
-          if (!this.state.boardData[newR][newC].creatureId) {
-            this.state.boardData[r][c].creatureId = null;
-            this.state.boardData[newR][newC].creatureId = creatureId;
-            moved = true;
-            break;
-          }
-        }
-        if(moved) break;
-      }
-      this.recalculateNumbers();
-    },
-
-    recalculateNumbers() {
-      for (let r = 0; r < this.state.height; r++) {
-        for (let c = 0; c < this.state.width; c++) {
-          if (!this.state.boardData[r][c].creatureId) {
-            let count = 0;
-            this.getNeighbors(r, c).forEach(([nr, nc]) => {
-              if (this.state.boardData[nr][nc].creatureId) count++;
+        useShovel(r, c) {
+            this.state.shovelsLeft--;
+            const area = this.getNeighbors(r, c);
+            area.push([r, c]);
+            area.forEach(([ar, ac]) => {
+                if (!this.state.boardData[ar][ac].creatureId) this.revealTile(ar, ac, true);
             });
-            this.state.boardData[r][c].adjacent = count;
-          }
-        }
-      }
-    },
+            this.state.isShovelMode = false;
+            this.elements.shovelButton.classList.remove('shovel-active');
+            this.elements.board.style.cursor = 'pointer';
+            this.updateStats();
+            this.checkGameStatus();
+        },
 
-    toggleShovelMode() {
-      if (this.state.isGameOver || this.state.shovelsLeft <= 0) return;
-      this.state.isShovelMode = !this.state.isShovelMode;
-      this.elements.shovelButton.classList.toggle('shovel-active', this.state.isShovelMode);
-      this.elements.board.style.cursor = this.state.isShovelMode ? 'crosshair' : 'pointer';
-    },
+        buyShovel() {
+            if (this.playerData.gold >= this.config.shovelPrice) {
+                this.playerData.gold -= this.config.shovelPrice;
+                this.playerData.shovels++;
+                this.savePlayerData();
+                this.elements.shopGold.textContent = this.playerData.gold;
+                this.elements.startScreenGold.textContent = this.playerData.gold;
+                this.elements.startScreenShovels.textContent = this.playerData.shovels;
+                this.elements.shopBuyShovelBtn.disabled = this.playerData.gold < this.config.shovelPrice;
+            }
+        },
 
-    useShovel(r, c) {
-      this.state.shovelsLeft--;
-      this.state.clicksLeft--;
+        checkGameStatus() {
+            if (this.state.creaturesFound === this.state.specimens) this.endGame(true);
+            else if (this.state.clicksLeft <= 0) this.endGame(false);
+        },
 
-      const area = this.getNeighbors(r, c);
-      area.push([r, c]);
+        updateStats() {
+            this.elements.clicksLeft.textContent = this.state.clicksLeft;
+            this.elements.creaturesLeft.textContent = `${this.state.specimens - this.state.creaturesFound}/${this.state.specimens}`;
+            this.elements.shovelsLeft.textContent = this.state.shovelsLeft;
+            this.elements.playerGold.textContent = this.playerData.gold;
+            this.elements.shovelButton.disabled = this.state.shovelsLeft <= 0 || this.state.isShovelMode;
+        },
 
-      area.forEach(([ar, ac]) => {
-        const cell = this.state.boardData[ar][ac];
-        if (!cell.creatureId) {
-          this.revealTile(ar, ac, true);
-        }
-      });
+        getNeighbors(r, c) {
+            const neighbors = [];
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const nr = r + dr, nc = c + dc;
+                    if (nr >= 0 && nr < this.state.height && nc >= 0 && nc < this.state.width) {
+                        neighbors.push([nr, nc]);
+                    }
+                }
+            }
+            return neighbors;
+        },
+    };
 
-      this.state.isShovelMode = false;
-      this.elements.shovelButton.classList.remove('shovel-active');
-      this.elements.board.style.cursor = 'pointer';
-
-      this.updateStats();
-      this.checkGameStatus();
-    },
-
-    checkGameStatus() {
-      if (this.state.creaturesFound === this.state.specimens) {
-        this.endGame(true);
-      } else if (this.state.clicksLeft <= 0) {
-        this.endGame(false);
-      }
-    },
-
-    updateStats() {
-      this.elements.clicksLeft.textContent = this.state.clicksLeft;
-      this.elements.creaturesLeft.textContent = `${this.state.specimens - this.state.creaturesFound}/${this.state.specimens}`;
-      this.elements.shovelsLeft.textContent = this.state.shovelsLeft;
-      this.elements.shovelButton.disabled = this.state.shovelsLeft <= 0;
-    },
-
-    getNeighbors(r, c) {
-      const neighbors = [];
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) continue;
-          const nr = r + dr;
-          const nc = c + dc;
-          if (nr >= 0 && nr < this.state.height && nc >= 0 && nc < this.state.width) {
-            neighbors.push([nr, nc]);
-          }
-        }
-      }
-      return neighbors;
-    },
-  };
-
-  game.init();
+    game.init();
 
 </script>
 </body>
 </html>
+
