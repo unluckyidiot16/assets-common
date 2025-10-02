@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>리듬 히어로 (위치 최종 수정)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+    body { font-family: 'Jua', sans-serif; touch-action: manipulation; }
+    .game-object { transition: filter 0.1s ease-out, background-color 0.2s ease-in-out; }
+
+    @keyframes player-attack { 50% { transform: translateX(20px); } 100% { transform: translateX(0); } }
+    .attack-anim { animation: player-attack 0.3s ease-out; }
+    @keyframes player-hit { 25% { transform: translateX(-15px); opacity: 0.5; } 75% { opacity: 0.5; } 100% { transform: translateX(0); opacity: 1; } }
+    .player-hit-anim { animation: player-hit 0.4s ease-out; }
+
+    @keyframes enemy-hit-blink {
+      25%, 75% { opacity: 0.4; filter: brightness(1.7); }
+      100% { opacity: 1; filter: brightness(1); }
+    }
+    .enemy-hit-blink-anim {
+      animation: enemy-hit-blink 0.4s ease-in-out;
+    }
+
+    .skill-anim { filter: drop-shadow(0 0 10px #22d3ee); }
+    .heal-anim { filter: drop-shadow(0 0 10px #4ade80); }
+    .beat-active { transform: scale(1.2); background-color: #fde047 !important; }
+    .beat-input-window { transform: scale(1.4); background-color: #22c55e !important; box-shadow: 0 0 15px #22c55e; }
+    .skill-card { transition: all 0.2s ease-in-out; }
+    .skill-card:hover { transform: translateY(-5px) scale(1.05); background-color: #4b5563; }
+    .feedback-perfect { color: #fde047; }
+    .feedback-good { color: #4ade80; }
+
+    .sprite{
+      position:absolute; left:50%; bottom:0;
+      /* [FIX] 요청에 따라 Y축 위치를 추가로 조정했습니다. */
+      transform: translateX(-50%) scale(0.33) translateY(360px);
+      width: var(--fw, 460px);
+      height:var(--fh, 460px);
+      background-repeat:no-repeat;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body class="bg-gray-800 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+<div id="game-container" class="w-full max-w-4xl mx-auto text-center">
+  <div class="flex justify-between items-center mb-2">
+    <h1 class="text-4xl font-bold">리듬 히어로</h1>
+    <div id="stage-indicator" class="text-2xl font-bold bg-yellow-500 text-black px-4 py-1 rounded-md">STAGE 1</div>
+  </div>
+  <p class="text-yellow-300 mb-4">4번째 박자에 맞춰 방향키를 입력하세요!</p>
+
+  <div id="game-screen" class="relative w-full h-64 bg-gray-700 rounded-lg shadow-2xl overflow-hidden mb-4 border-4 border-gray-600">
+    <div id="player" class="game-object" style="position: absolute; width: 64px; height: 64px; background-color: #3b82f6; border-radius: 0.375rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); left: 20%; bottom: 20%;">
+      <div class="absolute -top-6 w-full text-center text-lg">플레이어</div>
+      <div id="player-status-text" class="absolute -top-1 right-0 text-cyan-300 font-bold text-lg"></div>
+      <div class="absolute -bottom-7 w-full">
+        <div class="relative w-24 h-4 bg-gray-900 rounded-full mx-auto overflow-hidden border-2 border-gray-500">
+          <div id="player-shield-bar" class="absolute h-full bg-cyan-400 opacity-75 rounded-full transition-all duration-300" style="width: 0%;"></div>
+          <div id="player-hp-bar" class="relative h-full bg-green-500 rounded-full transition-all duration-300"></div>
+        </div>
+      </div>
+    </div>
+    <div id="enemy" class="game-object" style="position: absolute; width: 150px; height: 150px; background-color: transparent; right: 20%; bottom: 15%;">
+      <div id="enemy-sprite" class="sprite"></div>
+      <div class="absolute -top-6 w-full text-center text-lg">고블린</div>
+      <div id="enemy-turn-counter" class="absolute -top-12 w-full text-center text-2xl font-bold text-yellow-300" style="text-shadow: 1px 1px 2px #000;"></div>
+      <div class="absolute -bottom-7 w-full">
+        <div class="w-24 h-4 bg-gray-900 rounded-full mx-auto overflow-hidden border-2 border-gray-500">
+          <div id="enemy-hp-bar" class="h-full bg-green-500 rounded-full transition-all duration-300"></div>
+        </div>
+      </div>
+    </div>
+    <div id="action-feedback" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl font-extrabold text-white" style="text-shadow: 3px 3px 0 #000; opacity: 0; transition: opacity 0.3s;"></div>
+    <div id="timing-feedback" class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold" style="text-shadow: 2px 2px 0 #000; opacity: 0; transition: opacity 0.3s;"></div>
+  </div>
+
+  <div class="flex justify-center items-center space-x-4 h-24">
+    <div class="beat-indicator w-12 h-12 bg-gray-600 rounded-full transition-transform duration-100"></div>
+    <div class="beat-indicator w-12 h-12 bg-gray-600 rounded-full transition-transform duration-100"></div>
+    <div class="beat-indicator w-12 h-12 bg-gray-600 rounded-full transition-transform duration-100"></div>
+    <div class="beat-indicator w-16 h-16 bg-gray-500 rounded-full transition-transform duration-100 font-bold flex items-center justify-center text-lg">입력!</div>
+  </div>
+
+  <div id="skill-display" class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center w-full max-w-2xl mx-auto"></div>
+
+  <div id="game-overlay" class="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-10">
+    <div id="message-box" class="text-center">
+      <h2 id="message-title" class="text-6xl font-bold mb-4">리듬 히어로</h2>
+      <p id="message-text" class="text-xl mb-8">로그라이크 리듬 액션!</p>
+      <button id="start-button" class="bg-yellow-400 text-gray-900 font-bold py-3 px-8 rounded-lg text-2xl hover:bg-yellow-300 transition-colors">게임 시작</button>
+    </div>
+    <div id="skill-choice-box" class="hidden text-center">
+      <h2 class="text-4xl font-bold mb-2">STAGE CLEAR!</h2>
+      <p class="text-xl mb-6 text-yellow-300">새로운 스킬을 획득하세요!</p>
+      <div id="skill-options" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+    </div>
+  </div>
+</div>
+
+<div id="mobile-controls" class="grid grid-cols-3 grid-rows-2 gap-4 mt-6 w-full max-w-sm md:hidden">
+  <div></div><button data-key="ArrowUp" class="mobile-btn bg-blue-500 p-4 rounded-full shadow-lg active:bg-blue-400">↑</button><div></div>
+  <button data-key="ArrowLeft" class="mobile-btn bg-blue-500 p-4 rounded-full shadow-lg active:bg-blue-400">←</button>
+  <button data-key="ArrowDown" class="mobile-btn bg-blue-500 p-4 rounded-full shadow-lg active:bg-blue-400">↓</button>
+  <button data-key="ArrowRight" class="mobile-btn bg-blue-500 p-4 rounded-full shadow-lg active:bg-blue-400">→</button>
+</div>
+
+<script>
+  // --- JS – Sprite Animator (Simplified for FSM) ---
+  class SpriteAnimator {
+    constructor(el, grid){
+      this.el = el;
+      this.grid = grid;
+      this.row = 0;
+      this.col = 0;
+      this.framesPerBeat = 2;
+      this._tick16nCount = 0;
+      this.ready = false;
+
+      this.el.style.setProperty('--fw', grid.frameW + 'px');
+      this.el.style.setProperty('--fh', grid.frameH + 'px');
+    }
+
+    async setImage(url) {
+      return new Promise((resolve) => {
+        if (this.el.style.backgroundImage.includes(url)) {
+          resolve();
+          return;
+        }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = url;
+        img.onload = () => {
+          this.el.style.backgroundImage = `url('${url}')`;
+          if (!this.ready) this.ready = true;
+          resolve();
+        };
+      });
+    }
+
+    setAnimation(row, framesPerBeat){
+      if(this.row !== row) {
+        this.row = row|0;
+        this.col = 0;
+      }
+      this.framesPerBeat = Math.max(1, framesPerBeat);
+    }
+
+    tick16n(){
+      if(!this.ready) return;
+      const ticksPerFrame = Math.max(1, Math.floor(4 / this.framesPerBeat));
+      this._tick16nCount = (this._tick16nCount + 1) % ticksPerFrame;
+      if(this._tick16nCount === 0){
+        this.col = (this.col + 1) % this.grid.cols;
+        this._render();
+      }
+    }
+
+    _render(){
+      const {frameW, frameH} = this.grid;
+      const x = -this.col * frameW;
+      const y = -this.row * frameH;
+      this.el.style.backgroundPosition = `${x}px ${y}px`;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
+    const getEl = (id) => document.getElementById(id);
+    const playerEl = getEl('player'), enemyEl = getEl('enemy'), playerHpBar = getEl('player-hp-bar');
+    const playerShieldBar = getEl('player-shield-bar'), playerStatusText = getEl('player-status-text');
+    const enemyHpBar = getEl('enemy-hp-bar'), enemyTurnCounter = getEl('enemy-turn-counter');
+    const actionFeedback = getEl('action-feedback'), timingFeedback = getEl('timing-feedback');
+    const gameOverlay = getEl('game-overlay'), messageBox = getEl('message-box'), messageTitle = getEl('message-title');
+    const messageText = getEl('message-text'), startButton = getEl('start-button'), skillChoiceBox = getEl('skill-choice-box');
+    const skillOptions = getEl('skill-options'), skillDisplay = getEl('skill-display'), stageIndicator = getEl('stage-indicator');
+    const mobileControls = getEl('mobile-controls');
+    const beatIndicators = document.querySelectorAll('.beat-indicator');
+    const animationClasses = ['attack-anim', 'player-hit-anim', 'skill-anim', 'heal-anim'];
+    const enemySpriteEl = getEl('enemy-sprite');
+
+    // --- State Management ---
+    let isInputReady = false;
+    let gameState = {};
+    let enemyState = 'IDLE';
+
+    // --- Game Config ---
+    const BPM = 100;
+    const TOTAL_STAGES = 4;
+    const beatDuration = 60 / BPM;
+    const PERFECT_WINDOW = 0.15;
+    const GOOD_WINDOW = 0.40;
+    const HIT_DELAY = 0.05;
+
+    // --- Audio ---
+    const synth = new Tone.Synth().toDestination();
+    const kick = new Tone.MembraneSynth({ octaves: 4, pitchDecay: 0.1 }).toDestination();
+    const cymbal = new Tone.MetalSynth({ frequency: 250, envelope: { attack: 0.001, decay: 0.1, release: 0.01 }, harmonicity: 3.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 }).toDestination();
+
+    // --- Sprite Data ---
+    let enemyAnim;
+    const SHEET_MOVE = { url: 'https://unluckyidiot16.github.io/assets-common/IsometricEnemies/Goblin/Goblin1_Move.png', cols: 4, rows: 5, frameW: 460, frameH: 460 };
+    const SHEET_ATTACK = { url: 'https://unluckyidiot16.github.io/assets-common/IsometricEnemies/Goblin/Goblin1_Attack.png', cols: 4, rows: 5, frameW: 460, frameH: 460 };
+
+    new Image().src = SHEET_ATTACK.url;
+
+    // --- Skills ---
+    const skillDatabase = {
+      basicAttack: { name: '공격', desc: '적에게 10의 피해', direction: 'ArrowUp', action: (s, m) => { playerEl.classList.add('attack-anim'); showFeedback(actionFeedback, "공격!"); setTimeout(() => { s.enemy.hp -= Math.floor(10 * m); triggerEnemyBlinkEffect(); updateUI(); checkGameOver(); }, HIT_DELAY * 1000); }},
+      shield: { name: '보호막', desc: '15의 피해를 흡수', direction: 'ArrowDown', action: (s, m) => { playerEl.classList.add('skill-anim'); showFeedback(actionFeedback, "보호막!"); s.player.shield += Math.floor(15 * m); updateUI(); }},
+      parry: { name: '패링', desc: '공격 반사', direction: 'ArrowDown', action: (s, m) => { playerEl.classList.add('skill-anim'); showFeedback(actionFeedback, "패링!"); s.player.isParrying = true; updateUI(); }},
+      strongAttack: { name: '강력한 공격', desc: '적에게 20의 피해', direction: 'ArrowLeft', action: (s, m) => { playerEl.classList.add('attack-anim'); showFeedback(actionFeedback, "강력한 공격!"); setTimeout(() => { s.enemy.hp -= Math.floor(20 * m); triggerEnemyBlinkEffect(); updateUI(); checkGameOver(); }, HIT_DELAY * 1000); }},
+      comboAttack: { name: '연속 공격', desc: '7의 피해를 두 번', direction: 'ArrowLeft', action: (s, m) => { playerEl.classList.add('attack-anim'); showFeedback(actionFeedback, "연속 공격!"); setTimeout(() => { s.enemy.hp -= Math.floor(7 * m); triggerEnemyBlinkEffect(); updateUI(); if(checkGameOver()) return; setTimeout(() => { s.enemy.hp -= Math.floor(7 * m); triggerEnemyBlinkEffect(); updateUI(); checkGameOver(); }, 150); }, HIT_DELAY * 1000); }},
+      heal: { name: '회복', desc: 'HP 15 회복', direction: 'ArrowRight', action: (s, m) => { playerEl.classList.add('heal-anim'); showFeedback(actionFeedback, "회복!"); s.player.hp = Math.min(s.player.maxHp, s.player.hp + Math.floor(15 * m)); updateUI(); }},
+      lifeSteal: { name: '흡혈 공격', desc: '8 피해, 4 HP 회복', direction: 'ArrowRight', action: (s, m) => { playerEl.classList.add('attack-anim'); showFeedback(actionFeedback, "흡혈!"); setTimeout(() => { const dmg = Math.floor(8 * m); s.enemy.hp -= dmg; s.player.hp = Math.min(s.player.maxHp, s.player.hp + Math.floor(dmg / 2)); triggerEnemyBlinkEffect(); updateUI(); checkGameOver(); }, HIT_DELAY * 1000); }}
+    };
+    Object.keys(skillDatabase).forEach(key => { skillDatabase[key].id = key; });
+
+    async function initGame() {
+      if (Tone.context.state !== 'running') await Tone.start();
+      gameState = {
+        player: { hp: 100, maxHp: 100, shield: 0, isParrying: false, skills: { ArrowUp: 'basicAttack', ArrowDown: null, ArrowLeft: null, ArrowRight: null } },
+        enemy: {},
+        currentStage: 1, currentBeat: 0, gameStarted: false,
+      };
+      if(!enemyAnim){
+        enemyAnim = new SpriteAnimator(getEl('enemy-sprite'), SHEET_MOVE);
+      }
+      await enemyAnim.setImage(SHEET_MOVE.url);
+      setupStage();
+    }
+
+    function setupStage() {
+      const stage = gameState.currentStage;
+      const turns = Math.max(2, 5 - stage);
+      stageIndicator.textContent = `STAGE ${stage}`;
+      gameState.enemy = {
+        hp: 100 + (stage - 1) * 50, maxHp: 100 + (stage - 1) * 50,
+        damage: 20 + (stage - 1) * 5,
+        turnsToAction: turns,
+        turnCounter: turns
+      };
+      gameState.player.shield = 0;
+      gameState.currentBeat = 0;
+
+      enemyState = 'IDLE';
+      enemyEl.style.backgroundColor = 'transparent';
+      enemyAnim.setImage(SHEET_MOVE.url).then(() => {
+        enemyAnim.setAnimation(1, 1.5);
+      });
+
+      updateUI();
+      gameOverlay.style.display = 'none';
+      skillChoiceBox.classList.add('hidden');
+      messageBox.classList.add('hidden');
+      updateSkillDisplay();
+      startGameLoop();
+    }
+
+    function startGameLoop() {
+      if (!gameState.gameStarted) {
+        gameState.gameStarted = true;
+        isInputReady = false;
+        Tone.Transport.bpm.value = BPM;
+        Tone.Transport.scheduleRepeat(onBeat, '4n');
+        Tone.Transport.scheduleRepeat(() => {
+          Tone.Draw.schedule(()=> enemyAnim?.tick16n());
+        }, '16n');
+        Tone.Transport.start();
+      }
+    }
+
+    function stopGameLoop() {
+      Tone.Transport.stop();
+      Tone.Transport.cancel(0);
+      gameState.gameStarted = false;
+    }
+
+    function resetAnimationClasses() {
+      animationClasses.forEach(cls => { playerEl.classList.remove(cls); });
+    }
+
+    function triggerEnemyBlinkEffect() {
+      enemySpriteEl.classList.add('enemy-hit-blink-anim');
+      setTimeout(() => {
+        enemySpriteEl.classList.remove('enemy-hit-blink-anim');
+      }, 400);
+    }
+
+    function onBeat(time) {
+      if (!gameState.gameStarted) return;
+
+      Tone.Draw.schedule(() => {
+        if (gameState.currentBeat === 0) {
+          isInputReady = false;
+          gameState.player.isParrying = false;
+          resetAnimationClasses();
+        }
+
+        const prevBeatIndex = (gameState.currentBeat + 3) % 4;
+        beatIndicators[prevBeatIndex].classList.remove('beat-active', 'beat-input-window');
+        beatIndicators[gameState.currentBeat].classList.add('beat-active');
+
+        if (gameState.currentBeat === 2) {
+          isInputReady = true;
+          gameState.inputWindowOpenTime = time + beatDuration;
+        }
+
+        if (gameState.currentBeat === 3) {
+          beatIndicators[3].classList.add('beat-input-window');
+        }
+      }, time);
+
+      if (gameState.currentBeat === 2) { kick.triggerAttackRelease("C1", "8n", time); }
+      else { cymbal.triggerAttackRelease("C4", "16n", time); }
+
+      if (gameState.currentBeat === 3) {
+        Tone.Draw.schedule(resolveTurn, time + beatDuration * 0.95);
+      }
+
+      gameState.currentBeat = (gameState.currentBeat + 1) % 4;
+    }
+
+    function resolveTurn() {
+      isInputReady = false;
+      try {
+        if (checkGameOver() || enemyState === 'ATTACKING') return;
+
+        if (gameState.enemy.turnCounter > 0) {
+          gameState.enemy.turnCounter--;
+        }
+
+        if (gameState.enemy.turnCounter === 0) {
+          enemyState = 'ATTACKING';
+          enemyAnim.setImage(SHEET_ATTACK.url).then(() => {
+            enemyAnim.setAnimation(1, 4);
+          });
+
+          if (gameState.player.isParrying) {
+            gameState.enemy.hp -= 10;
+            showFeedback(actionFeedback, "패링 성공!");
+            triggerEnemyBlinkEffect();
+          } else {
+            let damageLeft = gameState.enemy.damage;
+            const shieldDamage = Math.min(gameState.player.shield, damageLeft);
+            gameState.player.shield -= shieldDamage;
+            damageLeft -= shieldDamage;
+            if (damageLeft > 0) {
+              gameState.player.hp -= damageLeft;
+              playerEl.classList.add('player-hit-anim');
+            }
+          }
+          gameState.enemy.turnCounter = gameState.enemy.turnsToAction;
+
+          setTimeout(() => {
+            if (checkGameOver()) return;
+            enemyState = 'IDLE';
+            enemyAnim.setImage(SHEET_MOVE.url).then(() => {
+              enemyAnim.setAnimation(1, 1.5);
+            });
+          }, beatDuration * 1000);
+
+        }
+        // [REMOVED] Attack warning logic removed
+        enemyEl.style.backgroundColor = 'transparent';
+
+        gameState.player.shield = 0;
+      } catch (e) {
+        console.error("An error occurred during turn resolution:", e);
+      } finally {
+        updateUI();
+        if (gameState.gameStarted) { checkGameOver(); }
+      }
+    }
+
+    function handleInput(key) {
+      if (!isInputReady) return;
+      const skillId = gameState.player.skills[key];
+      if (skillId) {
+        const pressTime = Tone.now();
+        const timeDiff = pressTime - gameState.inputWindowOpenTime;
+        let timing = null;
+        const EARLY_GOOD_WINDOW = -0.25;
+
+        if (timeDiff >= 0 && timeDiff <= PERFECT_WINDOW) timing = 'PERFECT';
+        else if (timeDiff > PERFECT_WINDOW && timeDiff <= GOOD_WINDOW) timing = 'GOOD';
+        else if (timeDiff < 0 && timeDiff >= EARLY_GOOD_WINDOW) timing = 'GOOD';
+
+        if (timing) {
+          isInputReady = false;
+          const multiplier = timing === 'PERFECT' ? 1.2 : 1.0;
+          resetAnimationClasses();
+          skillDatabase[skillId].action(gameState, multiplier);
+          synth.triggerAttackRelease("E4", "8n");
+          showTimingFeedback(timing, 300);
+        }
+      }
+    }
+
+    function updateUI() {
+      if (!gameState.player) return;
+      playerHpBar.style.width = `${(gameState.player.hp / gameState.player.maxHp) * 100}%`;
+      enemyHpBar.style.width = `${Math.max(0, gameState.enemy.hp / gameState.enemy.maxHp) * 100}%`;
+      const shield = gameState.player.shield;
+      playerShieldBar.style.width = `${(shield / gameState.player.maxHp) * 100}%`;
+      playerStatusText.textContent = shield > 0 ? `🛡️${shield}` : (gameState.player.isParrying ? '✋' : '');
+      enemyTurnCounter.textContent = `💥 ${gameState.enemy.turnCounter}`;
+    }
+
+    function updateSkillDisplay() {
+      skillDisplay.innerHTML = '';
+      const directions = { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' };
+      for (const [dir, key] of Object.entries(directions)) {
+        const skillId = gameState.player.skills[dir];
+        const skill = skillId ? skillDatabase[skillId] : null;
+        skillDisplay.innerHTML += `<div class="bg-gray-700 p-3 rounded-lg ${!skill ? 'opacity-50' : ''}"><p class="font-bold text-2xl">${key}</p><p>${skill ? skill.name : '비어있음'}</p></div>`;
+      }
+    }
+
+    function checkGameOver() {
+      if (!gameState.gameStarted) return false;
+      if (gameState.player.hp <= 0) { gameState.player.hp = 0; updateUI(); endGame(false); return true; }
+      else if (gameState.enemy.hp <= 0) { gameState.enemy.hp = 0; updateUI(); stageClear(); return true; }
+      return false;
+    }
+
+    function stageClear() {
+      stopGameLoop();
+      if (gameState.currentStage >= TOTAL_STAGES) { endGame(true); }
+      else { gameOverlay.style.display = 'flex'; messageBox.classList.add('hidden'); skillChoiceBox.classList.remove('hidden'); showSkillChoice(); }
+    }
+
+    function showSkillChoice() {
+      skillOptions.innerHTML = '';
+      const availableSlots = Object.keys(gameState.player.skills).filter(dir => !gameState.player.skills[dir]);
+      if(availableSlots.length === 0) { gameState.currentStage++; setupStage(); return; }
+      const potentialSkills = Object.values(skillDatabase).filter(skill => skill.id !== 'basicAttack' && availableSlots.includes(skill.direction));
+      const choices = [];
+      while(choices.length < 3 && potentialSkills.length > 0) { choices.push(potentialSkills.splice(Math.floor(Math.random() * potentialSkills.length), 1)[0]); }
+      choices.forEach(skill => {
+        const card = document.createElement('div');
+        card.className = 'skill-card bg-gray-700 p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-yellow-400';
+        card.innerHTML = `<h3 class="text-2xl font-bold text-cyan-300">${skill.name} [${{"ArrowDown":"↓","ArrowLeft":"←","ArrowRight":"→"}[skill.direction]}]</h3><p>${skill.desc}</p>`;
+        card.onclick = () => selectSkill(skill);
+        skillOptions.appendChild(card);
+      });
+    }
+
+    function selectSkill(skill) { gameState.player.skills[skill.direction] = skill.id; gameState.currentStage++; setupStage(); }
+    function endGame(playerWon) {
+      stopGameLoop(); isInputReady = false;
+      gameOverlay.style.display = 'flex'; skillChoiceBox.classList.add('hidden'); messageBox.classList.remove('hidden');
+      messageTitle.textContent = playerWon ? "모든 스테이지 클리어!" : "패배";
+      messageText.textContent = playerWon ? "당신은 진정한 리듬 히어로입니다!" : "다시 도전해보세요.";
+      startButton.textContent = "처음부터 다시 시작";
+    }
+    function showFeedback(element, text, duration = 300) {
+      element.textContent = text; element.style.opacity = 1; setTimeout(() => { element.style.opacity = 0; }, duration);
+    }
+    function showTimingFeedback(timing, duration = 300) {
+      timingFeedback.textContent = timing + '!';
+      timingFeedback.className = `absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold ${timing === 'PERFECT' ? 'feedback-perfect' : 'feedback-good'}`;
+      timingFeedback.style.opacity = 1;
+      setTimeout(() => { timingFeedback.style.opacity = 0; }, duration);
+    }
+
+    startButton.addEventListener('click', initGame);
+    window.addEventListener('keydown', e => handleInput(e.key));
+    mobileControls.addEventListener('click', e => {
+      const button = e.target.closest('.mobile-btn');
+      if (button) handleInput(button.dataset.key);
+    });
+  });
+</script>
+
+</body>
+</html>
+
