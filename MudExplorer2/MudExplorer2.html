@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>갯벌탐험대 (최종 완성)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family:"Do Hyeon",sans-serif; touch-action:manipulation; background-color:#f0efea; }
+    .screen { width:100%; height:100vh; max-width:500px; margin:0 auto; overflow:hidden; position:relative; }
+
+    .btn { @apply w-full py-3 px-6 text-2xl font-bold text-white shadow-lg transition-transform duration-150 ease-in-out transform active:scale-95 border-b-4 rounded-xl; }
+    .btn-green { @apply bg-green-500 border-green-700 hover:bg-green-600; }
+    .btn-orange { @apply bg-orange-500 border-orange-700 hover:bg-orange-600; }
+    .btn-blue { @apply bg-blue-500 border-blue-700 hover:bg-blue-600; }
+    .btn-red { @apply bg-red-500 border-red-700 hover:bg-red-600; }
+    .btn-gray { @apply bg-gray-500 border-gray-700 hover:bg-gray-600; }
+    .btn-disabled { @apply bg-gray-300 border-gray-400 cursor-not-allowed transform-none active:scale-100; }
+    .btn-rect { border-radius: 8px !important; }
+
+    .ui-box { @apply bg-white bg-opacity-80 backdrop-blur-sm p-4 rounded-xl shadow-md border-2 border-white; }
+
+    .menu-card { @apply cursor-pointer transition-all duration-200 ease-in-out; }
+    .menu-card:hover { @apply transform -translate-y-1 shadow-lg bg-white; }
+    .menu-card:active { @apply transform translate-y-0 shadow-md bg-opacity-90; }
+
+    #exploration-board { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; padding:6px; width:100%; max-width:480px; }
+    .tile { aspect-ratio:1/1; border-radius:10px; transition:transform .15s,box-shadow .15s,background-color .15s; position:relative; cursor:pointer; box-shadow:inset 0 2px 4px rgba(0,0,0,.08); overflow:hidden; }
+    .tile:hover { transform: translateY(-1px); }
+    .tile.dug { transform:scale(0.96); box-shadow:inset 0 3px 6px rgba(0,0,0,.25); filter:brightness(0.95); }
+    .tile-cover { position:absolute; inset:0; background:linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,.15)), rgba(0,0,0,.03); border-radius:10px; pointer-events:none; }
+    .tile-crack { position:absolute; inset:0; background-image:
+            radial-gradient(circle at 30% 40%, rgba(0,0,0,.12), transparent 40%),
+            radial-gradient(circle at 70% 60%, rgba(0,0,0,.08), transparent 38%); opacity:0; transition:opacity .15s; pointer-events:none; }
+    .tile.cracked .tile-crack { opacity:1; }
+
+    .tile-loot{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.25rem; cursor:pointer; z-index:3; animation:pop .2s ease-out; }
+    .tile-loot .emoji{ font-size:2.4rem; text-shadow:0 0 6px rgba(255,255,255,.9); }
+    .tile-loot .label{ background:rgba(255,255,255,.92); border:2px solid #fff; border-radius:9999px; padding:.125rem .5rem; font-size:.95rem; box-shadow:0 6px 14px rgba(0,0,0,.12);}
+    .tile-loot .hint{ font-size:.75rem; color:#334155; background:rgba(255,255,255,.7); border-radius:9999px; padding:.1rem .4rem;}
+    @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+
+    .drop-item{ animation: drop-animation .8s forwards; position:absolute; font-size:2.2rem; z-index:10; pointer-events:none; text-shadow:0 0 5px white; }
+    @keyframes drop-animation{0%{transform:translateY(0) scale(.5);opacity:1}50%{transform:translateY(-48px) scale(1.25);opacity:1}100%{transform:translateY(-96px) scale(.6);opacity:0}}
+
+    .modal-overlay{ @apply fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50; }
+    .modal-content{ @apply bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-11/12; }
+
+    .kawaii-title{ background:linear-gradient(135deg,#ffe6f0 0%,#fff7d6 50%,#e8f3ff 100%); border:4px solid #fff; box-shadow:0 10px 22px rgba(0,0,0,.12); }
+    .float-wiggle{ animation:wiggle 2.4s ease-in-out infinite; }
+    @keyframes wiggle{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-2deg)}}
+
+    .menu-box{ background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.78)); border:3px solid #fff; box-shadow:0 8px 18px rgba(0,0,0,.08); }
+
+    .select{ appearance:none; background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:.4rem .6rem; font-size:.9rem; }
+    .pill{ background:#eef2ff; color:#3730a3; border-radius:9999px; padding:.15rem .5rem; font-size:.75rem; }
+    .row-click{ cursor:pointer; }
+  </style>
+</head>
+<body>
+<div id="game-container" class="screen">
+  <!-- 로비 -->
+  <div id="lobby-screen" class="flex flex-col h-full p-4 sm:p-6 space-y-4 justify-center bg-yellow-50">
+    <div class="kawaii-title rounded-2xl px-5 py-6 relative text-center select-none">
+      <div class="flex items-center justify-center gap-3">
+        <div class="text-5xl float-wiggle">🦀</div>
+        <h1 class="text-5xl sm:text-6xl font-bold text-yellow-900 drop-shadow">갯벌탐험대</h1>
+        <div class="text-5xl float-wiggle" style="animation-delay:.6s">🐚</div>
+      </div>
+      <p class="mt-2 text-lg text-yellow-800/80">귀여운 갯벌 수집 · 도감 · 업적</p>
+    </div>
+
+    <div class="ui-box text-center text-xl space-y-3">
+      <div class="flex justify-center items-center gap-2">💰 <span id="lobby-coins" class="font-bold text-yellow-700">0</span> 코인</div>
+      <div class="flex justify-center items-center gap-2">💪 삽: <span id="lobby-shovel" class="font-bold text-green-700">돌삽 Lv.0</span></div>
+      <div class="flex justify-center items-center gap-2">🎒 가방: <span id="lobby-bag" class="font-bold text-blue-700">0/10</span></div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 pt-2">
+      <div onclick="changeScreen('shop')" class="ui-box menu-box menu-card p-5">
+        <h3 class="text-2xl font-bold mb-1 text-orange-600">상점</h3>
+        <p class="text-sm text-slate-700">삽 강화 · 가방 확장 · 판매</p>
+      </div>
+      <div onclick="changeScreen('collection')" class="ui-box menu-box menu-card p-5">
+        <h3 class="text-2xl font-bold mb-1 text-red-600">도감</h3>
+        <p class="text-sm text-slate-700">발견한 갯벌 생물을 확인해요</p>
+      </div>
+      <div onclick="startExploration()" class="ui-box menu-box menu-card p-5">
+        <h3 class="text-2xl font-bold mb-1 text-green-600">탐사 시작</h3>
+        <p class="text-sm text-slate-700">갯벌을 파서 생물을 발견해요</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탐사 -->
+  <div id="exploration-screen" class="hidden flex-col h-full bg-gray-200">
+    <div class="flex-shrink-0 bg-white p-2 shadow-md z-10">
+      <div class="grid grid-cols-3 gap-2 items-center text-center text-base">
+        <span class="font-bold">💰 <span id="exp-coins">0</span></span>
+        <span class="font-bold">💪 <span id="exp-shovel">돌삽 Lv.0</span></span>
+        <span class="font-bold">🎒 <span id="exp-bag">0/10</span></span>
+      </div>
+    </div>
+    <div class="flex-grow relative flex items-center justify-center">
+      <div id="exploration-board"></div>
+    </div>
+    <div class="p-4 flex-shrink-0">
+      <button onclick="changeScreen('lobby')" class="btn btn-gray btn-rect w-full">로비로 귀환</button>
+    </div>
+  </div>
+
+  <!-- 상점 -->
+  <div id="shop-screen" class="hidden flex-col h-full p-4 space-y-4 bg-yellow-50">
+    <h2 class="text-4xl font-bold text-center text-yellow-800">상점</h2>
+
+    <div class="ui-box">
+      <h3 class="text-xl font-bold text-center mb-3 text-slate-700">내 정보</h3>
+      <div class="grid grid-cols-3 text-center">
+        <div>
+          <div class="text-sm text-slate-500">코인</div>
+          <div class="font-bold text-lg">💰 <span id="shop-coins">0</span></div>
+        </div>
+        <div>
+          <div class="text-sm text-slate-500">현재 삽</div>
+          <div class="font-bold text-lg truncate px-1">💪 <span id="shop-shovel">돌삽 Lv.0</span></div>
+        </div>
+        <div>
+          <div class="text-sm text-slate-500">가방</div>
+          <div class="font-bold text-lg">🎒 <span id="shop-bag">0/10</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-grow space-y-4 overflow-y-auto">
+      <div id="shovel-level-upgrade" class="ui-box"></div>
+      <div id="bag-upgrade" class="ui-box"></div>
+      <div id="bag-sell-panel" class="ui-box">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-xl font-bold">가방 & 판매</h3>
+          <div class="flex items-center gap-2">
+            <span class="pill">정렬</span>
+            <select id="bag-sort" class="select" onchange="setBagSort(this.value)">
+              <option value="default">획득순</option>
+              <option value="priceDesc">가격 높은순</option>
+              <option value="priceAsc">가격 낮은순</option>
+              <option value="rarityDesc">희귀도 높은순</option>
+              <option value="rarityAsc">희귀도 낮은순</option>
+            </select>
+          </div>
+        </div>
+        <!-- --- UI 개선 --- -->
+        <div class="text-sm text-center text-indigo-700 bg-indigo-100 p-2 rounded-md mb-2">아이템을 <b>탭</b>하면 즉시 판매돼요.</div>
+        <div id="shop-bag-items" class="bg-gray-100 p-2 rounded-lg max-h-64 overflow-y-auto mb-3"></div>
+        <div class="bg-gray-100 p-3 rounded-lg text-center font-bold text-xl mb-3 border">총 판매 가격: 💰 <span id="shop-sell-price">0</span> C</div>
+        <button onclick="sellAllFromShop()" class="btn btn-green btn-rect">전체 판매</button>
+      </div>
+    </div>
+    <button onclick="changeScreen('lobby')" class="btn btn-gray btn-rect mt-auto">뒤로</button>
+  </div>
+
+  <!-- 도감 -->
+  <div id="collection-screen" class="hidden flex-col h-full p-4 bg-yellow-50">
+    <h2 class="text-4xl font-bold text-center text-yellow-800 mb-4">생물 도감</h2>
+    <div id="collection-grid" class="flex-grow bg-white p-2 rounded-xl grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-y-auto"></div>
+    <button onclick="changeScreen('lobby')" class="btn btn-gray btn-rect mt-4">로비로</button>
+  </div>
+</div>
+
+<!-- 모달 -->
+<div id="first-discovery-modal" class="modal-overlay hidden"></div>
+<div id="message-modal" class="modal-overlay hidden"></div>
+<div id="tier-up-modal" class="modal-overlay hidden"></div>
+
+<script>
+  // ---- 데이터 ----
+  const GAME_DATA = {
+    tiers:[{id:1,name:"돌삽",baseColor:"#FFE9B3",creaturesToPlant:8},{id:2,name:"구리삽",baseColor:"#D7B67A",creaturesToPlant:10},{id:3,name:"철삽",baseColor:"#8A6B4E",creaturesToPlant:12}],
+    shovelUpgrades:{
+      "1":[{cost:50,name:"Lv.1 강화"},{cost:120,name:"Lv.2 강화 (십자)"},{cost:300,name:"Lv.3 강화 (3x3)"},{cost:800,name:"구리삽으로 제작!"}],
+      "2":[{cost:1000,name:"Lv.1 강화"},{cost:1500,name:"Lv.2 강화 (십자)"},{cost:2500,name:"Lv.3 강화 (3x3)"},{cost:5000,name:"철삽으로 제작!"}],
+      "3":[{cost:6000,name:"Lv.1 강화"},{cost:8000,name:"Lv.2 강화 (십자)"},{cost:12000,name:"Lv.3 강화 (3x3)"}],
+    },
+    bagUpgrades:[{cost:50},{cost:100},{cost:150},{cost:200},{cost:250}],
+    creatures:[
+      {id:"clam_bajirak",name:"바지락",cat:"조개류",rarity:"common",basePrice:3,tiers:[1,2,3],emoji:"🐚",desc:"갯벌의 대표적인 조개!"},
+      {id:"clam_dongjuk",name:"동죽",cat:"조개류",rarity:"common",basePrice:3,tiers:[1,2,3],emoji:"🦪",desc:"동글동글 귀여운 조개."},
+      {id:"cockle",name:"꼬막",cat:"조개류",rarity:"uncommon",basePrice:4,tiers:[1,2,3],emoji:"🍥",desc:"쫄깃한 맛이 일품!"},
+      {id:"razor",name:"맛조개",cat:"조개류",rarity:"rare",basePrice:6,tiers:[2,3],emoji:"🥢",desc:"길쭉한 모양이 특징이야."},
+      {id:"crab_chil",name:"칠게",cat:"갑각류",rarity:"common",basePrice:3,tiers:[1,2,3],emoji:"🦀",desc:"옆으로 걷기 선수!"},
+      {id:"crab_bang",name:"방게",cat:"갑각류",rarity:"common",basePrice:3,tiers:[1,2,3],emoji:"🦀",desc:"네모난 등껍질을 가졌어."},
+      {id:"crab_nong",name:"농게",cat:"갑각류",rarity:"uncommon",basePrice:5,tiers:[2,3],emoji:"🦞",desc:"한쪽 집게발이 엄청 커!"},
+      {id:"crab_cham",name:"참게",cat:"갑각류",rarity:"rare",basePrice:7,tiers:[3],emoji:"🦐",desc:"민물과 바닷물을 오가는 게."},
+      {id:"octopus_nakji",name:"낙지",cat:"두족류",rarity:"uncommon",basePrice:8,tiers:[2,3],emoji:"🐙",desc:"쓰러진 소도 일으키는 힘!"},
+      {id:"octopus_mun",name:"문어",cat:"두족류",rarity:"rare",basePrice:10,tiers:[3],emoji:"🦑",desc:"똑똑한 바다의 신사."},
+      {id:"worm",name:"갯지렁이",cat:"다모류",rarity:"common",basePrice:2,tiers:[1,2,3],emoji:"🪱",desc:"꿈틀꿈틀, 갯벌의 청소부."},
+      {id:"snail",name:"고둥",cat:"복족류",rarity:"common",basePrice:2,tiers:[1,2,3],emoji:"🐌",desc:"빙글빙글 집을 등에 지고 다녀."},
+      {id:"fish_mud",name:"망둥어",cat:"어류",rarity:"uncommon",basePrice:5,tiers:[2,3],emoji:"🐟",desc:"갯벌 위를 펄쩍펄쩍!"},
+      {id:"shell",name:"조개껍데기",cat:"기타",rarity:"common",basePrice:1,tiers:[1,2,3],emoji:"🔄",desc:"예쁜 무늬의 껍데기."},
+      {id:"seaweed",name:"해초",cat:"기타",rarity:"common",basePrice:1,tiers:[1,2,3],emoji:"🌿",desc:"바다의 채소."},
+    ],
+    rarityWeights:{tier1:{common:70,uncommon:25,rare:5},tier2:{common:55,uncommon:35,rare:10},tier3:{common:40,uncommon:40,rare:20}},
+  };
+
+  const BOARD_SIZE=6, REDIG_CHANCE=0.02;
+  const RARITY_SCORE={ common:1, uncommon:2, rare:3 };
+
+  let gameState={
+    coins:0, shovelTier:1, shovelLevel:0,
+    bag:[], bagCapacity:10, bagUpgradeLevel:0,
+    discoveredCreatures:new Set(), boardCreatures:{}, revealedTiles:new Set(), tileHP:{},
+    bagSort:'default', nextItemId:1
+  };
+
+  const DOM={
+    screens:{ lobby:qs("#lobby-screen"), exploration:qs("#exploration-screen"), shop:qs("#shop-screen"), collection:qs("#collection-screen") },
+    modals:{ discovery:qs("#first-discovery-modal"), message:qs("#message-modal"), tierUp:qs("#tier-up-modal") },
+    board:qs("#exploration-board")
+  };
+  function qs(s,el=document){return el.querySelector(s)}
+
+  // ---- 초기화 ----
+  function initGame(){ loadGame(); updateAllUI(); }
+  function changeScreen(name){
+    Object.values(DOM.screens).forEach(s=>s.classList.add("hidden"));
+    const sc=DOM.screens[name]; sc.classList.remove("hidden"); sc.classList.add("flex","flex-col");
+    if(name==="lobby"||name==="shop") updateAllUI();
+    if(name==="collection") renderCollection();
+  }
+  function startExploration(){ resetAndGenerateBoard(); changeScreen("exploration"); }
+
+  function updateAllUI(){
+    const tierInfo=GAME_DATA.tiers[gameState.shovelTier-1];
+    const shovelName=`${tierInfo.name} Lv.${gameState.shovelLevel}`;
+    const bagStatus=`${gameState.bag.length}/${gameState.bagCapacity}`;
+
+    qs("#lobby-coins").textContent=gameState.coins;
+    qs("#lobby-shovel").textContent=shovelName;
+    qs("#lobby-bag").textContent=bagStatus;
+
+    qs("#exp-coins").textContent=gameState.coins;
+    qs("#exp-shovel").textContent=shovelName;
+    qs("#exp-bag").textContent=bagStatus;
+
+    qs("#shop-coins").textContent=gameState.coins;
+    qs("#shop-shovel").textContent=shovelName;
+    qs("#shop-bag").textContent=bagStatus;
+
+    renderShop(); saveGame();
+  }
+
+  // ---- 보드 ----
+  function resetAndGenerateBoard(){
+    DOM.board.innerHTML=""; gameState.boardCreatures={}; gameState.revealedTiles=new Set(); gameState.tileHP={};
+    plantCreatures();
+    const tierInfo=GAME_DATA.tiers[gameState.shovelTier-1];
+    for(let y=0;y<BOARD_SIZE;y++){
+      for(let x=0;x<BOARD_SIZE;x++){
+        const tile=document.createElement("div");
+        tile.className="tile"; tile.dataset.x=x; tile.dataset.y=y; tile.style.backgroundColor=tierInfo.baseColor;
+        const key=`${x},${y}`; gameState.tileHP[key]=(gameState.shovelLevel===0?2:1);
+        tile.appendChild(el("div",{class:"tile-cover"}));
+        tile.appendChild(el("div",{class:"tile-crack"}));
+        tile.addEventListener("click",handleTileClick);
+        DOM.board.appendChild(tile);
+      }
+    }
+  }
+  function handleTileClick(e){
+    const tile=e.currentTarget; const x=+tile.dataset.x, y=+tile.dataset.y;
+    const L=gameState.shovelLevel; let pattern="1x1"; if(L===2) pattern="plus"; else if(L>=3) pattern="3x3";
+    const targets=[];
+    if(pattern==="1x1") targets.push({x,y});
+    else if(pattern==="plus") targets.push({x,y},{x,y:y-1},{x,y:y+1},{x:x-1,y},{x:x+1,y});
+    else for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) targets.push({x:x+dx,y:y+dy});
+    let changed=false;
+    for(const p of targets){
+      const t=qs(`.tile[data-x='${p.x}'][data-y='${p.y}']`);
+      if(t) changed = digOneTile(t) || changed;
+    }
+    if(changed) updateAllUI();
+  }
+  function digOneTile(tile){
+    const key=`${tile.dataset.x},${tile.dataset.y}`;
+    if(gameState.revealedTiles.has(key)){
+      if(!tile.querySelector(".tile-loot") && Math.random()<REDIG_CHANCE){
+        const c=getCreatureByRarity(); if(c){ gameState.boardCreatures[key]=c; createLootOnTile(tile,c,key); return true;}
+      }
+      return false;
+    }
+    gameState.tileHP[key]=Math.max(0,(gameState.tileHP[key]??1)-1);
+    if(gameState.tileHP[key]>0){ tile.classList.add("cracked"); return false; }
+    tile.classList.add("dug"); gameState.revealedTiles.add(key);
+    const c=gameState.boardCreatures[key]; if(c) createLootOnTile(tile,c,key);
+    return true;
+  }
+  function createLootOnTile(tile, creature, key){
+    if(tile.querySelector(".tile-loot")) return;
+    const loot=el("div",{class:"tile-loot"});
+    loot.innerHTML=`<div class="emoji">${creature.emoji}</div><div class="label">${creature.name}</div><div class="hint">탭해서 채집</div>`;
+    loot.addEventListener("click",(ev)=>{ ev.stopPropagation(); collectLoot(tile,key,creature); });
+    tile.appendChild(loot);
+  }
+  function collectLoot(tile,key,creature){
+    if(gameState.bag.length>=gameState.bagCapacity){ showMessage("가방이 가득 찼어요! 상점에서 판매해 주세요."); return; }
+    addToBag(creature);
+    spawnDropParticle(tile,creature.emoji);
+    const loot=qs(".tile-loot",tile); if(loot) loot.remove();
+    delete gameState.boardCreatures[key];
+    updateAllUI();
+  }
+
+  // ---- 상점 & 판매 ----
+  function renderShop(){
+    const shovelDiv=qs("#shovel-level-upgrade");
+    const tierKey=String(gameState.shovelTier); const upgrades=GAME_DATA.shovelUpgrades[tierKey];
+    const cur=gameState.shovelLevel; const tierInfo=GAME_DATA.tiers[gameState.shovelTier-1];
+    shovelDiv.innerHTML=`<h3 class="text-xl font-bold mb-2">삽 강화</h3>`;
+    if(upgrades && cur<upgrades.length){
+      const up=upgrades[cur]; const can=gameState.coins>=up.cost;
+      shovelDiv.innerHTML+=`
+          <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-lg space-y-1">
+            <p><strong>현재:</strong> ${tierInfo.name} Lv.${cur}</p>
+            <p><strong>다음:</strong> ${up.name}</p>
+          </div>
+          <button onclick="buyShovelUpgrade()" class="btn btn-blue btn-rect mt-3 ${!can?'btn-disabled':''}" ${!can?'disabled':''}>
+            강화 (💰 ${up.cost} C)
+          </button>`;
+    } else {
+      shovelDiv.innerHTML+=`<p class="text-lg bg-blue-50 p-3 rounded-lg border border-blue-200">최고 레벨의 삽입니다!</p>`;
+    }
+
+    const bagDiv=qs("#bag-upgrade"); const next=GAME_DATA.bagUpgrades[gameState.bagUpgradeLevel];
+    bagDiv.innerHTML=`<h3 class="text-xl font-bold mb-2">가방 확장</h3>`;
+    if(next){
+      const can=gameState.coins>=next.cost;
+      bagDiv.innerHTML+=`
+          <div class="bg-orange-50 p-3 rounded-lg border border-orange-200 text-lg">
+            <p><strong>현재 용량:</strong> ${gameState.bagCapacity}칸</p>
+          </div>
+          <button onclick="buyBagUpgrade()" class="btn btn-orange btn-rect mt-3 ${!can?'btn-disabled':''}" ${!can?'disabled':''}>
+            +5칸 확장 (💰 ${next.cost} C)
+          </button>`;
+    } else {
+      bagDiv.innerHTML+=`<p class="text-lg bg-orange-50 p-3 rounded-lg border border-orange-200">가방 용량이 최대입니다!</p>`;
+    }
+
+    const sortSel=qs("#bag-sort"); if(sortSel) sortSel.value=gameState.bagSort;
+    renderShopBagPanel();
+  }
+
+  function setBagSort(v){ gameState.bagSort=v; renderShopBagPanel(); saveGame(); }
+
+  function renderShopBagPanel(){
+    const list=qs("#shop-bag-items"); const totalEl=qs("#shop-sell-price");
+    list.innerHTML=""; let items=[...gameState.bag];
+
+    switch(gameState.bagSort){
+      case 'priceDesc': items.sort((a,b)=>b.price-a.price); break;
+      case 'priceAsc': items.sort((a,b)=>a.price-b.price); break;
+      case 'rarityDesc': items.sort((a,b)=>RARITY_SCORE[b.rarity]-RARITY_SCORE[a.rarity] || b.price-a.price); break;
+      case 'rarityAsc': items.sort((a,b)=>RARITY_SCORE[a.rarity]-RARITY_SCORE[b.rarity] || a.price-b.price); break;
+      default: items.sort((a,b)=>a.__id-b.__id);
+    }
+
+    let total=0;
+    if(items.length===0){
+      list.innerHTML=`<p class="text-center text-gray-500 p-4">가방이 비어있어요.</p>`;
+    } else {
+      for(const it of items){
+        const row=el("div",{class:"flex justify-between items-center p-2 bg-white rounded my-1 row-click", title:"탭하면 판매"});
+        row.innerHTML=`<span>${it.emoji} ${it.name} <span class="text-xs text-slate-500">(${kr(it.rarity)})</span></span>
+                         <span class="font-bold">💰 ${it.price} C</span>`;
+        row.addEventListener("click",()=>sellItemById(it.__id));
+        list.appendChild(row);
+        total+=it.price;
+      }
+    }
+    totalEl.textContent=total;
+  }
+
+  function sellItemById(id){
+    const idx=gameState.bag.findIndex(x=>x.__id===id);
+    if(idx>=0){
+      const val=gameState.bag[idx].price;
+      gameState.coins+=val;
+      gameState.bag.splice(idx,1);
+      updateAllUI();
+    }
+  }
+
+  function sellAllFromShop(){
+    const total=gameState.bag.reduce((s,it)=>s+it.price,0);
+    if(total===0) return;
+    gameState.coins+=total; gameState.bag=[];
+    updateAllUI();
+    showMessage("전체 판매 완료! 💰");
+  }
+
+  function buyShovelUpgrade(){
+    const ups=GAME_DATA.shovelUpgrades[String(gameState.shovelTier)];
+    const up=ups[gameState.shovelLevel];
+    if(up && gameState.coins>=up.cost){
+      gameState.coins-=up.cost; gameState.shovelLevel++;
+      if(gameState.shovelLevel===ups.length && gameState.shovelTier<GAME_DATA.tiers.length){
+        const oldT=GAME_DATA.tiers[gameState.shovelTier-1].name; gameState.shovelTier++; gameState.shovelLevel=0;
+        const newT=GAME_DATA.tiers[gameState.shovelTier-1].name; showTierUpModal(oldT,newT);
+      }
+      updateAllUI();
+    }
+  }
+  function buyBagUpgrade(){
+    const up=GAME_DATA.bagUpgrades[gameState.bagUpgradeLevel];
+    if(up && gameState.coins>=up.cost){
+      gameState.coins-=up.cost; gameState.bagCapacity+=5; gameState.bagUpgradeLevel++; updateAllUI();
+    }
+  }
+
+  // ---- 모달 ----
+  const modalTemplates={
+    discovery:c=>`<div class="modal-content text-center"><h3 class="text-3xl font-bold text-yellow-600 mb-2">✨ 새로운 생물 발견! ✨</h3><div class="text-8xl my-4">${c.emoji}</div><p class="text-4xl font-bold">${c.name}</p><p class="text-lg text-gray-600 my-2">${c.desc}</p><p class="text-xl font-bold text-green-600">도감에 등록되었습니다!</p><button onclick="closeModal('discovery')" class="btn btn-blue btn-rect mt-4">확인</button></div>`,
+    message:t=>`<div class="modal-content text-center"><p class="text-2xl font-bold mb-4">${t}</p><button onclick="closeModal('message')" class="btn btn-orange btn-rect">확인</button></div>`,
+    tierUp:(o,n)=>`<div class="modal-content text-center"><h3 class="text-3xl font-bold text-green-600 mb-2">🎉 등급 상승! 🎉</h3><div class="text-5xl my-4">💪 ✨</div><p class="text-2xl font-bold">${o} -> ${n}</p><p class="text-lg text-gray-600 my-2">더 깊은 갯벌을 탐사할 수 있습니다!</p><button onclick="closeModal('tierUp'); startExploration();" class="btn btn-green btn-rect mt-4">새로운 탐사 시작!</button></div>`
+  };
+  function showDiscoveryModal(c){ DOM.modals.discovery.innerHTML=modalTemplates.discovery(c); DOM.modals.discovery.classList.remove("hidden"); }
+  function showMessage(t){ DOM.modals.message.innerHTML=modalTemplates.message(t); DOM.modals.message.classList.remove("hidden"); }
+  function showTierUpModal(o,n){ DOM.modals.tierUp.innerHTML=modalTemplates.tierUp(o,n); DOM.modals.tierUp.classList.remove("hidden"); }
+  function closeModal(type){ if(DOM.modals[type]) DOM.modals[type].classList.add("hidden"); }
+
+  // ---- 유틸/도감/세이브 ----
+  function plantCreatures(){
+    const t=GAME_DATA.tiers[gameState.shovelTier-1]; let planted=0;
+    while(planted<t.creaturesToPlant){
+      const x=Math.floor(Math.random()*BOARD_SIZE), y=Math.floor(Math.random()*BOARD_SIZE); const key=`${x},${y}`;
+      if(!gameState.boardCreatures[key]){ const c=getCreatureByRarity(); if(c){ gameState.boardCreatures[key]=c; planted++; } }
+    }
+  }
+  function getCreatureByRarity(){
+    const t=GAME_DATA.tiers[gameState.shovelTier-1]; const w=GAME_DATA.rarityWeights[`tier${t.id}`]; const r=Math.random()*100;
+    let rarity=(r<w.rare)?'rare':(r<w.rare+w.uncommon)?'uncommon':'common';
+    const pool=GAME_DATA.creatures.filter(c=>c.rarity===rarity && c.tiers.includes(t.id));
+    if(!pool.length) return getCreatureByRarity();
+    const c=pool[Math.floor(Math.random()*pool.length)]; const price=c.basePrice+(gameState.shovelTier-1);
+    return {...c, price};
+  }
+  function addToBag(item){
+    if(gameState.bag.length>=gameState.bagCapacity) return;
+    const withId={...item, __id: gameState.nextItemId++};
+    gameState.bag.push(withId);
+    if(!gameState.discoveredCreatures.has(item.id)){ gameState.discoveredCreatures.add(item.id); showDiscoveryModal(item); }
+  }
+  function spawnDropParticle(tile,emoji){ const p=el("div",{class:"drop-item"}); p.textContent=emoji; tile.appendChild(p); setTimeout(()=>p.remove(),800); }
+  function renderCollection(){
+    const grid=qs("#collection-grid"); grid.innerHTML="";
+    for(const c of GAME_DATA.creatures){
+      const d=gameState.discoveredCreatures.has(c.id);
+      const cell=el("div",{class:`border-2 rounded-lg p-2 text-center flex flex-col items-center justify-center ${d?"bg-yellow-100":"bg-gray-200"}`});
+      cell.innerHTML=`<div class="text-4xl ${!d?"filter grayscale":""}">${d?c.emoji:"❓"}</div><div class="font-bold mt-1 text-sm">${d?c.name:"???"}</div>`;
+      grid.appendChild(cell);
+    }
+  }
+  function saveGame(){
+    const data={...gameState, discoveredCreatures:Array.from(gameState.discoveredCreatures), revealedTiles:Array.from(gameState.revealedTiles)};
+    localStorage.setItem("tidalFlatClickerSave_v9",JSON.stringify(data));
+  }
+  function loadGame(){
+    const saved=localStorage.getItem("tidalFlatClickerSave_v9") || localStorage.getItem("tidalFlatClickerSave_v8") || localStorage.getItem("tidalFlatClickerSave_v7");
+    if(saved){
+      const d=JSON.parse(saved); Object.assign(gameState,d);
+      gameState.discoveredCreatures=new Set(d.discoveredCreatures||[]); gameState.revealedTiles=new Set(d.revealedTiles||[]); gameState.tileHP=d.tileHP||{}; gameState.bagSort=d.bagSort||'default'; gameState.nextItemId=d.nextItemId||1;
+    }
+  }
+
+  function el(tag,attrs={}){ const e=document.createElement(tag); for(const[k,v] of Object.entries(attrs)){ if(k==="class") e.className=v; else e.setAttribute(k,v);} return e; }
+  function kr(r){ return r==="rare"?"희귀":r==="uncommon"?"드문":"공통"; }
+
+  window.onload=initGame;
+</script>
+</body>
+</html>
