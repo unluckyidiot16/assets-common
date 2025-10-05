@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>신비한 씨앗 농장</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 기본 스크롤 및 터치 동작 방지 */
+    html, body {
+      position: fixed;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      touch-action: none; /* 스크롤, 확대/축소 등 기본 터치 동작 비활성화 */
+      -webkit-user-select: none; /* 텍스트 선택 방지 */
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .game-container {
+      background-color: #4A7856; /* Fallback */
+      /* 배경 이미지와 그라데이션을 겹쳐서 표현 */
+      background-image: url('https://unluckyidiot16.github.io/assets-common/MyTinyPlants/TileSet1.png'), radial-gradient(circle, #5A8C69, #4A7856);
+      background-repeat: no-repeat, no-repeat;
+      background-position: center 40%, center; /* 배경 이미지 위치를 위로 조정 */
+      background-size: 90%, cover; /* 배경 크기 90%로 조정 */
+    }
+
+    #game-board {
+      position: relative;
+    }
+
+    .board-cell {
+      position: absolute;
+      background-color: transparent;
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      cursor: pointer;
+    }
+
+    .plant {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center bottom;
+      transition: transform 0.2s ease-out;
+      image-rendering: pixelated;
+      pointer-events: none;
+    }
+
+    .plant-container.dragging {
+      opacity: 0.5;
+    }
+
+    .plant-container.merge-candidate .plant {
+      animation: pulse 1s infinite;
+    }
+
+    .plant-container.newly-merged .plant {
+      animation: pop 0.3s ease-out;
+    }
+
+    #drag-clone {
+      position: absolute;
+      pointer-events: none;
+      z-index: 1000;
+      image-rendering: pixelated;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center bottom;
+    }
+
+    .plant-glow .plant{
+      filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 12px #f0f);
+    }
+
+    #spawn-button {
+      position: relative;
+      overflow: hidden;
+    }
+    #spawn-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.3);
+      transition: height 0.1s linear;
+      height: 0%;
+    }
+
+    .coin-particle {
+      position: absolute;
+      width: 25px;
+      height: 25px;
+      background-image: url('https://unluckyidiot16.github.io/assets-common/MyTinyPlants/Particle_Coin.png');
+      background-size: contain;
+      pointer-events: none;
+      z-index: 2000;
+      transition: transform 0.7s cubic-bezier(0.5, -0.5, 1, 1), opacity 0.7s ease-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1) translateY(-50%); }
+      50% { transform: scale(1.1) translateY(-50%); }
+    }
+    @keyframes pop {
+      0% { transform: scale(0.5) translateY(-50%); }
+      80% { transform: scale(1.2) translateY(-50%); }
+      100% { transform: scale(1) translateY(-50%); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .tab-button.active {
+      background-color: #a3e635;
+      color: #3f6212;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="bg-gray-800 font-sans">
+
+<div id="game-container" class="game-container w-full h-full flex flex-col items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+  <!-- 상단 코인 UI -->
+  <div id="coin-display" class="absolute top-4 left-4 bg-black/50 text-white font-bold py-2 px-4 rounded-full flex items-center">
+    <img src="https://unluckyidiot16.github.io/assets-common/MyTinyPlants/Particle_Coin.png" class="w-6 h-6 mr-2">
+    <span id="coin-count">0</span>
+  </div>
+
+  <div id="screen-container" class="w-full max-w-lg aspect-square relative">
+    <div id="main-screen" class="w-full h-full">
+      <div id="game-board" class="w-full h-full"></div>
+    </div>
+
+    <div id="pokedex-screen" class="w-full h-full bg-black/50 rounded-xl p-4 hidden overflow-y-auto">
+      <h2 class="text-2xl font-bold text-white text-center mb-4">식물 도감</h2>
+      <div id="pokedex-grid" class="grid grid-cols-3 gap-4"></div>
+    </div>
+
+    <div id="farm-screen" class="w-full h-full bg-green-900/50 rounded-xl hidden relative overflow-hidden">
+      <h2 class="text-2xl font-bold text-white text-center mt-4">휴식처</h2>
+      <div id="farm-plants-container" class="absolute inset-0"></div>
+    </div>
+
+    <div id="shop-screen" class="w-full h-full bg-black/50 rounded-xl p-4 hidden overflow-y-auto text-white">
+      <h2 class="text-2xl font-bold text-center mb-4">상점</h2>
+      <div class="space-y-4">
+        <!-- 즉시 구매 -->
+        <div class="bg-gray-700/50 p-3 rounded-lg">
+          <h3 class="font-bold mb-2">씨앗 즉시 구매</h3>
+          <p class="text-sm mb-2">코인을 사용하여 씨앗 뽑기 횟수를 즉시 충전합니다.</p>
+          <button id="buy-charge-button" class="w-full bg-blue-500 hover:bg-blue-600 rounded-lg py-2 px-4">
+            <span class="font-bold">씨앗 1개 구매</span>
+            <div class="text-xs flex items-center justify-center">
+              <img src="https://unluckyidiot16.github.io/assets-common/MyTinyPlants/Particle_Coin.png" class="w-4 h-4 mr-1">
+              <span id="buy-charge-cost">100</span>
+            </div>
+          </button>
+        </div>
+        <!-- 쿨타임 감소 -->
+        <div class="bg-gray-700/50 p-3 rounded-lg">
+          <h3 class="font-bold mb-2">뽑기 시간 단축</h3>
+          <p class="text-sm mb-2" id="cooldown-upgrade-desc">현재 레벨 0: 30초</p>
+          <button id="upgrade-cooldown-button" class="w-full bg-green-500 hover:bg-green-600 rounded-lg py-2 px-4">
+            <span class="font-bold">업그레이드</span>
+            <div class="text-xs flex items-center justify-center">
+              <img src="https://unluckyidiot16.github.io/assets-common/MyTinyPlants/Particle_Coin.png" class="w-4 h-4 mr-1">
+              <span id="cooldown-upgrade-cost">50</span>
+            </div>
+          </button>
+        </div>
+        <!-- 레어 확률 증가 -->
+        <div class="bg-gray-700/50 p-3 rounded-lg">
+          <h3 class="font-bold mb-2">레어 씨앗 확률</h3>
+          <p class="text-sm mb-2" id="rare-spawn-upgrade-desc">현재 레벨 0: 0%</p>
+          <button id="upgrade-rare-spawn-button" class="w-full bg-purple-500 hover:bg-purple-600 rounded-lg py-2 px-4">
+            <span class="font-bold">업그레이드</span>
+            <div class="text-xs flex items-center justify-center">
+              <img src="https://unluckyidiot16.github.io/assets-common/MyTinyPlants/Particle_Coin.png" class="w-4 h-4 mr-1">
+              <span id="rare-spawn-upgrade-cost">100</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full max-w-lg mt-4 flex items-center justify-between">
+    <div class="flex space-x-1 bg-gray-900/50 rounded-lg p-1">
+      <button id="main-tab-button" class="tab-button active text-sm py-2 px-3 bg-gray-700 text-white rounded-md shadow-md">농장</button>
+      <button id="pokedex-tab-button" class="tab-button text-sm py-2 px-3 bg-gray-700 text-white rounded-md shadow-md">도감</button>
+      <button id="farm-tab-button" class="tab-button text-sm py-2 px-3 bg-gray-700 text-white rounded-md shadow-md">휴식처</button>
+      <button id="shop-tab-button" class="tab-button text-sm py-2 px-3 bg-gray-700 text-white rounded-md shadow-md">상점</button>
+    </div>
+    <div class="flex items-center space-x-2">
+      <button id="spawn-button" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg flex items-center justify-center transition transform hover:scale-105">
+        <div id="spawn-progress"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="relative"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span class="ml-2 text-sm relative">(<span id="spawn-count">0</span>/10)</span>
+      </button>
+      <button id="reset-button" class="bg-red-500 hover:bg-red-600 text-white font-bold p-3 rounded-full shadow-lg transition transform hover:scale-105">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="gallery-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-50 p-4">
+  <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md relative text-white">
+    <button id="close-gallery-button" class="absolute top-4 right-4 text-white">&times;</button>
+    <h3 id="gallery-title" class="text-2xl font-bold text-center mb-4">성장 과정</h3>
+    <div id="gallery-content" class="grid grid-cols-3 gap-4"></div>
+  </div>
+</div>
+
+<div id="loading-screen" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50">
+  <div class="text-white text-2xl mb-4">신비한 씨앗 농장</div>
+  <div id="loading-bar-container" class="w-1/2 h-4 bg-gray-700 rounded-full overflow-hidden">
+    <div id="loading-bar" class="h-full bg-lime-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+  </div>
+  <div id="loading-text" class="text-white mt-2">로딩 중...</div>
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- 기본 설정 및 상수 ---
+    const IMAGE_ROOT = 'https://unluckyidiot16.github.io/assets-common/MyTinyPlants/';
+    const GRID_DIMENSION = 5;
+    const BOARD_SIZE = GRID_DIMENSION * GRID_DIMENSION;
+    const BASE_SPAWN_INTERVAL = 30000;
+    const MAX_SPAWN_STACK = 10;
+    const PLANT_TYPES = {
+      'Carrot': { name: '당근', maxLevel: 10, data: [ { name: '당근 씨앗', file: 'CarrotSeed.png', size: 0.5 }, { name: '새싹', file: 'Carrot1.png', size: 1.5 }, { name: '자라는 중', file: 'Carrot2.png', size: 1.5 }, { name: '자라는 중', file: 'Carrot3.png', size: 1.5 }, { name: '자라는 중', file: 'Carrot4.png', size: 1.5 }, { name: '다 자란 당근', file: 'Carrot5.png', size: 1.5 }, { name: '활기찬 당근', file: ['Carrot_Idle1.png', 'Carrot_Idle2.png'], size: 1.6, animated: true }, { name: '더 큰 당근', file: ['Carrot_Idle1.png', 'Carrot_Idle2.png'], size: 1.7, animated: true }, { name: '무성한 당근', file: ['Carrot_Idle1.png', 'Carrot_Idle2.png'], size: 1.9, animated: true }, { name: '거대 당근', file: ['Carrot_Idle1.png', 'Carrot_Idle2.png'], size: 2.1, animated: true }, { name: '황금 당근', file: ['Carrot_Idle1.png', 'Carrot_Idle2.png'], size: 2.3, animated: true } ] },
+      'Chili': { name: '고추', maxLevel: 10, data: [ { name: '고추 씨앗', file: 'ChiliSeed.png', size: 0.5 }, { name: '새싹', file: 'Chili1.png', size: 1.5 }, { name: '자라는 중', file: 'Chili2.png', size: 1.5 }, { name: '자라는 중', file: 'Chili3.png', size: 1.5 }, { name: '자라는 중', file: 'Chili4.png', size: 1.5 }, { name: '다 자란 고추', file: 'Chili5.png', size: 1.5 }, { name: '활기찬 고추', file: ['Chili_Idle1.png', 'Chili_Idle2.png'], size: 1.6, animated: true }, { name: '더 큰 고추', file: ['Chili_Idle1.png', 'Chili_Idle2.png'], size: 1.7, animated: true }, { name: '무성한 고추', file: ['Chili_Idle1.png', 'Chili_Idle2.png'], size: 1.9, animated: true }, { name: '거대 고추', file: ['Chili_Idle1.png', 'Chili_Idle2.png'], size: 2.1, animated: true }, { name: '불타는 고추', file: ['Chili_Idle1.png', 'Chili_Idle2.png'], size: 2.3, animated: true } ] },
+      'Leek': { name: '대파', maxLevel: 10, data: [ { name: '대파 씨앗', file: 'LeekSeed.png', size: 0.5 }, { name: '새싹', file: 'Leek1.png', size: 1.5 }, { name: '자라는 중', file: 'Leek2.png', size: 1.5 }, { name: '자라는 중', file: 'Leek3.png', size: 1.5 }, { name: '자라는 중', file: 'Leek4.png', size: 1.5 }, { name: '다 자란 대파', file: 'Leek5.png', size: 1.5 }, { name: '활기찬 대파', file: ['Leek_Idle1.png', 'Leek_Idle2.png'], size: 1.6, animated: true }, { name: '더 큰 대파', file: ['Leek_Idle1.png', 'Leek_Idle2.png'], size: 1.7, animated: true }, { name: '무성한 대파', file: ['Leek_Idle1.png', 'Leek_Idle2.png'], size: 1.9, animated: true }, { name: '거대 대파', file: ['Leek_Idle1.png', 'Leek_Idle2.png'], size: 2.1, animated: true }, { name: '강철 대파', file: ['Leek_Idle1.png', 'Leek_Idle2.png'], size: 2.3, animated: true } ] },
+      'Onion': { name: '양파', maxLevel: 10, data: [ { name: '양파 씨앗', file: 'OnionSeed.png', size: 0.5 }, { name: '새싹', file: 'Onion1.png', size: 1.5 }, { name: '자라는 중', file: 'Onion2.png', size: 1.5 }, { name: '자라는 중', file: 'Onion3.png', size: 1.5 }, { name: '자라는 중', file: 'Onion4.png', size: 1.5 }, { name: '다 자란 양파', file: 'Onion5.png', size: 1.5 }, { name: '활기찬 양파', file: ['Onion_Idle1.png', 'Onion_Idle2.png'], size: 1.6, animated: true }, { name: '더 큰 양파', file: ['Onion_Idle1.png', 'Onion_Idle2.png'], size: 1.7, animated: true }, { name: '무성한 양파', file: ['Onion_Idle1.png', 'Onion_Idle2.png'], size: 1.9, animated: true }, { name: '거대 양파', file: ['Onion_Idle1.png', 'Onion_Idle2.png'], size: 2.1, animated: true }, { name: '눈물 젖은 양파', file: ['Onion_Idle1.png', 'Onion_Idle2.png'], size: 2.3, animated: true } ] },
+      'Pea': { name: '완두콩', maxLevel: 10, data: [ { name: '완두콩 씨앗', file: 'PeaSeed.png', size: 0.5 }, { name: '새싹', file: 'Pea1.png', size: 1.5 }, { name: '자라는 중', file: 'Pea2.png', size: 1.5 }, { name: '자라는 중', file: 'Pea3.png', size: 1.5 }, { name: '자라는 중', file: 'Pea4.png', size: 1.5 }, { name: '다 자란 완두콩', file: 'Pea5.png', size: 1.5 }, { name: '활기찬 완두콩', file: ['Pea_Idle1.png', 'Pea_Idle2.png'], size: 1.6, animated: true }, { name: '더 큰 완두콩', file: ['Pea_Idle1.png', 'Pea_Idle2.png'], size: 1.7, animated: true }, { name: '무성한 완두콩', file: ['Pea_Idle1.png', 'Pea_Idle2.png'], size: 1.9, animated: true }, { name: '거대 완두콩', file: ['Pea_Idle1.png', 'Pea_Idle2.png'], size: 2.1, animated: true }, { name: '완두콩 삼형제', file: ['Pea_Idle1.png', 'Pea_Idle2.png'], size: 2.3, animated: true } ] },
+      'Radish': { name: '무', maxLevel: 10, data: [ { name: '무 씨앗', file: 'RadishSeed.png', size: 0.5 }, { name: '새싹', file: 'Radish1.png', size: 1.5 }, { name: '자라는 중', file: 'Radish2.png', size: 1.5 }, { name: '자라는 중', file: 'Radish3.png', size: 1.5 }, { name: '자라는 중', file: 'Radish4.png', size: 1.5 }, { name: '다 자란 무', file: 'Radish5.png', size: 1.5 }, { name: '활기찬 무', file: ['Radish_Idle1.png', 'Radish_Idle2.png'], size: 1.6, animated: true }, { name: '더 큰 무', file: ['Radish_Idle1.png', 'Radish_Idle2.png'], size: 1.7, animated: true }, { name: '무성한 무', file: ['Radish_Idle1.png', 'Radish_Idle2.png'], size: 1.9, animated: true }, { name: '거대 무', file: ['Radish_Idle1.png', 'Radish_Idle2.png'], size: 2.1, animated: true }, { name: '산삼같은 무', file: ['Radish_Idle1.png', 'Radish_Idle2.png'], size: 2.3, animated: true } ] },
+      'Tomato': { name: '토마토', maxLevel: 10, data: [ { name: '토마토 씨앗', file: 'TomatoSeed.png', size: 0.5 }, { name: '새싹', file: 'Tomato1.png', size: 1.5 }, { name: '자라는 중', file: 'Tomato2.png', size: 1.5 }, { name: '자라는 중', file: 'Tomato3.png', size: 1.5 }, { name: '자라는 중', file: 'Tomato4.png', size: 1.5 }, { name: '다 자란 토마토', file: 'Tomato5.png', size: 1.5 }, { name: '활기찬 토마토', file: ['Tomato_Idle1.png', 'Tomato_Idle2.png'], size: 1.6, animated: true }, { name: '더 큰 토마토', file: ['Tomato_Idle1.png', 'Tomato_Idle2.png'], size: 1.7, animated: true }, { name: '무성한 토마토', file: ['Tomato_Idle1.png', 'Tomato_Idle2.png'], size: 1.9, animated: true }, { name: '거대 토마토', file: ['Tomato_Idle1.png', 'Tomato_Idle2.png'], size: 2.1, animated: true }, { name: '루비 토마토', file: ['Tomato_Idle1.png', 'Tomato_Idle2.png'], size: 2.3, animated: true } ] }
+    };
+
+    // --- 게임 상태 변수 ---
+    let boardState = Array(BOARD_SIZE).fill(null);
+    let spawnCount = 0;
+    let lastSpawnTime = Date.now();
+    let spawnTimer;
+    let spawnProgressTimer;
+    let animationTimer;
+    let pokedex = {};
+    let coins = 0;
+    let cooldownUpgradeLevel = 0;
+    let rareSpawnUpgradeLevel = 0;
+
+    // --- DOM 요소 ---
+    const gameContainer = document.getElementById('game-container');
+    const boardElement = document.getElementById('game-board');
+    const spawnButton = document.getElementById('spawn-button');
+    const spawnCountElement = document.getElementById('spawn-count');
+    const spawnProgressElement = document.getElementById('spawn-progress');
+    const resetButton = document.getElementById('reset-button');
+    const coinCountElement = document.getElementById('coin-count');
+
+    const mainScreen = document.getElementById('main-screen');
+    const pokedexScreen = document.getElementById('pokedex-screen');
+    const farmScreen = document.getElementById('farm-screen');
+    const shopScreen = document.getElementById('shop-screen');
+    const mainTabButton = document.getElementById('main-tab-button');
+    const pokedexTabButton = document.getElementById('pokedex-tab-button');
+    const farmTabButton = document.getElementById('farm-tab-button');
+    const shopTabButton = document.getElementById('shop-tab-button');
+    const pokedexGrid = document.getElementById('pokedex-grid');
+
+    const galleryModal = document.getElementById('gallery-modal');
+    const closeGalleryButton = document.getElementById('close-gallery-button');
+    const galleryTitle = document.getElementById('gallery-title');
+    const galleryContent = document.getElementById('gallery-content');
+
+    const loadingScreen = document.getElementById('loading-screen');
+    const loadingBar = document.getElementById('loading-bar');
+    const loadingText = document.getElementById('loading-text');
+
+    // 상점 버튼 및 텍스트
+    const buyChargeButton = document.getElementById('buy-charge-button');
+    const upgradeCooldownButton = document.getElementById('upgrade-cooldown-button');
+    const upgradeRareSpawnButton = document.getElementById('upgrade-rare-spawn-button');
+    const buyChargeCostElement = document.getElementById('buy-charge-cost');
+    const cooldownUpgradeCostElement = document.getElementById('cooldown-upgrade-cost');
+    const rareSpawnUpgradeCostElement = document.getElementById('rare-spawn-upgrade-cost');
+    const cooldownUpgradeDesc = document.getElementById('cooldown-upgrade-desc');
+    const rareSpawnUpgradeDesc = document.getElementById('rare-spawn-upgrade-desc');
+
+    let draggedElement = null;
+    let dragClone = null;
+    let dragSourceIndex = -1;
+
+    function preloadImages() {
+      const imageUrls = new Set();
+      Object.values(PLANT_TYPES).forEach(type => {
+        type.data.forEach(level => {
+          if (Array.isArray(level.file)) {
+            level.file.forEach(f => imageUrls.add(IMAGE_ROOT + f));
+          } else {
+            imageUrls.add(IMAGE_ROOT + level.file);
+          }
+        });
+      });
+
+      imageUrls.add(`${IMAGE_ROOT}TileSet1.png`);
+      imageUrls.add(`${IMAGE_ROOT}Particle_Coin.png`);
+
+      const promises = [];
+      let loadedCount = 0;
+      const totalCount = imageUrls.size;
+
+      imageUrls.forEach(url => {
+        const promise = new Promise((resolve, reject) => {
+          const img = new Image();
+          img.src = url;
+          img.onload = () => {
+            loadedCount++;
+            const percent = Math.round((loadedCount / totalCount) * 100);
+            loadingBar.style.width = `${percent}%`;
+            loadingText.innerText = `리소스 로딩 중... ${loadedCount} / ${totalCount}`;
+            resolve();
+          };
+          img.onerror = () => reject(`Failed to load image at: ${url}`);
+        });
+        promises.push(promise);
+      });
+
+      return Promise.all(promises);
+    }
+
+    function init() {
+      createIsometricBoard();
+      loadGame();
+
+      updateCoinUI();
+      updateSpawnCountUI();
+      startSpawnTimer();
+      startSpawnProgressTimer();
+      renderBoard();
+      startAnimation();
+      setupEventListeners();
+    }
+
+    function createIsometricBoard() {
+      const containerWidth = boardElement.offsetWidth;
+      const TILE_WIDTH_P = 30;
+      const tileWidth = containerWidth * (TILE_WIDTH_P / 100);
+      const tileHeight = tileWidth / 2;
+
+      const originX = containerWidth / 2;
+      const originY = tileHeight * 0.5 + boardElement.offsetHeight * 0.1; // 그리드를 아래로 내림
+
+      boardElement.innerHTML = '';
+      for (let row = 0; row < GRID_DIMENSION; row++) {
+        for (let col = 0; col < GRID_DIMENSION; col++) {
+          const i = row * GRID_DIMENSION + col;
+
+          const cell = document.createElement('div');
+          cell.classList.add('board-cell');
+          cell.dataset.index = i;
+
+          const isoX = (col - row) * (tileWidth / 2);
+          const isoY = (col + row) * (tileHeight / 2);
+
+          cell.style.width = `${tileWidth}px`;
+          cell.style.height = `${tileWidth}px`;
+          cell.style.left = `${originX + isoX - (tileWidth / 2)}px`;
+          cell.style.top = `${originY + isoY}px`;
+          cell.style.zIndex = (row + col) * 10;
+          boardElement.appendChild(cell);
+        }
+      }
+    }
+
+    function renderBoard() {
+      boardElement.querySelectorAll('.plant-container').forEach(p => p.remove());
+      boardState.forEach((plant, i) => {
+        if (plant) createPlantElement(plant, i);
+      });
+    }
+
+    function createPlantElement(plant, index) {
+      const plantData = PLANT_TYPES[plant.type].data[plant.level];
+      const cell = boardElement.children[index];
+
+      const container = document.createElement('div');
+      container.className = 'plant-container absolute';
+      container.style.left = cell.style.left;
+      container.style.top = cell.style.top;
+      container.style.width = cell.style.width;
+      container.style.height = cell.style.height;
+      container.style.zIndex = (parseInt(cell.style.zIndex) || 0) + 1;
+      container.dataset.index = index;
+      container.style.pointerEvents = 'none';
+
+      const plantEl = document.createElement('div');
+      plantEl.classList.add('plant');
+      plantEl.dataset.level = plant.level;
+      plantEl.dataset.type = plant.type;
+
+      const imageFile = Array.isArray(plantData.file) ? plantData.file[0] : plantData.file;
+      plantEl.style.backgroundImage = `url(${IMAGE_ROOT}${imageFile})`;
+      plantEl.style.transform = `scale(${plantData.size}) translateY(-50%)`;
+
+      if (plant.isNew) {
+        container.classList.add('newly-merged');
+        plant.isNew = false;
+      }
+      if (plant.level === 10 && pokedex[plant.type]?.isNew) {
+        container.classList.add('plant-glow');
+      }
+
+      container.appendChild(plantEl)
+      boardElement.appendChild(container);
+    }
+
+    function getSpawnInterval() {
+      return BASE_SPAWN_INTERVAL * Math.pow(0.9, cooldownUpgradeLevel);
+    }
+
+    function startSpawnTimer() {
+      if (spawnTimer) clearInterval(spawnTimer);
+      spawnTimer = setInterval(() => {
+        if (spawnCount < MAX_SPAWN_STACK) {
+          spawnCount++;
+          updateSpawnCountUI();
+          lastSpawnTime = Date.now();
+          saveGame();
+        }
+      }, getSpawnInterval());
+    }
+
+    function startSpawnProgressTimer() {
+      if(spawnProgressTimer) clearInterval(spawnProgressTimer);
+      spawnProgressTimer = setInterval(updateSpawnProgress, 100);
+    }
+
+    function updateSpawnProgress() {
+      if(spawnCount >= MAX_SPAWN_STACK) {
+        spawnProgressElement.style.height = '100%';
+        return;
+      }
+      const elapsed = Date.now() - lastSpawnTime;
+      const progress = Math.min(100, (elapsed / getSpawnInterval()) * 100);
+      spawnProgressElement.style.height = `${progress}%`;
+    }
+
+    function updateSpawnCountUI() {
+      spawnCountElement.textContent = spawnCount;
+      spawnButton.disabled = spawnCount <= 0;
+      spawnButton.classList.toggle('opacity-50', spawnCount <= 0);
+      spawnButton.classList.toggle('cursor-not-allowed', spawnCount <= 0);
+    }
+
+    function updateCoinUI() {
+      coinCountElement.textContent = coins;
+    }
+
+    function spawnPlant() {
+      if (spawnCount <= 0) return;
+
+      const emptyCells = [];
+      boardState.forEach((cell, i) => { if (!cell) emptyCells.push(i); });
+
+      if (emptyCells.length > 0) {
+        if(spawnCount === MAX_SPAWN_STACK) lastSpawnTime = Date.now();
+        spawnCount--;
+        updateSpawnCountUI();
+
+        const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        const plantKeys = Object.keys(PLANT_TYPES);
+        const randomType = plantKeys[Math.floor(Math.random() * plantKeys.length)];
+
+        let level = 0;
+        const rareSpawnChance = rareSpawnUpgradeLevel * 0.02; // 레벨당 2%
+        if (Math.random() < rareSpawnChance) {
+          level = 1;
+        }
+
+        boardState[randomIndex] = { type: randomType, level, isNew: true };
+        renderBoard();
+        saveGame();
+      } else {
+        alert('자리가 부족해요!');
+      }
+    }
+
+    function mergePlants(fromIndex, toIndex) {
+      const sourcePlant = boardState[fromIndex];
+      const plantTypeData = PLANT_TYPES[sourcePlant.type];
+      const targetCell = boardElement.children[toIndex];
+
+      if (sourcePlant.level < plantTypeData.maxLevel) {
+        const newLevel = sourcePlant.level + 1;
+        boardState[toIndex] = { type: sourcePlant.type, level: newLevel, isNew: true };
+        boardState[fromIndex] = null;
+
+        const coinReward = Math.pow(2, newLevel);
+        coins += coinReward;
+        updateCoinUI();
+        spawnCoinAnimation(targetCell, coinReward);
+
+        if (newLevel === 10 && !pokedex[sourcePlant.type]) {
+          pokedex[sourcePlant.type] = { discovered: true, isNew: true };
+          alert(`${PLANT_TYPES[sourcePlant.type].name} 최종 진화! 도감에 등록하려면 터치해주세요!`);
+        }
+
+        renderBoard();
+        saveGame();
+      }
+    }
+
+    function spawnCoinAnimation(targetCell, amount) {
+      const coinDisplayRect = document.getElementById('coin-display').getBoundingClientRect();
+      for (let i = 0; i < Math.min(5, amount); i++) {
+        const particle = document.createElement('div');
+        particle.className = 'coin-particle';
+
+        const cellRect = targetCell.getBoundingClientRect();
+        const startX = cellRect.left + cellRect.width / 2 + (Math.random() - 0.5) * 20;
+        const startY = cellRect.top + cellRect.height / 2 + (Math.random() - 0.5) * 20;
+
+        particle.style.left = `${startX}px`;
+        particle.style.top = `${startY}px`;
+        document.body.appendChild(particle);
+
+        setTimeout(() => {
+          const endX = coinDisplayRect.left + coinDisplayRect.width / 2;
+          const endY = coinDisplayRect.top + coinDisplayRect.height / 2;
+          const dx = endX - startX;
+          const dy = endY - startY;
+          particle.style.transform = `translate(${dx}px, ${dy}px) scale(0.5)`;
+          particle.style.opacity = '0';
+        }, 50 + Math.random() * 50);
+
+        setTimeout(() => particle.remove(), 800);
+      }
+    }
+
+    function startAnimation() {
+      let frame = 0;
+      animationTimer = setInterval(() => {
+        frame = 1 - frame;
+        document.querySelectorAll('.plant').forEach(p => {
+          const type = p.dataset.type;
+          const level = parseInt(p.dataset.level, 10);
+          if (!type || isNaN(level)) return;
+          const plantData = PLANT_TYPES[type].data[level];
+          if (plantData.animated) p.style.backgroundImage = `url(${IMAGE_ROOT}${plantData.file[frame]})`;
+        });
+        document.querySelectorAll('#farm-plants-container .plant-img').forEach(p => {
+          const plantData = PLANT_TYPES[p.dataset.type].data[10];
+          p.style.backgroundImage = `url(${IMAGE_ROOT}${plantData.file[frame]})`;
+        });
+      }, 500);
+    }
+
+    function switchTab(tabName) {
+      [mainScreen, pokedexScreen, farmScreen, shopScreen].forEach(s => s.classList.add('hidden'));
+      [mainTabButton, pokedexTabButton, farmTabButton, shopTabButton].forEach(b => b.classList.remove('active'));
+
+      if (tabName === 'main') { mainScreen.classList.remove('hidden'); mainTabButton.classList.add('active'); }
+      else if (tabName === 'pokedex') { renderPokedex(); pokedexScreen.classList.remove('hidden'); pokedexTabButton.classList.add('active'); }
+      else if (tabName === 'farm') { renderFarm(); farmScreen.classList.remove('hidden'); farmTabButton.classList.add('active'); }
+      else if (tabName === 'shop') { updateShopUI(); shopScreen.classList.remove('hidden'); shopTabButton.classList.add('active'); }
+    }
+
+    function renderPokedex() {
+      pokedexGrid.innerHTML = '';
+      Object.keys(PLANT_TYPES).forEach(typeKey => {
+        const plantType = PLANT_TYPES[typeKey];
+        const discovery = pokedex[typeKey];
+        const div = document.createElement('div');
+        div.className = 'flex flex-col items-center justify-center p-2 rounded-lg aspect-square';
+        if(discovery?.discovered) {
+          const plantData = plantType.data[10];
+          div.innerHTML = `<div class="w-full h-2/3 bg-contain bg-no-repeat bg-center" style="background-image: url(${IMAGE_ROOT}${Array.isArray(plantData.file) ? plantData.file[0] : plantData.file});"></div> <div class="text-white text-sm mt-1 text-center">${plantType.name}</div>`;
+          div.classList.add('bg-lime-800', 'cursor-pointer');
+          div.onclick = () => showGallery(typeKey);
+        } else {
+          div.innerHTML = `<div class="text-gray-400 text-4xl">?</div> <div class="text-gray-400 text-sm mt-1">${plantType.name}</div>`;
+          div.classList.add('bg-gray-700');
+        }
+        pokedexGrid.appendChild(div);
+      });
+    }
+
+    function renderFarm() {
+      const container = document.getElementById('farm-plants-container');
+      container.innerHTML = '';
+      Object.keys(pokedex).forEach(typeKey => {
+        if(pokedex[typeKey]?.discovered) {
+          const plantData = PLANT_TYPES[typeKey].data[10];
+          const p = document.createElement('div');
+          p.className = 'plant-img absolute';
+          p.dataset.type = typeKey;
+          p.style.width = '25%'; p.style.height = '25%';
+          p.style.left = `${Math.random() * 75}%`; p.style.top = `${Math.random() * 75}%`;
+          p.style.transform = `scale(${plantData.size})`;
+          p.style.animation = `float ${3 + Math.random() * 3}s ease-in-out infinite`;
+          p.style.backgroundImage = `url(${IMAGE_ROOT}${Array.isArray(plantData.file) ? plantData.file[0] : plantData.file})`;
+          p.style.backgroundSize = 'contain'; p.style.backgroundRepeat = 'no-repeat'; p.style.backgroundPosition = 'center';
+          container.appendChild(p);
+        }
+      });
+    }
+
+    function showGallery(typeKey) {
+      const plantType = PLANT_TYPES[typeKey];
+      galleryTitle.innerText = `${plantType.name} 성장 과정`;
+      galleryContent.innerHTML = '';
+      [1, 2, 3, 4, 5, 6].forEach(level => {
+        const levelData = plantType.data[level];
+        const div = document.createElement('div');
+        div.className = 'flex flex-col items-center text-center';
+        const imgFile = Array.isArray(levelData.file) ? levelData.file[0] : levelData.file;
+        div.innerHTML = `<div class="w-16 h-16 bg-contain bg-no-repeat bg-center" style="background-image: url(${IMAGE_ROOT}${imgFile});"></div><span class="text-xs mt-1">Lv.${level}</span>`;
+        galleryContent.appendChild(div);
+      });
+      galleryModal.classList.remove('hidden');
+    }
+
+    function updateShopUI() {
+      // 즉시 구매
+      const buyChargeCost = 100;
+      buyChargeCostElement.textContent = buyChargeCost;
+      buyChargeButton.disabled = coins < buyChargeCost || spawnCount >= MAX_SPAWN_STACK;
+      buyChargeButton.classList.toggle('opacity-50', buyChargeButton.disabled);
+
+      // 쿨타임 감소
+      const cooldownUpgradeCost = 50 * Math.pow(2, cooldownUpgradeLevel);
+      cooldownUpgradeCostElement.textContent = cooldownUpgradeCost;
+      cooldownUpgradeDesc.textContent = `현재 레벨 ${cooldownUpgradeLevel}: ${(getSpawnInterval()/1000).toFixed(1)}초`;
+      upgradeCooldownButton.disabled = coins < cooldownUpgradeCost;
+      upgradeCooldownButton.classList.toggle('opacity-50', upgradeCooldownButton.disabled);
+
+      // 레어 확률
+      const rareSpawnUpgradeCost = 100 * Math.pow(3, rareSpawnUpgradeLevel);
+      rareSpawnUpgradeCostElement.textContent = rareSpawnUpgradeCost;
+      rareSpawnUpgradeDesc.textContent = `현재 레벨 ${rareSpawnUpgradeLevel}: ${(rareSpawnUpgradeLevel * 2).toFixed(0)}%`;
+      upgradeRareSpawnButton.disabled = coins < rareSpawnUpgradeCost;
+      upgradeRareSpawnButton.classList.toggle('opacity-50', upgradeRareSpawnButton.disabled);
+    }
+
+    function setupEventListeners() {
+      spawnButton.addEventListener('click', spawnPlant);
+      resetButton.addEventListener('click', () => { if (confirm('정말로 게임을 초기화하시겠습니까?')) resetGame(); });
+      mainTabButton.addEventListener('click', () => switchTab('main'));
+      pokedexTabButton.addEventListener('click', () => switchTab('pokedex'));
+      farmTabButton.addEventListener('click', () => switchTab('farm'));
+      shopTabButton.addEventListener('click', () => switchTab('shop'));
+      closeGalleryButton.addEventListener('click', () => galleryModal.classList.add('hidden'));
+
+      // 상점 버튼
+      buyChargeButton.addEventListener('click', () => {
+        const cost = 100;
+        if (coins >= cost && spawnCount < MAX_SPAWN_STACK) {
+          coins -= cost;
+          spawnCount++;
+          updateCoinUI();
+          updateSpawnCountUI();
+          updateShopUI();
+          saveGame();
+        }
+      });
+      upgradeCooldownButton.addEventListener('click', () => {
+        const cost = 50 * Math.pow(2, cooldownUpgradeLevel);
+        if(coins >= cost) {
+          coins -= cost;
+          cooldownUpgradeLevel++;
+          updateCoinUI();
+          updateShopUI();
+          startSpawnTimer(); // 타이머 재시작
+          saveGame();
+        }
+      });
+      upgradeRareSpawnButton.addEventListener('click', () => {
+        const cost = 100 * Math.pow(3, rareSpawnUpgradeLevel);
+        if(coins >= cost) {
+          coins -= cost;
+          rareSpawnUpgradeLevel++;
+          updateCoinUI();
+          updateShopUI();
+          saveGame();
+        }
+      });
+
+      boardElement.addEventListener('pointerdown', onDragStart);
+      document.addEventListener('pointermove', onDragMove);
+      document.addEventListener('pointerup', onDragEnd);
+
+      boardElement.addEventListener('click', (e) => {
+        const targetCell = e.target.closest('.board-cell');
+        if (!targetCell) return;
+        const plantIndex = parseInt(targetCell.dataset.index, 10);
+        const plant = boardState[plantIndex];
+        if(plant && plant.level === 10 && pokedex[plant.type]?.isNew) {
+          const plantContainer = boardElement.querySelector(`.plant-container[data-index='${plantIndex}']`);
+          if (!plantContainer) return;
+          pokedex[plant.type].isNew = false;
+          plantContainer.classList.remove('plant-glow');
+          alert(`${PLANT_TYPES[plant.type].data[10].name}이(가) 도감에 정식으로 등록되었습니다!`);
+          saveGame();
+        }
+      });
+    }
+
+    function onDragStart(e) {
+      const targetCell = e.target.closest('.board-cell');
+      if (!targetCell) return;
+      const sourceIndex = parseInt(targetCell.dataset.index, 10);
+      if (boardState[sourceIndex] === null) return;
+      const targetContainer = boardElement.querySelector(`.plant-container[data-index='${sourceIndex}']`);
+      if (!targetContainer) return;
+      e.preventDefault();
+      draggedElement = targetContainer;
+      draggedElement.classList.add('dragging');
+      dragSourceIndex = sourceIndex;
+      const plant = draggedElement.querySelector('.plant');
+      dragClone = document.createElement('div');
+      dragClone.id = 'drag-clone';
+      const plantStyle = window.getComputedStyle(plant);
+      dragClone.style.width = plantStyle.width;
+      dragClone.style.height = plantStyle.height;
+      dragClone.style.backgroundImage = plantStyle.backgroundImage;
+      dragClone.style.transform = plantStyle.transform;
+      document.body.appendChild(dragClone);
+      updateClonePosition(e);
+    }
+
+    function onDragMove(e) {
+      if (!draggedElement) return;
+      e.preventDefault();
+      updateClonePosition(e);
+      const targetCell = getCellFromPoint(e.clientX, e.clientY);
+      document.querySelectorAll('.plant-container').forEach(p => p.classList.remove('merge-candidate'));
+      if (targetCell) {
+        const targetIndex = parseInt(targetCell.dataset.index, 10);
+        const sourcePlant = boardState[dragSourceIndex];
+        const targetPlant = boardState[targetIndex];
+        if (targetPlant && sourcePlant && targetPlant.level === sourcePlant.level && sourcePlant.type === targetPlant.type && dragSourceIndex !== targetIndex) {
+          const targetContainer = boardElement.querySelector(`.plant-container[data-index='${targetIndex}']`);
+          if(targetContainer) targetContainer.classList.add('merge-candidate');
+        }
+      }
+    }
+
+    function onDragEnd(e) {
+      if (!draggedElement) return;
+      e.preventDefault();
+      document.querySelectorAll('.plant-container').forEach(p => p.classList.remove('merge-candidate'));
+      const targetCell = getCellFromPoint(e.clientX, e.clientY);
+      if (targetCell) handleDrop(parseInt(targetCell.dataset.index, 10));
+      draggedElement.classList.remove('dragging');
+      draggedElement = null;
+      if (dragClone) dragClone.remove();
+      dragClone = null;
+      dragSourceIndex = -1;
+    }
+
+    function handleDrop(targetIndex) {
+      if (dragSourceIndex === -1 || dragSourceIndex === targetIndex) return;
+      const sourcePlant = boardState[dragSourceIndex];
+      const targetPlant = boardState[targetIndex];
+      if (targetPlant && sourcePlant && sourcePlant.type === targetPlant.type && sourcePlant.level === targetPlant.level) {
+        mergePlants(dragSourceIndex, targetIndex);
+      } else if (!targetPlant) {
+        boardState[targetIndex] = sourcePlant;
+        boardState[dragSourceIndex] = null;
+        renderBoard();
+        saveGame();
+      }
+    }
+
+    function updateClonePosition(e) {
+      if (!dragClone) return;
+      dragClone.style.left = `${e.clientX - dragClone.offsetWidth / 2}px`;
+      dragClone.style.top = `${e.clientY - dragClone.offsetHeight / 2}px`;
+    }
+
+    function getCellFromPoint(x, y) {
+      if (dragClone) dragClone.style.display = 'none';
+      if (draggedElement) draggedElement.style.visibility = 'hidden';
+      const element = document.elementFromPoint(x, y);
+      if (dragClone) dragClone.style.display = '';
+      if (draggedElement) draggedElement.style.visibility = 'visible';
+      if (!element) return null;
+      return element.closest('.board-cell');
+    }
+
+    function saveGame() {
+      const gameState = {
+        boardState, spawnCount, pokedex, lastSaveTime: Date.now(),
+        coins, cooldownUpgradeLevel, rareSpawnUpgradeLevel
+      };
+      localStorage.setItem('mergeGardenSave', JSON.stringify(gameState));
+    }
+
+    function loadGame() {
+      const savedGame = localStorage.getItem('mergeGardenSave');
+      if (savedGame) {
+        const gameState = JSON.parse(savedGame);
+        boardState = (gameState.boardState?.length === BOARD_SIZE) ? gameState.boardState : Array(BOARD_SIZE).fill(null);
+        pokedex = gameState.pokedex || {};
+        spawnCount = gameState.spawnCount || 0;
+        coins = gameState.coins || 0;
+        cooldownUpgradeLevel = gameState.cooldownUpgradeLevel || 0;
+        rareSpawnUpgradeLevel = gameState.rareSpawnUpgradeLevel || 0;
+
+        if (gameState.lastSaveTime) {
+          const elapsedSeconds = (Date.now() - gameState.lastSaveTime) / 1000;
+          if (spawnCount < MAX_SPAWN_STACK) {
+            const chargesEarned = Math.floor(elapsedSeconds / (getSpawnInterval() / 1000));
+            const newSpawnCount = Math.min(MAX_SPAWN_STACK, spawnCount + chargesEarned);
+            if (newSpawnCount < MAX_SPAWN_STACK) {
+              lastSpawnTime = Date.now() - ((elapsedSeconds * 1000) % getSpawnInterval());
+            } else {
+              lastSpawnTime = Date.now();
+            }
+            spawnCount = newSpawnCount;
+          } else {
+            lastSpawnTime = Date.now();
+          }
+        }
+      } else {
+        spawnCount = MAX_SPAWN_STACK;
+      }
+    }
+
+    function resetGame() {
+      localStorage.removeItem('mergeGardenSave');
+      boardState.fill(null);
+      spawnCount = MAX_SPAWN_STACK;
+      lastSpawnTime = Date.now();
+      pokedex = {};
+      coins = 0;
+      cooldownUpgradeLevel = 0;
+      rareSpawnUpgradeLevel = 0;
+      renderBoard();
+      updateSpawnCountUI();
+      updateCoinUI();
+      startSpawnTimer();
+    }
+
+    preloadImages().then(() => {
+      loadingScreen.style.display = 'none';
+      gameContainer.style.opacity = 1;
+      init();
+    }).catch(err => {
+      console.error("이미지 로딩 실패:", err);
+      loadingText.innerText = "오류 발생! 새로고침 해주세요.";
+    });
+  });
+</script>
+
+</body>
+</html>
+
