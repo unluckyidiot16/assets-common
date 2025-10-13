@@ -105,13 +105,12 @@
     const unlockNotification = document.getElementById('unlockNotification');
     const SUPA_URL = "https://nfkjolrlegftyvxyrpfr.supabase.co";
     const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ma2pvbHJsZWdmdHl2eHlycGZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzMTI3NzgsImV4cCI6MjA3NTg4ODc3OH0.p2IhcLKDqNdbDWu6w6R_dvsxubvWf6xtNOqlSkWTSpY";
-    function readCodeFromURL(){
-        const m = new URLSearchParams(location.search).get('code');
-        return m || null;
-    }
-
+    function readParam(name){ return new URLSearchParams(location.search).get(name); }
+    const studentToken = readParam('t') || localStorage.getItem('studentToken') || null;
+    function readCodeFromURL(){ const m = new URLSearchParams(location.search).get('code'); return m || null; }
     const studentCode = readCodeFromURL() || localStorage.getItem('studentCode') || '';
-    
+
+
 
     // --- 보트 데이터 ---
     const BOATS = [
@@ -386,9 +385,10 @@
         hud.classList.add('hidden');
         gameOverScreen.classList.remove('hidden');
 
-        submitResult(studentCode, 'flappy-boat',
-            { accuracy:0.91, avgLatencyMs:380 },
-            { reaction:0.82, timing:0.76, literacy:0.61, problem:0.70, strategy:0.55, persistence:0.88 });
+        submitResultRaw('flappy-boat',
+            { accuracy: 0.91, avgLatencyMs: 380, score: score },
+            { retries: 1, durationSec: Math.floor(performance.now()/1000), puzzleAcc: 0.68 }
+        );
     }
 
     function backToMenu() {
@@ -435,32 +435,34 @@
 
     initializeGame();
 
-    async function submitResult(code, gameSlug, summary, axes){
+    async function submitResultRaw(gameSlug, summary, stats){
+        const headers = {
+            'apikey': ANON_KEY,
+            'Authorization': `Bearer ${ANON_KEY}`,
+            'Content-Type': 'application/json'
+        };
+
+        if (studentToken) {
+            // 코드 노출 없이 토큰으로 업로드
+            const res = await fetch(`${SUPA_URL}/rest/v1/rpc/rpc_ingest_raw_by_token`, {
+                method: 'POST', headers, body: JSON.stringify({
+                    _token: studentToken, _game_slug: gameSlug, _summary: summary, _stats: stats||{}
+                })
+            });
+            if (!res.ok) console.error('ingest by token failed:', await res.text());
+            return;
+        }
+
+        // (백업) 코드로 업로드
         const res = await fetch(`${SUPA_URL}/rest/v1/rpc/rpc_ingest_raw`, {
-            method: 'POST',
-            headers: {
-                'apikey': ANON_KEY,
-                'Authorization': `Bearer ${ANON_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                _code: studentCode,           // QR/코드에서 얻은 값
-                _game_slug: 'flappy-boat',    // 게임 식별자
-                _summary: {                   // 요약 지표(예시)
-                    accuracy: 0.91,
-                    avgLatencyMs: 380,
-                    score: 27
-                },
-                _stats: {                     // 선택 지표(필요 시)
-                    retries: 1,
-                    durationSec: 120,
-                    puzzleAcc: 0.68
-                }
+            method: 'POST', headers, body: JSON.stringify({
+                _code: studentCode, _game_slug: gameSlug, _summary: summary, _stats: stats||{}
             })
         });
-        if (!res.ok) console.error('ingest failed:', await res.text());
+        if (!res.ok) console.error('ingest by code failed:', await res.text());
     }
-    
+
+
 </script>
 </body>
 </html>
