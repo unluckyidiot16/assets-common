@@ -103,6 +103,15 @@
     const highScoreEl = document.getElementById('highScore');
     const boatListContainer = document.getElementById('boatList');
     const unlockNotification = document.getElementById('unlockNotification');
+    const SUPA_URL = "https://nfkjolrlegftyvxyrpfr.supabase.co";
+    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ma2pvbHJsZWdmdHl2eHlycGZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzMTI3NzgsImV4cCI6MjA3NTg4ODc3OH0.p2IhcLKDqNdbDWu6w6R_dvsxubvWf6xtNOqlSkWTSpY";
+    function readCodeFromURL(){
+        const m = new URLSearchParams(location.search).get('code');
+        return m || null;
+    }
+
+    const studentCode = readCodeFromURL() || localStorage.getItem('studentCode') || '';
+    
 
     // --- 보트 데이터 ---
     const BOATS = [
@@ -376,6 +385,10 @@
         highScoreEl.textContent = highScore;
         hud.classList.add('hidden');
         gameOverScreen.classList.remove('hidden');
+
+        submitResult(studentCode, 'flappy-boat',
+            { accuracy:0.91, avgLatencyMs:380 },
+            { reaction:0.82, timing:0.76, literacy:0.61, problem:0.70, strategy:0.55, persistence:0.88 });
     }
 
     function backToMenu() {
@@ -421,6 +434,33 @@
     }
 
     initializeGame();
+
+    async function submitResult(code, gameSlug, summary, axes){
+        const res = await fetch(`${SUPA_URL}/rest/v1/rpc/rpc_ingest_raw`, {
+            method: 'POST',
+            headers: {
+                'apikey': ANON_KEY,
+                'Authorization': `Bearer ${ANON_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                _code: studentCode,           // QR/코드에서 얻은 값
+                _game_slug: 'flappy-boat',    // 게임 식별자
+                _summary: {                   // 요약 지표(예시)
+                    accuracy: 0.91,
+                    avgLatencyMs: 380,
+                    score: 27
+                },
+                _stats: {                     // 선택 지표(필요 시)
+                    retries: 1,
+                    durationSec: 120,
+                    puzzleAcc: 0.68
+                }
+            })
+        });
+        if (!res.ok) console.error('ingest failed:', await res.text());
+    }
+    
 </script>
 </body>
 </html>
