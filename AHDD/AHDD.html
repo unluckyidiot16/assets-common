@@ -86,64 +86,119 @@
             50% { opacity: 1; }
         }
         /* Rank colors */
-        .rank-1-bg { background-color: rgba(127, 29, 29, 0.3); border-color: rgba(239, 68, 68, 0.4); } /* Front */
-        .rank-2-bg { background-color: rgba(20, 83, 45, 0.3); border-color: rgba(34, 197, 94, 0.4); } /* Mid */
-        .rank-3-bg { background-color: rgba(30, 64, 175, 0.3); border-color: rgba(59, 130, 246, 0.4); } /* Back */
+        .rank-1-bg { background-color: rgba(127, 29, 29, 0.3); border-color: rgba(239, 68, 68, 0.4); }
+        .rank-2-bg { background-color: rgba(20, 83, 45, 0.3); border-color: rgba(34, 197, 94, 0.4); }
+        .rank-3-bg { background-color: rgba(30, 64, 175, 0.3); border-color: rgba(59, 130, 246, 0.4); }
+        .screen { display: none; }
+        .screen.active { display: flex; }
     </style>
 </head>
 <body class="select-none">
-<div id="game-container" class="min-h-screen flex flex-col p-4 relative pb-72">
 
+<!-- Title Screen -->
+<div id="title-screen" class="screen active min-h-screen flex-col justify-center items-center text-center p-4 bg-gray-900">
+    <h1 class="text-6xl font-bold mb-4 text-yellow-400">3v3 전술 카드 배틀</h1>
+    <p class="text-xl text-gray-300 mb-8">나만의 파티와 덱을 구성하여 아레나의 승자가 되세요.</p>
+    <button onclick="showScreen('lobby-screen')" class="px-10 py-5 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold rounded-lg text-2xl transition-transform transform hover:scale-105">게임 시작</button>
+</div>
+
+<!-- Lobby Screen -->
+<div id="lobby-screen" class="screen min-h-screen flex-col p-8 bg-gray-800">
+    <h2 class="text-4xl font-bold mb-6 text-center">로비</h2>
+    <div class="flex flex-grow space-x-8">
+        <!-- Roster -->
+        <div class="w-2/3 bg-gray-900 p-6 rounded-lg">
+            <h3 class="text-2xl font-bold mb-4">내 용병 목록</h3>
+            <div id="character-roster" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto max-h-[60vh]"></div>
+            <div class="mt-4">
+                <h4 class="text-lg font-bold mb-2">새 용병 생성</h4>
+                <div class="flex space-x-2">
+                    <select id="new-character-class" class="bg-gray-700 text-white p-2 rounded w-full">
+                        <option value="bruiser">기사</option>
+                        <option value="hunter">로그(여)</option>
+                        <option value="cleric">공주</option>
+                        <option value="warlock">마법사</option>
+                        <option value="assassin">로그(남)</option>
+                        <option value="guard">흑기사</option>
+                    </select>
+                    <button onclick="createNewCharacter()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded font-bold">생성</button>
+                </div>
+            </div>
+        </div>
+        <!-- Party -->
+        <div class="w-1/3 bg-gray-900 p-6 rounded-lg flex flex-col">
+            <h3 class="text-2xl font-bold mb-4">현재 파티</h3>
+            <div id="party-selection" class="flex-grow space-y-4"></div>
+            <button id="start-combat-btn" onclick="startCombatWithParty()" class="w-full mt-4 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-xl disabled:bg-gray-600 disabled:cursor-not-allowed">전투 시작</button>
+        </div>
+    </div>
+</div>
+
+<!-- Deck Editor Screen -->
+<div id="deck-editor-screen" class="screen min-h-screen p-8 bg-gray-800">
+    <div class="w-1/3 bg-gray-900 p-4 rounded-lg flex flex-col">
+        <h3 id="editor-char-name" class="text-2xl font-bold mb-2"></h3>
+        <p id="editor-char-class" class="text-gray-400 mb-4"></p>
+        <div class="flex-grow overflow-y-auto">
+            <h4 class="text-xl font-bold mb-2">덱 (<span id="deck-count">0</span>/20)</h4>
+            <div id="deck-list" class="space-y-1"></div>
+        </div>
+        <div class="mt-4 flex space-x-2">
+            <button onclick="saveDeck()" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold">저장</button>
+            <button onclick="showScreen('lobby-screen')" class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded">로비로</button>
+        </div>
+    </div>
+    <div class="w-2/3 bg-gray-900 p-4 rounded-lg ml-8 overflow-y-auto">
+        <h3 class="text-2xl font-bold mb-4">사용 가능한 카드</h3>
+        <div id="card-pool" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+    </div>
+</div>
+
+<!-- Game Container -->
+<div id="game-container" class="screen min-h-screen flex-col p-4 relative pb-72">
     <div id="game-over-modal" class="hidden absolute inset-0 bg-black bg-opacity-75 flex-col justify-center items-center z-50">
         <h2 id="game-over-title" class="text-6xl font-bold mb-4"></h2>
         <p id="game-over-message" class="text-xl mb-8"></p>
-        <button onclick="initializeGame()" class="px-8 py-4 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold rounded-lg text-2xl transition-transform transform hover:scale-105">새 게임 시작</button>
+        <button onclick="showScreen('lobby-screen')" class="px-8 py-4 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold rounded-lg text-2xl transition-transform transform hover:scale-105">로비로 돌아가기</button>
     </div>
-
     <div id="floating-text-container" class="absolute inset-0 pointer-events-none z-40"></div>
-
     <div id="game-info" class="absolute top-4 right-4 text-right bg-gray-900 bg-opacity-70 p-4 rounded-lg z-10">
         <h2 id="turn-indicator" class="text-2xl font-bold turn-indicator"></h2>
         <p id="round-counter" class="text-lg"></p>
     </div>
-
     <div class="flex-grow flex flex-col justify-center items-center space-y-8">
         <div class="flex flex-col items-center">
             <div id="ai-hand" class="flex justify-center items-start space-x-[-20px] h-32"></div>
             <div id="ai-team" class="flex justify-center items-end space-x-4"></div>
         </div>
-
         <div class="flex flex-col items-center">
             <div id="player-team" class="flex justify-center items-start space-x-4"></div>
         </div>
     </div>
-
     <div class="flex justify-between items-end fixed bottom-0 left-0 right-0 p-4 bg-gray-900 bg-opacity-50 backdrop-blur-sm h-64">
         <div class="w-1/4 h-full bg-gray-800 rounded-lg p-2 overflow-y-auto border border-gray-700">
             <div id="game-log" class="text-sm space-y-1"></div>
         </div>
-
         <div id="player-hand" class="flex-grow h-full flex justify-center items-center space-x-[-40px] mx-4"></div>
-
         <div class="w-1/4 h-full flex flex-col items-center justify-center space-y-3 bg-gray-800 rounded-lg p-2 border border-gray-700">
             <div class="text-center">
                 <div id="player-ap" class="text-4xl font-bold text-yellow-400"></div>
                 <div class="text-sm">행동력 (AP)</div>
             </div>
-            <p class="text-sm text-center text-gray-400">인접한 아군/빈 슬롯을 클릭하여<br>위치를 교대할 수 있습니다 (1 AP).</p>
+            <p class="text-sm text-center text-gray-400">인접한 아군/빈 슬롯 클릭: 위치 교대 (1 AP)</p>
             <button id="end-turn-btn" class="w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-xl disabled:bg-gray-600 disabled:cursor-not-allowed">턴 종료</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 게임 데이터 정의 ---
+    // --- DATA DEFINITIONS ---
     const CLASS_DATA = {
         bruiser: { name: '기사', stats: { maxHp: 80, atk: 10, def: 5, spd: 4 }, signatureIds: ['linebreaker'], imageUrl: 'https://unluckyidiot16.github.io/assets-common/fantasy-characters/Knight/knight_NoOL_L.png' },
-        hunter: { name: '로그', stats: { maxHp: 65, atk: 12, def: 2, spd: 6 }, signatureIds: ['kill_zone'], imageUrl: 'https://unluckyidiot16.github.io/assets-common/fantasy-characters/Rogue/rogue-female_NoOL_L.png' },
+        hunter: { name: '로그(여)', stats: { maxHp: 65, atk: 12, def: 2, spd: 6 }, signatureIds: ['kill_zone'], imageUrl: 'https://unluckyidiot16.github.io/assets-common/fantasy-characters/Rogue/rogue-female_NoOL_L.png' },
         cleric: { name: '공주', stats: { maxHp: 70, atk: 8, def: 3, spd: 3 }, signatureIds: ['aegis_hymn'], imageUrl: 'https://unluckyidiot16.github.io/assets-common/fantasy-characters/Princess/princess_NoOL_L.png' },
         warlock: { name: '마법사', stats: { maxHp: 68, atk: 11, def: 2, spd: 5 }, signatureIds: ['soul_brand'], imageUrl: 'https://unluckyidiot16.github.io/assets-common/fantasy-characters/Wizard/wizard_NoOL_L.png' },
-        assassin: { name: '로그', stats: { maxHp: 60, atk: 13, def: 1, spd: 7 }, signatureIds: ['execution'], imageUrl: 'https://unluckyidiot16.github.io/assets-common/fantasy-characters/Rogue/rogue-male_NoOL_L.png' },
+        assassin: { name: '로그(남)', stats: { maxHp: 60, atk: 13, def: 1, spd: 7 }, signatureIds: ['execution'], imageUrl: 'https://unluckyidiot16.github.io/assets-common/fantasy-characters/Rogue/rogue-male_NoOL_L.png' },
         guard: { name: '흑기사', stats: { maxHp: 90, atk: 9, def: 6, spd: 2 }, signatureIds: ['phalanx_wall'], imageUrl: 'https://unluckyidiot16.github.io/assets-common/fantasy-characters/Knight/knight-black_NoOL_L.png' }
     };
 
@@ -158,6 +213,14 @@
         first_aid: { id: 'first_aid', name: '응급 처치', fromRanks: [2, 3], toRanks: [1, 2, 3], targetSide: 'ally', apCost: 1, text: '아군 하나 치유 8', effects: [{ type: 'heal', value: 8 }] },
         push: { id: 'push', name: '밀치기', fromRanks: [1, 2], toRanks: [1, 2], targetSide: 'enemy', apCost: 1, text: '피해 4, 밀치기 1', effects: [{ type: 'damage', value: 4 }, { type: 'push', spaces: 1 }] },
         pull: { id: 'pull', name: '끌어오기', fromRanks: [2, 3], toRanks: [2, 3], targetSide: 'enemy', apCost: 1, text: '피해 4, 끌어오기 1', effects: [{ type: 'damage', value: 4 }, { type: 'pull', spaces: 1 }] },
+
+        punish: { id: 'punish', name: '응징', apCost: 1, targetSide: 'enemy', fromRanks: [1, 2], toRanks: [1, 2, 3], text: '피해 7. 대상이 Marked 상태면 Vulnerable 1 부여.', effects: [{ type: 'damage', value: 7 }, { type: 'conditionalApplyToken', condition: 'targetHasToken', token: 'Marked', effect: { type: 'applyToken', token: 'Vulnerable', stacks: 1 } }] },
+        exploit_opening: { id: 'exploit_opening', name: '기회 포착', apCost: 1, targetSide: 'ally', selfTarget: true, fromRanks: [1, 2, 3], toRanks: [], text: '자신에게 Strength 1 부여. 적 하나라도 Weak 상태면, Block 1도 부여.', effects: [{ type: 'applyToken', token: 'Strength', stacks: 1 }, { type: 'conditionalApplyToken', condition: 'anyEnemyHasToken', token: 'Weak', effect: { type: 'applyToken', token: 'Block', stacks: 1 } }] },
+        overwhelm: { id: 'overwhelm', name: '압도', apCost: 2, targetSide: 'enemy', fromRanks: [1], toRanks: [1, 2], text: '피해 12. 대상이 Vulnerable 상태면 밀치기 1.', effects: [{ type: 'damage', value: 12 }, { type: 'conditionalPush', condition: 'targetHasToken', token: 'Vulnerable', spaces: 1 }] },
+        shield_slam: { id: 'shield_slam', name: '방패 강타', apCost: 1, targetSide: 'enemy', fromRanks: [1, 2], toRanks: [1], text: '자신의 Block 중첩만큼 추가 피해(x3). 모든 Block 소모.', effects: [{ type: 'dynamicDamage', multiplier: 3, token: 'Block', consume: true }] },
+        focused_strike: { id: 'focused_strike', name: '집중 공격', apCost: 1, targetSide: 'enemy', fromRanks: [1, 2], toRanks: [1, 2], text: '피해 10. 대상이 Marked 상태면 Block을 무시.', effects: [{ type: 'damage', value: 10, ignoreBlockIfTargetMarked: true }] },
+        sap_strength: { id: 'sap_strength', name: '힘 흡수', apCost: 1, targetSide: 'enemy', fromRanks: [2, 3], toRanks: [1, 2, 3], text: '피해 5. 대상이 Weak 상태면, 자신은 Strength 1 획득.', effects: [{ type: 'damage', value: 5 }, { type: 'conditionalApplyToken', condition: 'targetHasToken', token: 'Weak', effect: { type: 'applyToken', token: 'Strength', stacks: 1, self: true } }] },
+
         linebreaker: { id: 'linebreaker', name: '전선 돌파', fromRanks: [1, 2], toRanks: [1], targetSide: 'enemy', apCost: 1, text: '전진 1, 피해 12, Marked 1, 밀치기 1. 이번 턴 이동했다면 Stun 1', signature: true, effects: [{ type: 'move', self: true, spaces: -1 }, { type: 'damage', value: 12 }, { type: 'applyToken', token: 'Marked', stacks: 1 }, { type: 'push', spaces: 1 }, { type: 'conditionalStun', condition: 'movedThisTurn', stacks: 1 }] },
         phalanx_wall: { id: 'phalanx_wall', name: '방진벽', fromRanks: [1], toRanks: [], targetSide: 'ally', selfTarget: true, apCost: 1, text: '모든 아군 Block 1, 자신에게 Guard 2, Taunt 1', signature: true, effects: [{ type: 'teamEffect', effect: { type: 'applyToken', token: 'Block', stacks: 1 } }, { type: 'applyToken', token: 'Guard', stacks: 2 }, { type: 'applyToken', token: 'Taunt', stacks: 1 }] },
         execution: { id: 'execution', name: '처형', fromRanks: [1, 2], toRanks: [1, 2], targetSide: 'enemy', apCost: 1, text: '피해 10. 대상 HP 30% 이하 시 추가 고정 피해 8. 처치 시 자신 Strength 1, 이동 1', signature: true, effects: [{ type: 'damage', value: 10 }, { type: 'conditionalExecute', threshold: 0.3, damage: 8 }, { type: 'onKill', effects: [{ type: 'applyToken', token: 'Strength', stacks: 1 }, { type: 'freeMove', spaces: 1 }] }], bonusIfTargetMarked: { damagePct: 25 } },
@@ -166,21 +229,125 @@
         soul_brand: { id: 'soul_brand', name: '영혼 낙인', fromRanks: [2, 3], toRanks: [1, 2, 3], targetSide: 'enemy', apCost: 1, text: 'Marked 1 부여. 라운드 종료 시, 대상이 받은 피해 25%만큼 추가 피해 후 Vulnerable 1 부여', signature: true, effects: [{ type: 'applyToken', token: 'Marked', stacks: 1 }, { type: 'applyDebuff', debuff: 'soulBrand', duration: 'round' }] },
     };
 
+    Object.assign(CARD_DATA, {
+        feint: { id:'feint', name:'페인트', fromRanks:[1,2], toRanks:[1,2], targetSide:'enemy', apCost:1, text:'피해 6, 대상에게 Weak 1', effects:[ {type:'damage', value:6}, {type:'applyToken', token:'Weak', stacks:1} ] },
+        rally_banner: { id:'rally_banner', name:'집결의 깃발', fromRanks:[1,2,3], toRanks:[], targetSide:'ally', selfTarget:true, apCost:1, text:'아군 전체 Block 1', effects:[ {type:'teamEffect', effect:{type:'applyToken', token:'Block', stacks:1}} ] },
+        focus_self: { id:'focus_self', name:'전투 집중', fromRanks:[1,2,3], toRanks:[], targetSide:'ally', selfTarget:true, apCost:1, text:'자신에게 Strength 1', effects:[ {type:'applyToken', token:'Strength', stacks:1} ] },
+        protect_self: { id:'protect_self', name:'몸으로 막아!', fromRanks:[1,2], toRanks:[], targetSide:'ally', selfTarget:true, apCost:1, text:'자신 Guard 1, Taunt 1', effects:[ {type:'applyToken', token:'Guard', stacks:1}, {type:'applyToken', token:'Taunt', stacks:1} ] },
+        marking_strike: { id:'marking_strike', name:'표식 타격', fromRanks:[1,2], toRanks:[1,2], targetSide:'enemy', apCost:1, text:'피해 5, Marked 1', effects:[ {type:'damage', value:5}, {type:'applyToken', token:'Marked', stacks:1} ] },
+        step_back: { id:'step_back', name:'후퇴', fromRanks:[1,2,3], toRanks:[], targetSide:'ally', selfTarget:true, apCost:1, text:'자신 뒤로 1칸 이동', effects:[ {type:'move', self:true, spaces:+1} ] },
+        step_forward: { id:'step_forward', name:'전진', fromRanks:[1,2,3], toRanks:[], targetSide:'ally', selfTarget:true, apCost:1, text:'자신 앞으로 1칸 이동', effects:[ {type:'move', self:true, spaces:-1} ] },
+        piercing_shot: { id:'piercing_shot', name:'관통 사격', fromRanks:[2,3], toRanks:[1,2,3], targetSide:'enemy', apCost:1, text:'피해 8. 대상이 Marked면 Block 무시', effects:[ {type:'damage', value:8, ignoreBlockIfTargetMarked:true} ] },
+        pommel_strike: { id:'pommel_strike', name:'손잡이 강타', fromRanks:[1,2], toRanks:[1], targetSide:'enemy', apCost:1, text:'피해 7, 밀치기 1', effects:[ {type:'damage', value:7}, {type:'push', spaces:1} ] },
+        shield_wall: { id:'shield_wall', name:'방벽 형성', fromRanks:[1,2], toRanks:[], targetSide:'ally', selfTarget:true, apCost:1, text:'자신 Block+ 1, Guard 1', effects:[ {type:'applyToken', token:'Block+', stacks:1}, {type:'applyToken', token:'Guard', stacks:1} ] },
+        eviscerate: { id:'eviscerate', name:'창자 꿰기', fromRanks:[1,2], toRanks:[1,2], targetSide:'enemy', apCost:1, text:'피해 9. 대상이 Marked면 추가로 Vulnerable 1', effects:[ {type:'damage', value:9}, {type:'conditionalApplyToken', condition:'targetHasToken', token:'Marked', effect:{type:'applyToken', token:'Vulnerable', stacks:1}} ] },
+        suppressive_fire: { id:'suppressive_fire', name:'제압 사격', fromRanks:[3], toRanks:[1,2,3], targetSide:'enemy', apCost:1, text:'피해 5, Weak 1, 밀치기 1', effects:[ {type:'damage', value:5}, {type:'applyToken', token:'Weak', stacks:1}, {type:'push', spaces:1} ] },
+        blessing: { id:'blessing', name:'축복', fromRanks:[2,3], toRanks:[1,2,3], targetSide:'ally', apCost:1, text:'아군 하나 치유 6, Block 1', effects:[ {type:'heal', value:6}, {type:'applyToken', token:'Block', stacks:1} ] },
+        hex_vulnerability: { id:'hex_vulnerability', name:'취약의 저주', fromRanks:[2,3], toRanks:[1,2,3], targetSide:'enemy', apCost:1, text:'Vulnerable 1 부여', effects:[ {type:'applyToken', token:'Vulnerable', stacks:1} ] }
+    });
+
+    const iconNameMap = {
+        'Execution (S)': 'execution', 'Eviscerate': 'eviscerate', 'Feint': 'feint', 'Step Forward': 'step_forward', 'Marking Strike': 'marking_strike', 'Focused Strike': 'focused_strike', 'Punish': 'punish', 'Quick Strike': 'quick_strike', 'Weaken': 'weaken', 'Push': 'push',
+        'Linebreaker (S)': 'linebreaker', 'Pommel Strike': 'pommel_strike', 'Strike': 'strike', 'Overwhelm': 'overwhelm', 'Protect Self': 'protect_self', 'Rally Banner': 'rally_banner', 'Focus Self': 'focus_self',
+        'Aegis Hymn (S)': 'aegis_hymn', 'Blessing': 'blessing', 'First Aid': 'first_aid', 'Defend': 'defend', 'Brace': 'brace', 'Exploit Opening': 'exploit_opening', 'Step Back': 'step_back',
+        'Kill Zone (S)': 'kill_zone', 'Suppressive Fire': 'suppressive_fire', 'Piercing Shot': 'piercing_shot', 'Shoot': 'shoot', 'Mark Target': 'mark_target',
+        'Phalanx Wall (S)': 'phalanx_wall', 'Shield Slam': 'shield_slam', 'Shield Wall': 'shield_wall',
+        'Soul Brand (S)': 'soul_brand', 'Hex Vulnerability': 'hex_vulnerability', 'Sap Strength': 'sap_strength', 'Pull': 'pull'
+    };
+    const rawIconData = {
+        assassin: { 'Execution (S)': '01', 'Eviscerate': '02', 'Feint': '03', 'Step Forward': '04', 'Marking Strike': '05', 'Focused Strike': '06', 'Punish': '07', 'Quick Strike': '08', 'Weaken': '09', 'Push': '10' },
+        bruiser: { 'Linebreaker (S)': '01', 'Pommel Strike': '02', 'Strike': '03', 'Push': '04', 'Overwhelm': '05', 'Protect Self': '06', 'Rally Banner': '07', 'Focus Self': '08', 'Marking Strike': '09', 'Step Forward': '10' },
+        cleric: { 'Aegis Hymn (S)': '01', 'Blessing': '02', 'First Aid': '03', 'Defend': '04', 'Brace': '05', 'Weaken': '06', 'Exploit Opening': '07', 'Rally Banner': '08', 'Focus Self': '09', 'Step Back': '10' },
+        hunter: { 'Kill Zone (S)': '01', 'Suppressive Fire': '02', 'Piercing Shot': '03', 'Shoot': '04', 'Mark Target': '05', 'Punish': '06', 'Focus Self': '07', 'Step Back': '08' },
+        guard: { 'Phalanx Wall (S)': '01', 'Shield Slam': '02', 'Shield Wall': '03', 'Protect Self': '04', 'Strike': '05', 'Overwhelm': '06', 'Pommel Strike': '07', 'Rally Banner': '08', 'Focus Self': '09', 'Marking Strike': '10' },
+        warlock: { 'Soul Brand (S)': '01', 'Hex Vulnerability': '02', 'Weaken': '03', 'Mark Target': '04', 'Sap Strength': '05', 'Pull': '06', 'Punish': '07', 'Focus Self': '08' }
+    };
+    const classFolderMap = { bruiser: 'Bruiser', guard: 'Knight', hunter: 'Hunter', warlock: 'Warlock', cleric: 'Cleric', assassin: 'Assassin'};
+
+    for (const classId in rawIconData) {
+        const folder = classFolderMap[classId];
+        for (const skillName in rawIconData[classId]) {
+            const cardId = iconNameMap[skillName];
+            if (cardId && CARD_DATA[cardId]) {
+                CARD_DATA[cardId].iconUrl = `https://unluckyidiot16.github.io/assets-common/SkillIcons/${folder}/${rawIconData[classId][skillName]}.png`;
+            }
+        }
+    }
+
     const TOKEN_DATA = {
-        'Strength': { name: '힘', color: 'bg-red-500', description: '다음 공격 피해 +50%' },
-        'Weak': { name: '약화', color: 'bg-purple-500', description: '다음 공격 피해 -50%' },
-        'Vulnerable': { name: '취약', color: 'bg-yellow-600', description: '다음 피격 피해 +50%' },
-        'Block': { name: '방어', color: 'bg-blue-500', description: '다음 피격 피해 -50%' },
-        'Block+': { name: '견고한 방어', color: 'bg-blue-700', description: '다음 피격 피해 -75%' },
-        'Guard': { name: '수호', color: 'bg-indigo-500', description: '대신 피격' },
-        'Taunt': { name: '도발', color: 'bg-pink-500', description: '우선 공격 대상' },
-        'Stun': { name: '기절', color: 'bg-yellow-400', description: '다음 턴 행동 불가' },
-        'Stun Ward': { name: '기절 면역', color: 'bg-green-400', description: '기절 1회 방어' },
-        'Marked': { name: '표식', color: 'bg-red-800', description: '특정 카드 효과 강화' }
+        'Strength': { name: '힘', color: 'bg-red-500', description: '다음 공격 피해 +50%' }, 'Weak': { name: '약화', color: 'bg-purple-500', description: '다음 공격 피해 -50%' }, 'Vulnerable': { name: '취약', color: 'bg-yellow-600', description: '다음 피격 피해 +50%' }, 'Block': { name: '방어', color: 'bg-blue-500', description: '다음 피격 피해 -50%' }, 'Block+': { name: '견고한 방어', color: 'bg-blue-700', description: '다음 피격 피해 -75%' }, 'Guard': { name: '수호', color: 'bg-indigo-500', description: '대신 피격' }, 'Taunt': { name: '도발', color: 'bg-pink-500', description: '우선 공격 대상' }, 'Stun': { name: '기절', color: 'bg-yellow-400', description: '다음 턴 행동 불가' }, 'Stun Ward': { name: '기절 면역', color: 'bg-green-400', description: '기절 1회 방어' }, 'Marked': { name: '표식', color: 'bg-red-800', description: '특정 카드 효과 강화' }
+    };
+
+    const PASSIVES = {
+        bruiser: {
+            onTurnStart: (u) => { if (u.rank === 1) applyToken(u, 'Guard', 1); },
+            afterMove:  (u, spaces) => { if (spaces < 0) applyToken(u, 'Strength', 1); }
+        },
+        guard: {
+            onTurnStart: (u) => { applyToken(u, 'Taunt', 1); applyToken(u, 'Block', 1); }
+        },
+        assassin: {
+            onKill: (u, target) => { applyToken(u, 'Strength', 1); moveCharacter(u, -1); }
+        },
+        hunter: {
+            onTurnStart: (u) => { if (u.rank === 3) applyToken(u, 'Strength', 1); }
+        },
+        cleric: {
+            onTurnStart: (u) => {
+                if (hasToken(u, 'Weak')) removeToken(u, 'Weak', 1);
+                else if (hasToken(u, 'Vulnerable')) removeToken(u, 'Vulnerable', 1);
+            }
+        },
+        warlock: {
+            afterDamage: (src, tgt, amt) => {
+                if (src && (hasToken(tgt,'Marked') || hasToken(tgt,'Weak'))) applyToken(tgt, 'Vulnerable', 1);
+            }
+        }
+    };
+    function passiveTurnStart(u){ const f = PASSIVES[u.class]?.onTurnStart; if (f) f(u); }
+    function passiveAfterMove(u, spaces){ const f = PASSIVES[u.class]?.afterMove; if (f) f(u, spaces); }
+    function passiveAfterDamage(src, tgt, amt){ const f = PASSIVES[src.class]?.afterDamage; if (f) f(src, tgt, amt); }
+    function passiveOnKill(src, tgt){ const f = PASSIVES[src.class]?.onKill; if (f) f(src, tgt); }
+
+    const CLASS_CARD_POOLS = {
+        bruiser: ['strike', 'quick_strike', 'defend', 'push', 'brace', 'focused_strike', 'overwhelm', 'exploit_opening'],
+        hunter: ['shoot', 'quick_strike', 'mark_target', 'pull', 'weaken', 'punish', 'focused_strike'],
+        cleric: ['first_aid', 'shoot', 'defend', 'brace', 'weaken', 'exploit_opening'],
+        warlock: ['shoot', 'weaken', 'mark_target', 'pull', 'defend', 'sap_strength', 'punish'],
+        assassin: ['strike', 'quick_strike', 'push', 'weaken', 'mark_target', 'punish', 'focused_strike'],
+        guard: ['strike', 'defend', 'brace', 'push', 'quick_strike', 'shield_slam', 'overwhelm', 'exploit_opening']
+    };
+
+    CLASS_CARD_POOLS.bruiser.push('feint','pommel_strike','rally_banner','focus_self','protect_self');
+    CLASS_CARD_POOLS.guard.push('shield_wall','protect_self','rally_banner','focus_self');
+    CLASS_CARD_POOLS.assassin.push('feint','eviscerate','step_forward','marking_strike');
+    CLASS_CARD_POOLS.hunter.push('suppressive_fire','piercing_shot','focus_self','step_back');
+    CLASS_CARD_POOLS.cleric.push('blessing','rally_banner','focus_self','step_back');
+    CLASS_CARD_POOLS.warlock.push('hex_vulnerability','focus_self','marking_strike');
+
+    const DEFAULT_DECKS = {
+        assassin: ['execution','eviscerate','eviscerate','focused_strike','focused_strike','feint','feint','quick_strike','quick_strike','marking_strike','marking_strike','punish','punish','step_forward','step_forward','weaken','weaken','push','push','mark_target'],
+        bruiser:  ['linebreaker','strike','strike','pommel_strike','pommel_strike','push','push','overwhelm','overwhelm','protect_self','protect_self','rally_banner','rally_banner','focus_self','focus_self','marking_strike','marking_strike','step_forward','step_forward','feint'],
+        cleric:   ['aegis_hymn','blessing','blessing','first_aid','first_aid','defend','defend','brace','brace','weaken','weaken','exploit_opening','exploit_opening','rally_banner','rally_banner','focus_self','focus_self','step_back','step_back','shoot'],
+        hunter:   ['kill_zone','suppressive_fire','suppressive_fire','piercing_shot','piercing_shot','shoot','shoot','mark_target','mark_target','punish','punish','focus_self','focus_self','step_back','step_back','pull','pull','weaken','weaken','quick_strike'],
+        guard:    ['phalanx_wall','shield_slam','shield_slam','shield_wall','shield_wall','protect_self','protect_self','strike','strike','overwhelm','overwhelm','pommel_strike','pommel_strike','push','push','rally_banner','rally_banner','focus_self','marking_strike','marking_strike'],
+        warlock:  ['soul_brand','hex_vulnerability','hex_vulnerability','weaken','weaken','mark_target','mark_target','sap_strength','sap_strength','pull','pull','punish','punish','focus_self','focus_self','shoot','shoot','marking_strike','marking_strike','defend'],
     };
 
     let gameState = {};
+    let savedCharacters = [];
+    let currentParty = [];
+    let editingCharacter = null;
 
+    const screens = document.querySelectorAll('.screen');
+    const characterRosterEl = document.getElementById('character-roster');
+    const partySelectionEl = document.getElementById('party-selection');
+    const startCombatBtn = document.getElementById('start-combat-btn');
+    const editorCharNameEl = document.getElementById('editor-char-name');
+    const editorCharClassEl = document.getElementById('editor-char-class');
+    const deckCountEl = document.getElementById('deck-count');
+    const deckListEl = document.getElementById('deck-list');
+    const cardPoolEl = document.getElementById('card-pool');
     const playerTeamEl = document.getElementById('player-team');
     const aiTeamEl = document.getElementById('ai-team');
     const playerHandEl = document.getElementById('player-hand');
@@ -191,59 +358,214 @@
     const roundCounterEl = document.getElementById('round-counter');
     const gameLogEl = document.getElementById('game-log');
     const gameOverModalEl = document.getElementById('game-over-modal');
-    const gameOverTitleEl = document.getElementById('game-over-title');
-    const gameOverMessageEl = document.getElementById('game-over-message');
     const floatingTextContainerEl = document.getElementById('floating-text-container');
 
-    function initializeGame() {
-        logMessage('새 게임을 시작합니다.');
+
+    function showScreen(screenId) {
+        screens.forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        if(screenId === 'lobby-screen') renderLobby();
+    }
+
+    function loadCharacters() {
+        const data = localStorage.getItem('savedCharacters');
+        savedCharacters = data ? JSON.parse(data) : [];
+    }
+
+    function saveCharacters() {
+        localStorage.setItem('savedCharacters', JSON.stringify(savedCharacters));
+    }
+
+    function renderLobby() {
+        characterRosterEl.innerHTML = '';
+        savedCharacters.forEach(char => {
+            const classInfo = CLASS_DATA[char.class];
+            const charEl = document.createElement('div');
+            charEl.className = 'bg-gray-700 p-3 rounded-lg flex items-center justify-between';
+            charEl.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <img src="${classInfo.imageUrl}" class="w-16 h-16 rounded-lg object-cover border-2 border-gray-500 flex-shrink-0">
+                        <div class="flex-grow">
+                            <p class="font-bold text-lg">${char.name}</p>
+                            <p class="text-sm text-gray-400">${classInfo.name}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <button onclick="addToParty('${char.id}')" class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-xs w-20 text-center">파티 추가</button>
+                        <button onclick="openDeckEditor('${char.id}')" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs w-20 text-center">덱 편집</button>
+                        <button onclick="deleteCharacter('${char.id}')" class="px-3 py-1 bg-red-800 hover:bg-red-900 rounded text-xs w-20 text-center">삭제</button>
+                    </div>
+                `;
+            characterRosterEl.appendChild(charEl);
+        });
+        renderParty();
+    }
+
+    function renderParty() {
+        partySelectionEl.innerHTML = '';
+        for(let i=0; i < 3; i++) {
+            const member = currentParty[i];
+            const slotEl = document.createElement('div');
+            slotEl.className = 'h-24 bg-gray-700 rounded-lg flex items-center justify-center p-2';
+            if(member) {
+                const classInfo = CLASS_DATA[member.class];
+                slotEl.innerHTML = `
+                     <div class="w-full flex items-center justify-between">
+                        <div class="flex items-center">
+                            <img src="${classInfo.imageUrl}" class="w-10 h-10 rounded-full object-cover mr-3">
+                            <div>
+                                <p class="font-bold text-lg">${member.name}</p>
+                                <p class="text-sm text-gray-400">${classInfo.name}</p>
+                            </div>
+                        </div>
+                        <button onclick="removeFromParty(${i})" class="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs">제거</button>
+                    </div>`;
+            } else {
+                slotEl.textContent = `${i+1}번 슬롯 (비어있음)`;
+                slotEl.classList.add('text-gray-500');
+            }
+            partySelectionEl.appendChild(slotEl);
+        }
+        startCombatBtn.disabled = currentParty.length !== 3;
+    }
+
+    function createNewCharacter() {
+        const classId = document.getElementById('new-character-class').value;
+        const className = CLASS_DATA[classId].name;
+        const newChar = {
+            id: `${classId}-${Date.now()}`,
+            name: `${className} 용병`,
+            class: classId,
+            deck: [...DEFAULT_DECKS[classId]]
+        };
+        savedCharacters.push(newChar);
+        saveCharacters();
+        renderLobby();
+    }
+
+    function deleteCharacter(charId) {
+        if(confirm('정말로 이 용병을 삭제하시겠습니까?')) {
+            savedCharacters = savedCharacters.filter(c => c.id !== charId);
+            currentParty = currentParty.filter(c => c.id !== charId);
+            saveCharacters();
+            renderLobby();
+        }
+    }
+
+    function addToParty(charId) {
+        if (currentParty.length >= 3) { alert('파티는 3명까지 구성할 수 있습니다.'); return; }
+        if (currentParty.some(p => p.id === charId)) { alert('이미 파티에 포함된 용병입니다.'); return; }
+        const character = savedCharacters.find(c => c.id === charId);
+        currentParty.push(character);
+        renderParty();
+    }
+
+    function removeFromParty(index) {
+        currentParty.splice(index, 1);
+        renderParty();
+    }
+
+    function openDeckEditor(charId, newChar = null) {
+        editingCharacter = newChar || savedCharacters.find(c => c.id === charId);
+        if (!editingCharacter) return;
+        editorCharNameEl.textContent = editingCharacter.name;
+        editorCharClassEl.textContent = CLASS_DATA[editingCharacter.class].name;
+        renderDeckEditorLists();
+        showScreen('deck-editor-screen');
+    }
+
+    function renderDeckEditorLists() {
+        const currentDeck = editingCharacter.deck;
+        deckListEl.innerHTML = '';
+        currentDeck.forEach(cardId => {
+            const card = CARD_DATA[cardId];
+            const cardEl = document.createElement('div');
+            cardEl.className = 'bg-gray-700 p-2 rounded cursor-pointer flex justify-between items-center';
+            const iconHtml = card.iconUrl ? `<img src="${card.iconUrl}" class="w-6 h-6 mr-2 inline-block rounded">` : `<div class="w-6 h-6 mr-2 inline-block bg-gray-500 rounded"></div>`;
+            cardEl.innerHTML = `<div class="flex items-center">${iconHtml} ${card.name}</div>`;
+            if (!card.signature) {
+                cardEl.onclick = () => removeFromDeck(cardId);
+            } else {
+                cardEl.classList.add('text-yellow-400', 'cursor-not-allowed');
+            }
+            deckListEl.appendChild(cardEl);
+        });
+
+        cardPoolEl.innerHTML = '';
+        const poolIds = [...new Set(CLASS_CARD_POOLS[editingCharacter.class])];
+        poolIds.forEach(cardId => {
+            const card = CARD_DATA[cardId];
+            const cardEl = document.createElement('div');
+            cardEl.className = 'bg-gray-700 p-3 rounded-lg cursor-pointer flex flex-col';
+            const iconHtml = card.iconUrl ? `<img src="${card.iconUrl}" class="w-8 h-8 mr-3 rounded">` : `<div class="w-8 h-8 mr-3 bg-gray-500 rounded"></div>`;
+            cardEl.innerHTML = `<div class="flex items-center mb-2">${iconHtml}<p class="font-bold">${card.name}</p></div><p class="text-xs text-gray-400 flex-grow">${card.text}</p>`;
+            cardEl.onclick = () => addToDeck(cardId);
+            cardPoolEl.appendChild(cardEl);
+        });
+
+        deckCountEl.textContent = currentDeck.length;
+    }
+
+    function addToDeck(cardId) {
+        if(editingCharacter.deck.length >= 20) { alert('덱은 20장까지 구성할 수 있습니다.'); return; }
+        const count = editingCharacter.deck.filter(id => id === cardId).length;
+        if (count >= 2) { alert('같은 카드는 2장까지만 넣을 수 있습니다.'); return; }
+        editingCharacter.deck.push(cardId);
+        renderDeckEditorLists();
+    }
+
+    function removeFromDeck(cardId) {
+        const index = editingCharacter.deck.findIndex(id => id === cardId);
+        if (index > -1) { editingCharacter.deck.splice(index, 1); renderDeckEditorLists(); }
+    }
+
+    function saveDeck() {
+        if(editingCharacter.deck.length !== 20) { alert('덱은 정확히 20장으로 구성해야 합니다.'); return; }
+        const existing = savedCharacters.find(c => c.id === editingCharacter.id);
+        if(existing) { Object.assign(existing, editingCharacter); }
+        else { savedCharacters.push(editingCharacter); }
+        saveCharacters();
+        editingCharacter = null;
+        showScreen('lobby-screen');
+    }
+
+    function startCombatWithParty() {
+        if (currentParty.length !== 3) return;
+        initializeGame(currentParty);
+        showScreen('game-container');
+    }
+
+    function initializeGame(playerParty) {
+        gameLogEl.innerHTML = ''; logMessage('새 게임을 시작합니다.');
         gameState = { teams: { player: [], ai: [] }, initiativeOrder: [], currentTurnIndex: -1, activeCharacterId: null, selectedCard: null, round: 1, fatigue: false, gameOver: false };
-        const playerClasses = ['bruiser', 'hunter', 'cleric'];
+        playerParty.forEach((charData, i) => createCharacter(charData, 'player', i + 1));
         const aiClasses = ['guard', 'assassin', 'warlock'];
-        playerClasses.forEach((c, i) => createCharacter(c, 'player', i + 1));
-        aiClasses.forEach((c, i) => createCharacter(c, 'ai', i + 1));
-        gameOverModalEl.classList.add('hidden');
-        gameOverModalEl.classList.remove('flex');
+        aiClasses.forEach((classId, i) => createCharacter({ class: classId, deck: [] }, 'ai', i + 1));
+        gameOverModalEl.classList.add('hidden'); gameOverModalEl.classList.remove('flex');
         startCombat();
     }
 
-    function createCharacter(className, teamId, initialRank) {
-        const classInfo = CLASS_DATA[className];
-        const character = { id: `${teamId}-${classInfo.name}-${initialRank}`, class: className, name: classInfo.name, teamId, ...classInfo.stats, hp: classInfo.stats.maxHp, rank: initialRank, tokens: {}, buffs: [], debuffs: [], deck: [], hand: [], discard: [], isDead: false, movedThisTurn: false, damageTakenThisRound: 0 };
-        buildDeck(character);
+    function createCharacter(charData, teamId, initialRank) {
+        const classInfo = CLASS_DATA[charData.class];
+        const character = {
+            id: charData.id || `${teamId}-${charData.class}-${initialRank}`, class: charData.class, name: charData.name || classInfo.name, teamId,
+            ...classInfo.stats, hp: classInfo.stats.maxHp, rank: initialRank,
+            tokens: {}, buffs: [], debuffs: [], deck: [], hand: [], discard: [],
+            isDead: false, movedThisTurn: false, damageTakenThisRound: 0
+        };
+        if (teamId === 'player') { character.deck = [...charData.deck].map(id => ({...CARD_DATA[id]})); }
+        else { buildAIDeck(character); }
+        shuffleDeck(character);
         gameState.teams[teamId].push(character);
     }
 
-    function buildDeck(character) {
-        CLASS_DATA[character.class].signatureIds.forEach(id => character.deck.push({ ...CARD_DATA[id] }));
-        let commonCards = [];
-        switch (character.class) {
-            case 'bruiser': commonCards = ['strike','strike','strike','strike','push','push','defend','defend','quick_strike']; break;
-            case 'hunter': commonCards = ['shoot','shoot','shoot','shoot','mark_target','mark_target','quick_strike','pull','defend']; break;
-            case 'cleric': commonCards = ['first_aid','first_aid','first_aid','weaken','defend','shoot','shoot','mark_target','brace']; break;
-            case 'guard': commonCards = ['strike','strike','defend','defend','defend','brace','brace','push','quick_strike']; break;
-            case 'assassin': commonCards = ['strike','strike','strike','quick_strike','quick_strike','quick_strike','mark_target','push','weaken']; break;
-            case 'warlock': commonCards = ['shoot','shoot','weaken','weaken','mark_target','mark_target','quick_strike','pull','defend']; break;
-        }
-        commonCards.forEach(id => character.deck.push({ ...CARD_DATA[id] }));
-        while (character.deck.length < 20) {
-            character.deck.push(character.atk > 10 ? { ...CARD_DATA.strike } : { ...CARD_DATA.shoot });
-        }
-        shuffleDeck(character);
+    function buildAIDeck(character) {
+        const deckIds = DEFAULT_DECKS[character.class];
+        deckIds.forEach(id => character.deck.push({ ...CARD_DATA[id] }));
     }
 
-    function startCombat() {
-        logMessage('전투 시작!');
-        gameState.round = 1;
-        determineInitiative();
-        startNextTurn();
-    }
-
-    function determineInitiative() {
-        gameState.initiativeOrder = [...gameState.teams.player, ...gameState.teams.ai].filter(c => !c.isDead).sort((a, b) => b.spd - a.spd);
-        logMessage(`행동 순서: ${gameState.initiativeOrder.map(c => c.name).join(', ')}`);
-    }
-
+    function startCombat() { logMessage('전투 시작!'); gameState.round = 1; roundCounterEl.textContent = `라운드 ${gameState.round}`; determineInitiative(); startNextTurn(); }
+    function determineInitiative() { gameState.initiativeOrder = [...gameState.teams.player, ...gameState.teams.ai].filter(c => !c.isDead).sort((a, b) => b.spd - a.spd); logMessage(`행동 순서: ${gameState.initiativeOrder.map(c => c.name).join(', ')}`); }
     function startNextTurn() {
         if (gameState.gameOver) return;
         gameState.selectedCard = null;
@@ -255,156 +577,60 @@
         gameState.activeCharacterId = activeCharacter.id;
         logMessage(`--- ${activeCharacter.name}의 턴 ---`, 'turn');
         turnIndicatorEl.textContent = `${activeCharacter.name}의 턴`;
-        if (hasToken(activeCharacter, 'Stun')) {
-            removeToken(activeCharacter, 'Stun', 1);
-            logMessage(`${activeCharacter.name}이 기절하여 행동할 수 없습니다.`);
-            setTimeout(startNextTurn, 1000);
-            render();
-            return;
-        }
-        activeCharacter.ap = 3;
-        drawCards(activeCharacter, 5);
-        render();
+        if (hasToken(activeCharacter, 'Stun')) { removeToken(activeCharacter, 'Stun', 1); logMessage(`${activeCharacter.name}이 기절하여 행동할 수 없습니다.`); setTimeout(startNextTurn, 1000); render(); return; }
+        activeCharacter.ap = 3; drawCards(activeCharacter, 5);
+        passiveTurnStart(activeCharacter); render();
         if (activeCharacter.teamId === 'ai') setTimeout(runAITurn, 1500);
     }
-
-    function endTurn() {
-        const activeCharacter = getActiveCharacter();
-        if (!activeCharacter || gameState.gameOver) return;
-        logMessage(`${activeCharacter.name}이(가) 턴을 종료합니다.`);
-        discardHand(activeCharacter);
-        startNextTurn();
-    }
-
+    function endTurn() { const activeCharacter = getActiveCharacter(); if (!activeCharacter || gameState.gameOver) return; logMessage(`${activeCharacter.name}이(가) 턴을 종료합니다.`); discardHand(activeCharacter); startNextTurn(); }
     function endRound() {
         logMessage(`--- ${gameState.round} 라운드 종료 ---`, 'round');
-        const allCharacters = [...gameState.teams.player, ...gameState.teams.ai];
-        allCharacters.forEach(char => {
+        [...gameState.teams.player, ...gameState.teams.ai].forEach(char => {
             char.debuffs = char.debuffs.filter(debuff => {
-                if (debuff.debuff === 'soulBrand') {
-                    const damage = Math.floor(char.damageTakenThisRound * 0.25);
-                    if (damage > 0) {
-                        applyDamage(char, damage, null, true);
-                        logMessage(`${char.name}이 영혼 낙인으로 ${damage}의 피해를 입습니다.`);
-                    }
-                    applyToken(char, 'Vulnerable', 1);
-                    return false;
-                }
-                return true;
+                if (debuff.debuff === 'soulBrand') { const damage = Math.floor(char.damageTakenThisRound * 0.25); if (damage > 0) { applyDamage(char, damage, null, true); logMessage(`${char.name}이 영혼 낙인으로 ${damage}의 피해를 입습니다.`); } applyToken(char, 'Vulnerable', 1); return false; } return true;
             });
             char.damageTakenThisRound = 0;
         });
-        gameState.round++;
-        roundCounterEl.textContent = `라운드 ${gameState.round}`;
-        if (gameState.round >= 7) {
-            gameState.fatigue = true;
-            logMessage('피로가 누적됩니다! 라운드 종료 시 모든 유닛이 2의 고정 피해를 입습니다.', 'warning');
-            allCharacters.forEach(c => { if (!c.isDead) applyDamage(c, 2, null, true) });
-        }
-        if (checkGameOver()) return;
-        determineInitiative();
-        gameState.currentTurnIndex = -1;
-        startNextTurn();
+        gameState.round++; roundCounterEl.textContent = `라운드 ${gameState.round}`;
+        if (gameState.round >= 7) { logMessage('피로 누적! 모든 유닛이 2의 고정 피해를 입습니다.', 'warning'); [...gameState.teams.player, ...gameState.teams.ai].forEach(c => { if (!c.isDead) applyDamage(c, 2, null, true) }); }
+        if (checkGameOver()) return; determineInitiative(); gameState.currentTurnIndex = -1; startNextTurn();
     }
-
     function shuffleDeck(c) { c.deck.sort(() => Math.random() - 0.5); }
-    function drawCards(c, amount) {
-        for (let i = 0; i < amount; i++) {
-            if (c.deck.length === 0) {
-                if (c.discard.length === 0) break;
-                logMessage(`${c.name}이(가) 덱을 다시 섞습니다.`);
-                c.deck = [...c.discard]; c.discard = []; shuffleDeck(c);
-            }
-            c.hand.push(c.deck.pop());
-        }
-    }
+    function drawCards(c, amount) { for (let i = 0; i < amount; i++) { if (c.deck.length === 0) { if (c.discard.length === 0) break; logMessage(`${c.name}이(가) 덱을 다시 섞습니다.`); c.deck = [...c.discard]; c.discard = []; shuffleDeck(c); } c.hand.push(c.deck.pop()); } }
     function discardHand(c) { c.discard.push(...c.hand); c.hand = []; }
-
-    function selectCard(cardIndex) {
-        const player = getActiveCharacter();
-        if (!player || player.teamId !== 'player') return;
-        const card = player.hand[cardIndex];
-        gameState.selectedCard = isCardPlayable(player, card) ? { card, index: cardIndex } : null;
-        render();
-    }
-
-    function isCardPlayable(c, card) {
-        return c.ap >= card.apCost && (!card.fromRanks || card.fromRanks.includes(c.rank));
-    }
-
+    function selectCard(cardIndex) { const player = getActiveCharacter(); if (!player || player.teamId !== 'player') return; const card = player.hand[cardIndex]; gameState.selectedCard = isCardPlayable(player, card) ? { card, index: cardIndex } : null; render(); }
+    function isCardPlayable(c, card) { return c.ap >= card.apCost && (!card.fromRanks || card.fromRanks.includes(c.rank)); }
     function playCard(targetCharacter) {
-        const player = getActiveCharacter();
-        const { card, index } = gameState.selectedCard;
-        if (!player || !card || !targetCharacter || !isValidTarget(player, card, targetCharacter)) return;
-        let finalTarget = findFinalTarget(targetCharacter);
-        player.ap -= card.apCost;
-        player.hand.splice(index, 1);
-        player.discard.push(card);
-        logMessage(`${player.name}이(가) ${finalTarget.name}에게 ${card.name} 사용!`);
-        applyCardEffects(player, finalTarget, card);
-        gameState.selectedCard = null;
-        if (checkGameOver()) return;
-        render();
-        if (player.ap <= 0) setTimeout(endTurn, 1000);
+        const player = getActiveCharacter(); const { card, index } = gameState.selectedCard; if (!player || !card || !targetCharacter || !isValidTarget(player, card, targetCharacter)) return;
+        let finalTarget = findFinalTarget(targetCharacter); player.ap -= card.apCost; player.hand.splice(index, 1); player.discard.push(card); logMessage(`${player.name}이(가) ${finalTarget.name}에게 ${card.name} 사용!`);
+        applyCardEffects(player, finalTarget, card); gameState.selectedCard = null; if (checkGameOver()) return; render(); if (player.ap <= 0) setTimeout(endTurn, 1000);
     }
-
     function playerSwapPosition(targetRank) {
-        const player = getActiveCharacter();
-        if (!player || player.ap < 1) return;
-        if (Math.abs(player.rank - targetRank) !== 1) return;
-
-        player.ap -= 1;
-        player.movedThisTurn = true;
-        const otherUnit = gameState.teams.player.find(c => c.rank === targetRank);
-        if(otherUnit) {
-            logMessage(`${player.name}이(가) ${otherUnit.name}와 위치를 교대합니다.`);
-            otherUnit.rank = player.rank;
-        } else {
-            logMessage(`${player.name}이(가) 빈 위치로 이동합니다.`);
-        }
-        player.rank = targetRank;
-
-        render();
+        const player = getActiveCharacter(); if (!player || player.ap < 1) return; if (Math.abs(player.rank - targetRank) !== 1) return;
+        player.ap -= 1; player.movedThisTurn = true; const otherUnit = gameState.teams.player.find(c => c.rank === targetRank);
+        if(otherUnit) { logMessage(`${player.name}이(가) ${otherUnit.name}와 위치를 교대합니다.`); otherUnit.rank = player.rank; }
+        else { logMessage(`${player.name}이(가) 빈 위치로 이동합니다.`); }
+        player.rank = targetRank; render();
     }
-
     function runAITurn() {
-        const ai = getActiveCharacter();
-        if (!ai || ai.teamId !== 'ai' || gameState.gameOver) return;
+        const ai = getActiveCharacter(); if (!ai || ai.teamId !== 'ai' || gameState.gameOver) return;
         const playableCards = ai.hand.map((card, index) => ({ card, index })).filter(item => isCardPlayable(ai, item.card));
         if (playableCards.length > 0 && ai.ap > 0) {
-            let target = null, cardToPlay = null;
-            const markedTargets = gameState.teams.player.filter(c => !c.isDead && hasToken(c, 'Marked'));
+            let target = null, cardToPlay = null; const markedTargets = gameState.teams.player.filter(c => !c.isDead && hasToken(c, 'Marked'));
             for (const item of playableCards) { if (item.card.bonusIfTargetMarked) { for (const mt of markedTargets) { if (isValidTarget(ai, item.card, mt)) { cardToPlay = item; target = mt; break; } } } if (target) break; }
-            if (!target && markedTargets.length > 0) { for (const item of playableCards) { for (const mt of markedTargets) { if (isValidTarget(ai, item.card, mt)) { cardToPlay = item; target = mt; break; } } if (target) break; } }
             if (!target) { for (const item of playableCards) { const potential = findValidTargets(ai, item.card); if (potential.length > 0) { cardToPlay = item; target = potential.sort((a,b) => a.hp - b.hp)[0]; break; } } }
             if (target && cardToPlay) {
-                const { card, index } = cardToPlay;
-                ai.ap -= card.apCost; ai.hand.splice(index, 1); ai.discard.push(card);
-                let finalTarget = findFinalTarget(target);
-                logMessage(`${ai.name}이(가) ${finalTarget.name}에게 ${card.name} 사용!`);
-                applyCardEffects(ai, finalTarget, card);
-                if (checkGameOver()) return;
-                render();
-                if (ai.ap > 0) setTimeout(runAITurn, 1500); else setTimeout(endTurn, 1000);
-                return;
+                const { card, index } = cardToPlay; ai.ap -= card.apCost; ai.hand.splice(index, 1); ai.discard.push(card); let finalTarget = findFinalTarget(target);
+                logMessage(`${ai.name}이(가) ${finalTarget.name}에게 ${card.name} 사용!`); applyCardEffects(ai, finalTarget, card);
+                if (checkGameOver()) return; render(); if (ai.ap > 0) setTimeout(runAITurn, 1500); else setTimeout(endTurn, 1000); return;
             }
         }
         setTimeout(endTurn, 1000);
     }
-
     function applyCardEffects(source, target, card) {
-        if (!card.effects) return;
-        card.effects.forEach(effect => {
+        (card.effects || []).forEach(effect => {
             switch (effect.type) {
-                case 'damage':
-                    let damage = effect.value;
-                    if (card.bonusIfTargetMarked && hasToken(target, 'Marked')) {
-                        damage = Math.floor(damage * (1 + card.bonusIfTargetMarked.damagePct / 100));
-                        logMessage(`표식 대상에게 추가 피해!`);
-                        if (card.bonusIfTargetMarked.consume) removeToken(target, 'Marked', 1);
-                    }
-                    applyDamage(target, damage, source);
-                    break;
+                case 'damage': applyDamage(target, effect.value, source, false, effect); break;
                 case 'heal': applyHeal(target, effect.value); break;
                 case 'applyToken': applyToken(effect.self ? source : target, effect.token, effect.stacks); break;
                 case 'teamEffect': gameState.teams[source.teamId].forEach(m => { if(!m.isDead) applyToken(m, effect.effect.token, effect.effect.stacks); }); break;
@@ -416,219 +642,134 @@
                 case 'conditionalExecute': if ((target.hp / target.maxHp) <= effect.threshold) { logMessage(`체력이 낮아 처형 효과 발동!`); applyDamage(target, effect.damage, source, true); } break;
                 case 'onKill': if (target.isDead) { logMessage(`${source.name}의 처치 효과 발동!`); effect.effects.forEach(e => applyCardEffects(source, source, {effects: [e]})); } break;
                 case 'applyDebuff': target.debuffs.push({debuff: effect.debuff, duration: effect.duration}); logMessage(`${target.name}에게 ${effect.debuff} 효과 부여.`); break;
+                case 'conditionalApplyToken':
+                    let conditionMet = false;
+                    if (effect.condition === 'targetHasToken' && hasToken(target, effect.token)) { conditionMet = true; }
+                    else if (effect.condition === 'anyEnemyHasToken' && gameState.teams[source.teamId === 'player' ? 'ai' : 'player'].some(e => !e.isDead && hasToken(e, effect.token))) { conditionMet = true; }
+                    if (conditionMet) { applyToken(effect.effect.self ? source : target, effect.effect.token, effect.effect.stacks); }
+                    break;
+                case 'conditionalPush': if (effect.condition === 'targetHasToken' && hasToken(target, effect.token)) { moveCharacter(target, effect.spaces); } break;
+                case 'dynamicDamage':
+                    const stacks = source.tokens[effect.token] || 0;
+                    if (stacks > 0) { applyDamage(target, stacks * effect.multiplier, source, true); if (effect.consume) { delete source.tokens[effect.token]; logMessage(`${source.name}의 ${TOKEN_DATA[effect.token].name} 토큰을 모두 소모.`); } }
+                    else { logMessage(`${source.name}에게 ${TOKEN_DATA[effect.token].name} 토큰이 없어 피해를 주지 못합니다.`); }
+                    break;
             }
         });
     }
-
-    function applyDamage(target, baseAmount, source, isFixed = false) {
+    function applyDamage(target, baseAmount, source, isFixed = false, effect = null) {
         if (target.isDead) return;
         let finalAmount = baseAmount;
         if (!isFixed) {
             let multiplier = 1.0;
-            if (source) {
-                if (hasToken(source, 'Strength')) { multiplier *= 1.5; removeToken(source, 'Strength', 1); }
-                if (hasToken(source, 'Weak')) { multiplier *= 0.5; removeToken(source, 'Weak', 1); }
-            }
+            if (source) { if (hasToken(source, 'Strength')) { multiplier *= 1.5; removeToken(source, 'Strength', 1); } if (hasToken(source, 'Weak')) { multiplier *= 0.5; removeToken(source, 'Weak', 1); } }
             finalAmount = Math.max(1, (source ? source.atk : 0) + baseAmount - target.def);
             if (hasToken(target, 'Vulnerable')) { multiplier *= 1.5; removeToken(target, 'Vulnerable', 1); }
-            if (hasToken(target, 'Block+')) { multiplier *= 0.25; removeToken(target, 'Block+', 1); }
-            else if (hasToken(target, 'Block')) { multiplier *= 0.5; removeToken(target, 'Block', 1); }
+            const ignoreBlock = effect && effect.ignoreBlockIfTargetMarked && hasToken(target, 'Marked');
+            if (ignoreBlock) { logMessage('집중 공격으로 방어를 무시합니다!'); }
+            else { if (hasToken(target, 'Block+')) { multiplier *= 0.25; removeToken(target, 'Block+', 1); } else if (hasToken(target, 'Block')) { multiplier *= 0.5; removeToken(target, 'Block', 1); } }
             finalAmount = Math.round(finalAmount * multiplier);
         }
-        target.hp -= finalAmount;
-        target.damageTakenThisRound += finalAmount;
+        target.hp -= finalAmount; target.damageTakenThisRound += finalAmount;
+        if(source) passiveAfterDamage(source, target, finalAmount);
         showFloatingText(target, finalAmount, 'damage');
         logMessage(`${target.name}이(가) ${finalAmount}의 피해를 입었습니다. (남은 HP: ${Math.max(0, target.hp)})`);
-        if (target.hp <= 0) { target.hp = 0; target.isDead = true; logMessage(`${target.name}이(가) 쓰러졌습니다!`, 'death'); }
+        if (target.hp <= 0) { target.hp = 0; target.isDead = true; if(source) passiveOnKill(source, target); logMessage(`${target.name}이(가) 쓰러졌습니다!`, 'death'); }
     }
-
     function applyHeal(target, amount, overflowToShield = 0) {
         const healed = Math.min(amount, target.maxHp - target.hp), overflow = amount - healed;
         if (healed > 0) { target.hp += healed; showFloatingText(target, healed, 'heal'); logMessage(`${target.name}이(가) HP를 ${healed}만큼 회복했습니다.`); }
-        if (overflow > 0 && overflowToShield > 0) {
-            const shield = Math.min(overflow, overflowToShield);
-            applyToken(target, 'Block', Math.ceil(shield / 3));
-            logMessage(`${target.name}에게 과잉 치유로 ${shield}만큼의 보호막이 부여됩니다.`);
-            showFloatingText(target, shield, 'shield');
-        }
+        if (overflow > 0 && overflowToShield > 0) { const shield = Math.min(overflow, overflowToShield); applyToken(target, 'Block', Math.ceil(shield / 3)); logMessage(`${target.name}에게 과잉 치유로 ${shield}만큼의 보호막이 부여됩니다.`); showFloatingText(target, shield, 'shield'); }
     }
-
-    function applyToken(c, token, stacks) {
-        if(token === 'Stun' && hasToken(c, 'Stun Ward')) { removeToken(c, 'Stun Ward', 1); logMessage(`${c.name}이(가) 기절 면역으로 기절을 막았습니다!`); return; }
-        if (!c.tokens[token]) c.tokens[token] = 0;
-        c.tokens[token] += stacks; logMessage(`${c.name}에게 ${TOKEN_DATA[token].name} ${stacks} 중첩 부여.`);
-    }
+    function applyToken(c, token, stacks) { if(token === 'Stun' && hasToken(c, 'Stun Ward')) { removeToken(c, 'Stun Ward', 1); logMessage(`${c.name}이(가) 기절 면역으로 기절을 막았습니다!`); return; } if (!c.tokens[token]) c.tokens[token] = 0; c.tokens[token] += stacks; logMessage(`${c.name}에게 ${TOKEN_DATA[token].name} ${stacks} 중첩 부여.`); }
     function removeToken(c, token, stacks) { if (c.tokens[token]) { c.tokens[token] -= stacks; if (c.tokens[token] <= 0) delete c.tokens[token]; } }
     function hasToken(c, token) { return c.tokens[token] && c.tokens[token] > 0; }
-
-    function moveCharacter(character, spaces) {
-        const team = gameState.teams[character.teamId];
-        const newRank = character.rank + spaces;
-        if (newRank < 1 || newRank > 3) return;
-        const occupant = team.find(c => c.rank === newRank && !c.isDead);
-        if (occupant) { occupant.rank = character.rank; logMessage(`${character.name}과(와) ${occupant.name}이(가) 위치를 교대합니다.`); }
-        else { logMessage(`${character.name}이(가) ${spaces > 0 ? '뒤로' : '앞으로'} 이동합니다.`); }
-        character.rank = newRank;
-    }
-
-    function findValidTargets(source, card) {
-        const targetTeam = gameState.teams[card.targetSide === 'enemy' ? (source.teamId === 'player' ? 'ai' : 'player') : source.teamId];
-        return card.selfTarget ? [source] : targetTeam.filter(t => !t.isDead && card.toRanks.includes(t.rank));
-    }
+    function moveCharacter(character, spaces) { const team = gameState.teams[character.teamId]; const newRank = character.rank + spaces; if (newRank < 1 || newRank > 3) return; const occupant = team.find(c => c.rank === newRank && !c.isDead); if (occupant) { occupant.rank = character.rank; logMessage(`${character.name}과(와) ${occupant.name}이(가) 위치를 교대합니다.`); } else { logMessage(`${character.name}이(가) ${spaces > 0 ? '뒤로' : '앞으로'} 이동합니다.`); } character.rank = newRank; passiveAfterMove(character, spaces); }
+    function findValidTargets(source, card) { const targetTeam = gameState.teams[card.targetSide === 'enemy' ? (source.teamId === 'player' ? 'ai' : 'player') : source.teamId]; return card.selfTarget ? [source] : targetTeam.filter(t => !t.isDead && card.toRanks.includes(t.rank)); }
     function isValidTarget(s, c, t) { return findValidTargets(s, c).includes(t); }
     function findFinalTarget(initialTarget) {
         const enemyTeam = gameState.teams[initialTarget.teamId];
-        const taunter = enemyTeam.find(c => !c.isDead && hasToken(c, 'Taunt'));
-        if (taunter) { logMessage(`${taunter.name}의 도발!`); removeToken(taunter, 'Taunt', 1); return taunter; }
-        const guard = enemyTeam.find(c => !c.isDead && hasToken(c, 'Guard'));
-        if (guard) { logMessage(`${guard.name}가 대신 받습니다!`); removeToken(guard, 'Guard', 1); return guard; }
-        return initialTarget;
+        const taunter = enemyTeam.find(c => !c.isDead && hasToken(c, 'Taunt')); if (taunter) { logMessage(`${taunter.name}의 도발!`); removeToken(taunter, 'Taunt', 1); return taunter; }
+        const guard = enemyTeam.find(c => !c.isDead && hasToken(c, 'Guard')); if (guard) { logMessage(`${guard.name}가 대신 받습니다!`); removeToken(guard, 'Guard', 1); return guard; } return initialTarget;
     }
-
     function checkGameOver() {
         const playerAlive = gameState.teams.player.some(c => !c.isDead);
         const aiAlive = gameState.teams.ai.some(c => !c.isDead);
-        if (!playerAlive || !aiAlive) {
-            gameState.gameOver = true;
-            gameOverTitleEl.textContent = playerAlive ? "승리!" : "패배";
-            gameOverMessageEl.textContent = playerAlive ? "적들을 모두 물리쳤습니다!" : "아군이 모두 쓰러졌습니다...";
-            gameOverModalEl.classList.remove('hidden');
-            gameOverModalEl.classList.add('flex');
-            return true;
-        }
-        return false;
+        if (!playerAlive || !aiAlive) { gameState.gameOver = true; gameOverTitleEl.textContent = playerAlive ? "승리!" : "패배"; gameOverMessageEl.textContent = playerAlive ? "적들을 모두 물리쳤습니다!" : "아군이 모두 쓰러졌습니다..."; gameOverModalEl.classList.remove('hidden'); gameOverModalEl.classList.add('flex'); return true; } return false;
     }
-
     function render() {
-        if(gameState.gameOver) return;
-        renderTeam(playerTeamEl, 'player');
-        renderTeam(aiTeamEl, 'ai');
+        if(gameState.gameOver) return; renderTeam(playerTeamEl, 'player'); renderTeam(aiTeamEl, 'ai');
         const activeCharacter = getActiveCharacter();
         if (activeCharacter) {
-            if (activeCharacter.teamId === 'player') {
-                renderHand(playerHandEl, activeCharacter);
-                playerApEl.textContent = '♦'.repeat(activeCharacter.ap);
-                endTurnBtn.disabled = false;
-            } else {
-                playerHandEl.innerHTML = '';
-                playerApEl.textContent = '';
-                endTurnBtn.disabled = true;
-            }
+            if (activeCharacter.teamId === 'player') { renderHand(playerHandEl, activeCharacter); playerApEl.textContent = '♦'.repeat(activeCharacter.ap); endTurnBtn.disabled = false; }
+            else { playerHandEl.innerHTML = ''; playerApEl.textContent = ''; endTurnBtn.disabled = true; }
             const aiOpponent = gameState.initiativeOrder.find(c => c.teamId ==='ai' && c.id === activeCharacter.id);
             if(aiOpponent) renderHand(aiHandEl, aiOpponent, true); else aiHandEl.innerHTML = '';
         }
     }
-
     function renderTeam(container, teamId) {
-        container.innerHTML = '';
-        const team = gameState.teams[teamId];
-        const activeChar = getActiveCharacter();
-        const isPlayerTurn = activeChar && activeChar.teamId === 'player';
-
+        container.innerHTML = ''; const team = gameState.teams[teamId]; const activeChar = getActiveCharacter(); const isPlayerTurn = activeChar && activeChar.teamId === 'player';
         for (let rank = 1; rank <= 3; rank++) {
             const character = team.find(c => c.rank === rank && !c.isDead);
-            if (character) {
-                const el = createCharacterElement(character);
-                if(isPlayerTurn && teamId === 'player' && Math.abs(activeChar.rank - rank) === 1 && activeChar.id !== character.id) {
-                    el.classList.add('valid-swap-target');
-                    el.onclick = () => playerSwapPosition(rank);
-                }
-                container.appendChild(el);
-            } else {
-                const slotEl = document.createElement('div');
-                slotEl.className = `rank-slot w-48 h-64 rounded-lg flex items-center justify-center border-dashed rank-${rank}-bg`;
-                slotEl.dataset.rank = rank;
-                if(isPlayerTurn && teamId === 'player' && Math.abs(activeChar.rank - rank) === 1) {
-                    slotEl.classList.add('valid-swap-target');
-                    slotEl.onclick = () => playerSwapPosition(rank);
-                }
-                container.appendChild(slotEl);
-            }
+            if (character) { const el = createCharacterElement(character); if(isPlayerTurn && teamId === 'player' && Math.abs(activeChar.rank - rank) === 1 && activeChar.id !== character.id) { el.classList.add('valid-swap-target'); el.onclick = () => playerSwapPosition(rank); } container.appendChild(el); }
+            else { const slotEl = document.createElement('div'); slotEl.className = `rank-slot w-48 h-64 rounded-lg flex items-center justify-center border-dashed rank-${rank}-bg`; slotEl.dataset.rank = rank; if(isPlayerTurn && teamId === 'player' && Math.abs(activeChar.rank - rank) === 1) { slotEl.classList.add('valid-swap-target'); slotEl.onclick = () => playerSwapPosition(rank); } container.appendChild(slotEl); }
         }
     }
-
     function createCharacterElement(character) {
-        const el = document.createElement('div');
-        el.id = character.id;
-        el.dataset.characterId = character.id;
+        const el = document.createElement('div'); el.id = character.id; el.dataset.characterId = character.id;
         el.className = `character-card w-48 h-64 rounded-lg p-2 flex flex-col justify-between relative overflow-hidden rank-${character.rank}-bg`;
-        if (character.isDead) el.classList.add('dead');
-        if (character.id === gameState.activeCharacterId) el.classList.add('active');
-        if (gameState.selectedCard && isValidTarget(getActiveCharacter(), gameState.selectedCard.card, character)) {
-            el.classList.add('valid-target');
-            el.onclick = (e) => {
-                e.stopPropagation();
-                playCard(character);
-            }
-        }
-        const tokensHTML = Object.entries(character.tokens).map(([token, stacks]) => {
-            const tokenInfo = TOKEN_DATA[token];
-            return `<div title="${tokenInfo.description}" class="token ${tokenInfo.color} text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">${tokenInfo.name[0]}${stacks > 1 ? stacks : ''}</div>`;
-        }).join('');
-        const hpPercentage = (character.hp / character.maxHp) * 100;
-        const imageUrl = CLASS_DATA[character.class].imageUrl;
-        el.innerHTML = `
-                <div class="absolute top-2 right-2 flex flex-wrap-reverse gap-1 justify-end" style="width: 50%; z-index: 5;">${tokensHTML}</div>
-                <img src="${imageUrl}" class="absolute inset-0 w-full h-full object-contain drop-shadow-lg" alt="${character.name}" style="z-index: 1;" onerror="this.style.display='none'">
-                <div class="relative z-10 flex flex-col justify-between h-full w-full">
-                    <div class="text-center">
-                        <div class="font-bold text-lg text-white bg-black bg-opacity-60 rounded px-2 py-1 inline-block">${character.name}</div>
-                    </div>
-                    <div class="w-full">
-                        <div class="text-center font-bold bg-black bg-opacity-60 rounded-md py-1">${character.hp} / ${character.maxHp}</div>
-                        <div class="w-full bg-gray-600 rounded-full h-2.5 mt-1">
-                            <div class="bg-red-600 h-2.5 rounded-full" style="width: ${hpPercentage}%"></div>
-                        </div>
-                    </div>
-                </div>`;
+        if (character.isDead) el.classList.add('dead'); if (character.id === gameState.activeCharacterId) el.classList.add('active');
+        if (gameState.selectedCard && isValidTarget(getActiveCharacter(), gameState.selectedCard.card, character)) { el.classList.add('valid-target'); el.onclick = (e) => { e.stopPropagation(); playCard(character); } }
+        const tokensHTML = Object.entries(character.tokens).map(([token, stacks]) => { const tokenInfo = TOKEN_DATA[token]; return `<div title="${tokenInfo.description}" class="token ${tokenInfo.color} text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">${tokenInfo.name[0]}${stacks > 1 ? stacks : ''}</div>`; }).join('');
+        const hpPercentage = (character.hp / character.maxHp) * 100; const imageUrl = CLASS_DATA[character.class].imageUrl;
+        el.innerHTML = `<div class="absolute top-2 right-2 flex flex-wrap-reverse gap-1 justify-end" style="width: 50%; z-index: 5;">${tokensHTML}</div><img src="${imageUrl}" class="absolute inset-0 w-full h-full object-contain drop-shadow-lg" alt="${character.name}" style="z-index: 1;" onerror="this.style.display='none'"><div class="relative z-10 flex flex-col justify-between h-full w-full"><div class="text-center"><div class="font-bold text-lg text-white bg-black bg-opacity-60 rounded px-2 py-1 inline-block">${character.name}</div></div><div class="w-full"><div class="text-center font-bold bg-black bg-opacity-60 rounded-md py-1">${character.hp} / ${character.maxHp}</div><div class="w-full bg-gray-600 rounded-full h-2.5 mt-1"><div class="bg-red-600 h-2.5 rounded-full" style="width: ${hpPercentage}%"></div></div></div></div>`;
         return el;
     }
-
     function renderHand(container, character, isAi = false) {
         container.innerHTML = '';
-        character.hand.forEach((card, index) => {
+        (character.hand || []).forEach((card, index) => {
             const cardEl = document.createElement('div');
             cardEl.className = `hand-card ${isAi ? 'w-32 h-44' : 'w-40 h-56'} bg-gray-700 rounded-lg p-3 flex flex-col justify-between border-gray-500 text-sm`;
-            const playable = !isAi && isCardPlayable(character, card);
-            if (!playable) cardEl.classList.add('unplayable');
+            const playable = !isAi && isCardPlayable(character, card); if (!playable) cardEl.classList.add('unplayable');
             if (!isAi && gameState.selectedCard && gameState.selectedCard.index === index) cardEl.classList.add('selected');
             if (!isAi) cardEl.onclick = () => { if (playable) selectCard(index); };
-            const fromRanksText = card.fromRanks ? `사용: ${card.fromRanks.join(',')}` : '';
-            const toRanksText = card.toRanks.length > 0 ? `대상: ${card.toRanks.join(',')}` : '자신/전체';
-            cardEl.innerHTML = `<div><div class="flex justify-between items-center"><h3 class="font-bold ${isAi ? 'text-sm' : 'text-base'}">${card.name}</h3><div class="font-bold ${isAi ? 'text-base' : 'text-lg'} text-yellow-400">${card.apCost} AP</div></div><p class="text-gray-300 mt-1 text-xs">${card.text}</p></div><div class="text-xs text-gray-400 mt-1"><div>${fromRanksText}</div><div>${toRanksText}</div></div>`;
+            const fromRanksText = card.fromRanks ? `사용: ${card.fromRanks.join(',')}` : ''; const toRanksText = card.toRanks.length > 0 ? `대상: ${card.toRanks.join(',')}` : '자신/전체';
+            const iconHtml = card.iconUrl ? `<img src="${card.iconUrl}" class="w-8 h-8 rounded-md" onerror="this.style.display='none'"/>` : '';
+            cardEl.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <div class="flex-grow">
+                                <h3 class="font-bold ${isAi ? 'text-sm' : 'text-base'}">${card.name}</h3>
+                            </div>
+                            ${iconHtml}
+                            <div class="font-bold ${isAi ? 'text-base' : 'text-lg'} text-yellow-400 ml-2">${card.apCost} AP</div>
+                        </div>
+                        <p class="text-gray-300 mt-1 text-xs">${card.text}</p>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1"><div>${fromRanksText}</div><div>${toRanksText}</div></div>
+                `;
             container.appendChild(cardEl);
         });
     }
-
     function showFloatingText(character, text, type) {
-        const charEl = document.getElementById(character.id);
-        if (!charEl) return;
-        const rect = charEl.getBoundingClientRect();
-        const textEl = document.createElement('div');
-        textEl.className = `damage-text ${type}`;
-        textEl.textContent = text;
-        textEl.style.left = `${rect.left + rect.width / 2}px`;
-        textEl.style.top = `${rect.top + rect.height / 2}px`;
+        const charEl = document.getElementById(character.id); if (!charEl) return;
+        const rect = charEl.getBoundingClientRect(); const textEl = document.createElement('div');
+        textEl.className = `damage-text ${type}`; textEl.textContent = text;
+        textEl.style.left = `${rect.left + rect.width / 2}px`; textEl.style.top = `${rect.top + rect.height / 2}px`;
         floatingTextContainerEl.appendChild(textEl);
-        setTimeout(() => { floatingTextContainerEl.removeChild(textEl); }, 1500);
+        setTimeout(() => { if(floatingTextContainerEl.contains(textEl)) floatingTextContainerEl.removeChild(textEl); }, 1500);
     }
-
-    function getActiveCharacter() { return gameState.initiativeOrder[gameState.currentTurnIndex]; }
+    function getActiveCharacter() { return gameState.initiativeOrder ? gameState.initiativeOrder[gameState.currentTurnIndex] : null; }
     function logMessage(message, type = 'info') {
-        const p = document.createElement('p');
-        let typeClass = 'text-gray-300';
-        if (type === 'turn') typeClass = 'text-yellow-400 font-bold';
-        if (type === 'round') typeClass = 'text-blue-400 font-bold';
-        if (type === 'death') typeClass = 'text-red-500 font-bold';
-        if (type === 'warning') typeClass = 'text-orange-400';
-        p.className = typeClass;
-        p.textContent = message;
-        gameLogEl.appendChild(p);
-        gameLogEl.scrollTop = gameLogEl.scrollHeight;
+        const p = document.createElement('p'); let typeClass = 'text-gray-300';
+        if (type === 'turn') typeClass = 'text-yellow-400 font-bold'; if (type === 'round') typeClass = 'text-blue-400 font-bold';
+        if (type === 'death') typeClass = 'text-red-500 font-bold'; if (type === 'warning') typeClass = 'text-orange-400';
+        p.className = typeClass; p.textContent = message; gameLogEl.appendChild(p); gameLogEl.scrollTop = gameLogEl.scrollHeight;
     }
 
-    endTurnBtn.addEventListener('click', endTurn);
-    document.addEventListener('DOMContentLoaded', initializeGame);
+    // --- Initial Load ---
+    document.addEventListener('DOMContentLoaded', () => { loadCharacters(); renderLobby(); endTurnBtn.addEventListener('click', endTurn); });
+
 </script>
 </body>
 </html>
