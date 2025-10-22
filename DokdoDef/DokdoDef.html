@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>독도 디펜스</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #70a1ff;
+            --main-green: #2ecc71;
+            --main-red: #e74c3c;
+            --main-blue: #3498db;
+            --text-color: #ffffff;
+            --dark-text: #2c3e50;
+            --ui-bg: rgba(44, 62, 80, 0.85);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            max-width: 1200px; /* 최대 너비 제한 */
+            max-height: 800px; /* 최대 높이 제한 */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            background-color: #87CEEB;
+            display: block;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        #ui-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+            background: var(--ui-bg);
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+
+        .unit-button {
+            background-color: var(--main-blue);
+            color: white;
+            border: 2px solid white;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 0 5px;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            width: 80px;
+            height: 90px;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .unit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .unit-button.on-cooldown {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .unit-icon {
+            font-size: 28px; /* Fallback for emoji */
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            display: block;
+        }
+
+        .unit-cost {
+            background-color: rgba(0,0,0,0.5);
+            padding: 2px 5px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .cooldown-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(44, 62, 80, 0.8);
+            transform: translateY(100%);
+            transition: transform 0.1s linear;
+        }
+
+        #resource-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--ui-bg);
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        #game-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+        }
+
+        #game-overlay h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        #game-overlay p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            max-width: 80%;
+        }
+
+        #game-overlay button {
+            background-color: var(--main-green);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #game-overlay button:hover {
+            background-color: #27ae60;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .unit-button {
+                width: 60px;
+                height: 75px;
+                font-size: 10px;
+                margin: 0 3px;
+            }
+            .unit-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 20px; /* Fallback for emoji */
+            }
+            #resource-bar {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            #game-overlay h1 {
+                font-size: 32px;
+            }
+            #game-overlay p {
+                font-size: 16px;
+            }
+            #game-overlay button {
+                padding: 12px 24px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui-container"></div>
+    <div id="resource-bar">🌊 태극력: 100</div>
+    <div id="game-overlay">
+        <h1>독도 디펜스</h1>
+        <p>우리 땅 독도를 침략하는 적들을 막아내세요!<br>태극력을 모아 우리 유닛을 소환하여 적 기지를 파괴하세요.</p>
+        <button id="startButton">게임 시작</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const gameContainer = document.getElementById('game-container');
+    const uiContainer = document.getElementById('ui-container');
+    const resourceBar = document.getElementById('resource-bar');
+    const gameOverlay = document.getElementById('game-overlay');
+    const startButton = document.getElementById('startButton');
+
+    let scale = 1;
+    let gameSpeed = 1;
+    let resource = 100;
+    let resourceGenerationRate = 2; // 초당 생성량
+    let lastTime = 0;
+    let gameRunning = false;
+    let currentStage = 0;
+
+    let playerBase, enemyBase;
+    const entities = [];
+
+    // 유닛 정보 (아이콘 이미지를 위한 path 추가)
+    const UNIT_DATA = {
+        turtle: { name: "거북선", icon: "🐢", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/turtle.png", cost: 150, hp: 1000, damage: 50, range: 60, speed: 0.5, cooldown: 5000 },
+        archer: { name: "화랑 궁수", icon: "🏹", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/archer.png", cost: 100, hp: 300, damage: 40, range: 200, speed: 1, cooldown: 3000 },
+        haetae: { name: "해태", icon: "🦁", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/haetae.png", cost: 250, hp: 700, damage: 80, range: 70, speed: 1.2, cooldown: 8000 },
+        bird: { name: "저어새", icon: "🦢", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/bird.png", cost: 80, hp: 200, damage: 30, range: 50, speed: 2, cooldown: 2000 },
+        hero: { name: "이순신 장군", icon: "🤺", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/hero.png", cost: 500, hp: 1500, damage: 150, range: 250, speed: 0.8, cooldown: 20000 }
+    };
+
+    // 적 정보 (아이콘 이미지를 위한 path 추가 및 이름 변경)
+    const ENEMY_DATA = {
+        shrimp: { name: "새우", icon: "🦐", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/shrimp.png", hp: 100, damage: 15, range: 30, speed: 1.5, resource: 5 },
+        squid: { name: "오징어", icon: "🦑", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/squid.png", hp: 300, damage: 30, range: 60, speed: 0.8, resource: 20 },
+        gull: { name: "갈매기", icon: "🐦", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/gull.png", hp: 150, damage: 20, range: 40, speed: 1.2, resource: 10 },
+        seal: { name: "강치", icon: "🦭", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/seal.png", hp: 800, damage: 40, range: 50, speed: 0.6, resource: 50 },
+        boat: { name: "불법 어선", icon: "🛶", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/boat.png", hp: 5000, damage: 100, range: 80, speed: 0.4, resource: 300 }
+    };
+
+    // 이미지 프리로드
+    const images = {};
+    const loadImage = (key, path) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = path;
+            img.onload = () => {
+                images[key] = img;
+                resolve();
+            };
+            img.onerror = () => {
+                console.error(`Failed to load image: ${path}`);
+                images[key] = null; // 실패 시 null 또는 대체 이미지로 처리
+                resolve();
+            };
+        });
+    };
+
+    async function preloadImages() {
+        const imagePaths = {
+            playerBase: "https://unluckyidiot16.github.io/assets-common/DokdoDef/Dokdo.png",
+            enemyBase: "https://unluckyidiot16.github.io/assets-common/DokdoDef/Dokdo_enemy.png", // 적 기지 이미지 (예시로 독도 이미지 사용)
+            ...Object.fromEntries(Object.entries(UNIT_DATA).map(([key, data]) => [`unit_${key}`, data.iconPath])),
+            ...Object.fromEntries(Object.entries(ENEMY_DATA).map(([key, data]) => [`enemy_${key}`, data.iconPath]))
+        };
+
+        const promises = Object.entries(imagePaths).map(([key, path]) => loadImage(key, path));
+        await Promise.all(promises);
+        console.log("All images preloaded.");
+    }
+
+
+    // 스테이지 구성
+    const STAGES = [
+        {
+            name: "1 스테이지: 동도 수호",
+            waves: [
+                { time: 2, type: 'shrimp' }, { time: 4, type: 'gull' }, { time: 8, type: 'shrimp' }, { time: 10, type: 'gull' }, { time: 12, type: 'seal' },
+                { time: 18, type: 'shrimp' }, { time: 20, type: 'gull' }, { time: 25, type: 'shrimp' }, { time: 28, type: 'seal' }, { time: 30, type: 'squid' },
+                { time: 40, type: 'gull' }, { time: 41, type: 'shrimp' }, { time: 42, type: 'gull' }, { time: 43, type: 'shrimp' }, { time: 50, type: 'seal' }
+            ],
+            totalTime: 55
+        },
+        {
+            name: "2 스테이지: 서도 방어",
+            waves: [
+                { time: 2, type: 'gull' }, { time: 3, type: 'squid' }, { time: 7, type: 'shrimp' }, { time: 9, type: 'seal' }, { time: 13, type: 'squid' },
+                { time: 20, type: 'seal' }, { time: 21, type: 'seal' }, { time: 25, type: 'squid' }, { time: 28, type: 'gull' }, { time: 30, type: 'shrimp' },
+                { time: 35, type: 'seal' }, { time: 36, type: "squid" }, { time: 45, type: 'gull' }, { time: 46, type: 'shrimp' }, { time: 47, type: 'squid' },
+                { time: 55, type: 'seal' }, { time: 56, type: 'seal' }
+            ],
+            totalTime: 65
+        },
+        {
+            name: "3 스테이지: 심해의 위협",
+            waves: [
+                { time: 3, type: 'seal' }, { time: 4, type: 'squid' }, { time: 5, type: 'gull' }, { time: 10, type: 'seal' }, { time: 12, type: 'squid' },
+                { time: 20, type: 'shrimp' }, { time: 21, type: 'gull' }, { time: 22, type: 'squid' }, { time: 28, type: 'seal' }, { time: 30, type: 'seal' },
+                { time: 38, type: 'squid' }, { time: 39, type: 'squid' }, { time: 40, type: 'gull' }, { time: 48, type: 'seal' }, { time: 50, type: 'seal' },
+                { time: 60, type: 'boat' }
+            ],
+            totalTime: 90
+        }
+    ];
+
+    let stageTimer = 0;
+    let spawnIndex = 0;
+
+    // --- 게임 클래스 정의 ---
+    class Entity {
+        constructor(x, y, width, height, hp, icon, imageKey) {
+            this.x = x;
+            this.y = y;
+            this.width = width * scale;
+            this.height = height * scale;
+            this.maxHp = hp;
+            this.hp = hp;
+            this.icon = icon; // Fallback for emoji
+            this.image = images[imageKey]; // 실제 이미지 객체
+            this.attackTarget = null;
+            this.attackCooldown = 0;
+        }
+
+        draw(ctx) {
+            if (this.image) {
+                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+            } else {
+                // 이미지 로드 실패 시 이모지 Fallback
+                ctx.font = `${this.height * 0.8}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.icon, this.x + this.width / 2, this.y + this.height / 2);
+            }
+
+            // 체력 바
+            const barWidth = this.width;
+            const barHeight = 5 * scale;
+            const yOffset = this.y - barHeight - 2;
+            ctx.fillStyle = '#e74c3c'; // red
+            ctx.fillRect(this.x, yOffset, barWidth, barHeight);
+            ctx.fillStyle = '#2ecc71'; // green
+            ctx.fillRect(this.x, yOffset, barWidth * (this.hp / this.maxHp), barHeight);
+        }
+
+        update(deltaTime) {
+            if (this.attackCooldown > 0) {
+                this.attackCooldown -= deltaTime;
+            }
+        }
+
+        isAlive() {
+            return this.hp > 0;
+        }
+
+        takeDamage(damage) {
+            this.hp -= damage;
+        }
+    }
+
+    class Base extends Entity {
+        constructor(x, y, width, height, hp, icon, imageKey) {
+            super(x, y, width, height, hp, icon, imageKey);
+        }
+
+        // 기지는 움직이거나 공격하지 않으므로 update는 비워둠
+        update(deltaTime) {}
+    }
+
+
+    class Unit extends Entity {
+        constructor(x, y, width, height, data) {
+            super(x, y, width, height, data.hp, data.icon, `unit_${Object.keys(UNIT_DATA).find(key => UNIT_DATA[key] === data)}`);
+            this.damage = data.damage;
+            this.range = data.range * scale;
+            this.speed = data.speed * scale * gameSpeed;
+            this.isAlly = true;
+        }
+
+        update(deltaTime, entities) {
+            super.update(deltaTime);
+            this.attackTarget = null;
+            let closestEnemy = null;
+            let closestDistance = Infinity;
+
+            for (const entity of entities) {
+                if (!entity.isAlly && entity.isAlive()) {
+                    const distance = entity.x - (this.x + this.width);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestEnemy = entity;
+                    }
+                }
+            }
+
+            // 기지도 공격 대상에 포함
+            const baseDistance = enemyBase.x - (this.x + this.width);
+            if (baseDistance < closestDistance) {
+                closestDistance = baseDistance;
+                closestEnemy = enemyBase;
+            }
+
+            if (closestEnemy) {
+                if (closestDistance <= this.range) {
+                    this.attack(closestEnemy);
+                } else {
+                    this.x += this.speed;
+                }
+            } else {
+                // 적이 없으면 적 기지로 전진
+                if (this.x + this.width < enemyBase.x) {
+                    this.x += this.speed;
+                }
+            }
+        }
+
+        attack(target) {
+            if (this.attackCooldown <= 0) {
+                target.takeDamage(this.damage);
+                this.attackCooldown = 1000; // 1초 공격 쿨다운
+            }
+        }
+    }
+
+    class Enemy extends Entity {
+        constructor(x, y, width, height, data) {
+            super(x, y, width, height, data.hp, data.icon, `enemy_${Object.keys(ENEMY_DATA).find(key => ENEMY_DATA[key] === data)}`);
+            this.damage = data.damage;
+            this.range = data.range * scale;
+            this.speed = data.speed * scale * gameSpeed;
+            this.resource = data.resource;
+            this.isAlly = false;
+        }
+
+        update(deltaTime, entities) {
+            super.update(deltaTime);
+            this.attackTarget = null;
+            let closestAlly = null;
+            let closestDistance = Infinity;
+
+            // 아군 유닛 찾기
+            for (const entity of entities) {
+                if (entity.isAlly && entity.isAlive()) {
+                    const distance = this.x - (entity.x + entity.width);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestAlly = entity;
+                    }
+                }
+            }
+
+            // 아군 기지도 공격 대상에 포함
+            const baseDistance = this.x - (playerBase.x + playerBase.width);
+            if (baseDistance < closestDistance) {
+                closestDistance = baseDistance;
+                closestAlly = playerBase;
+            }
+
+
+            if (closestAlly) {
+                if (closestDistance <= this.range) {
+                    this.attack(closestAlly);
+                } else {
+                    this.x -= this.speed;
+                }
+            } else {
+                // 아군이 없으면 아군 기지로 전진
+                if (this.x > playerBase.x + playerBase.width) {
+                    this.x -= this.speed;
+                }
+            }
+        }
+        attack(target) {
+            if (this.attackCooldown <= 0) {
+                target.takeDamage(this.damage);
+                this.attackCooldown = 1000;
+            }
+        }
+    }
+
+    // --- 게임 함수 ---
+
+    function resizeCanvas() {
+        const containerRatio = gameContainer.clientWidth / gameContainer.clientHeight;
+        const gameRatio = 16 / 9;
+
+        if (containerRatio > gameRatio) {
+            canvas.height = gameContainer.clientHeight;
+            canvas.width = canvas.height * gameRatio;
+        } else {
+            canvas.width = gameContainer.clientWidth;
+            canvas.height = canvas.width / gameRatio;
+        }
+
+        // UI 컨테이너 너비 맞추기
+        uiContainer.style.width = `${canvas.width}px`;
+        uiContainer.style.borderBottomLeftRadius = '15px';
+        uiContainer.style.borderBottomRightRadius = '15px';
+
+        // 리소스 바 위치 조정
+        const containerRect = gameContainer.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        resourceBar.style.left = `${canvasRect.left - containerRect.left + 10}px`;
+        resourceBar.style.top = `${canvasRect.top - containerRect.top + 10}px`;
+
+        scale = canvas.width / 1200; // 기준 해상도 너비 1200px
+        gameSpeed = scale;
+    }
+
+    function createUnitButtons() {
+        uiContainer.innerHTML = '';
+        for (const key in UNIT_DATA) {
+            const data = UNIT_DATA[key];
+            const button = document.createElement('button');
+            button.className = 'unit-button';
+            button.dataset.unit = key;
+            button.innerHTML = `
+                    <div class="unit-icon" style="background-image: url('${data.iconPath}')"></div>
+                    <div class="unit-name">${data.name}</div>
+                    <div class="unit-cost">🌊 ${data.cost}</div>
+                    <div class="cooldown-overlay"></div>
+                `;
+            button.addEventListener('click', () => spawnUnit(key));
+            uiContainer.appendChild(button);
+            data.lastSpawnTime = -data.cooldown; // 게임 시작 시 바로 소환 가능하도록
+        }
+    }
+
+    function spawnUnit(type) {
+        const data = UNIT_DATA[type];
+        const now = Date.now();
+        if (resource >= data.cost && now - data.lastSpawnTime >= data.cooldown) {
+            resource -= data.cost;
+            data.lastSpawnTime = now;
+            const unit = new Unit(playerBase.x + playerBase.width, canvas.height - (70 * scale) - (40*scale), 50, 40, data);
+            entities.push(unit);
+            updateCooldownVisuals();
+        }
+    }
+
+    function spawnEnemy(type) {
+        const data = ENEMY_DATA[type];
+        const enemy = new Enemy(canvas.width - 50 * scale, canvas.height - (70 * scale) - (40 * scale), 50, 40, data);
+        entities.push(enemy);
+    }
+
+    function updateCooldownVisuals() {
+        const now = Date.now();
+        const buttons = document.querySelectorAll('.unit-button');
+        buttons.forEach(button => {
+            const unitType = button.dataset.unit;
+            const data = UNIT_DATA[unitType];
+            const timeSinceSpawn = now - data.lastSpawnTime;
+            const cooldown = data.cooldown;
+
+            if (timeSinceSpawn < cooldown) {
+                button.classList.add('on-cooldown');
+                const overlay = button.querySelector('.cooldown-overlay');
+                const progress = 1 - (timeSinceSpawn / cooldown);
+                overlay.style.transform = `translateY(${progress * 100}%)`;
+            } else {
+                button.classList.remove('on-cooldown');
+                const overlay = button.querySelector('.cooldown-overlay');
+                overlay.style.transform = `translateY(100%)`;
+            }
+        });
+    }
+
+    function checkGameOver() {
+        if (!playerBase.isAlive()) {
+            endGame(false);
+        }
+        if (!enemyBase.isAlive()) {
+            // 현재 스테이지의 모든 적이 소환되고, 필드에 적이 없으면 승리
+            const stageData = STAGES[currentStage];
+            const allEnemiesSpawned = stageTimer >= stageData.totalTime;
+            const noEnemiesOnField = !entities.some(e => !e.isAlly);
+
+            if (allEnemiesSpawned && noEnemiesOnField) {
+                endGame(true);
+            }
+        }
+    }
+
+    function endGame(isWin) {
+        gameRunning = false;
+        gameOverlay.style.display = 'flex';
+        const h1 = gameOverlay.querySelector('h1');
+        const p = gameOverlay.querySelector('p');
+        const btn = gameOverlay.querySelector('button');
+
+        if (isWin) {
+            if (currentStage < STAGES.length - 1) {
+                h1.textContent = "승리!";
+                p.textContent = `${STAGES[currentStage].name} 클리어! 다음 스테이지에 도전하세요.`;
+                btn.textContent = "다음 스테이지";
+                currentStage++;
+                btn.onclick = startGame;
+            } else {
+                h1.textContent = "최종 승리!";
+                p.textContent = "모든 스테이지를 클리어하고 독도를 완벽하게 지켜냈습니다!";
+                btn.textContent = "다시 시작";
+                currentStage = 0;
+                btn.onclick = startGame;
+            }
+        } else {
+            h1.textContent = "패배";
+            p.textContent = "독도를 지키지 못했습니다... 다시 도전하여 우리 땅을 되찾으세요.";
+            btn.textContent = "다시 도전";
+            btn.onclick = startGame;
+        }
+    }
+
+    async function startGame() {
+        gameOverlay.style.display = 'none';
+
+        // 게임 상태 초기화
+        entities.length = 0;
+        resource = 200;
+        stageTimer = 0;
+        spawnIndex = 0;
+
+        playerBase = new Base(0, canvas.height - (120*scale), 80, 120, 5000, '🏝️', 'playerBase');
+        enemyBase = new Base(canvas.width - (80*scale), canvas.height - (120*scale), 80, 120, STAGES[currentStage].totalTime * 200, '🌋', 'enemyBase');
+
+        // 유닛 쿨다운 초기화
+        for(const key in UNIT_DATA){
+            UNIT_DATA[key].lastSpawnTime = -UNIT_DATA[key].cooldown;
+        }
+
+        if (!gameRunning) {
+            gameRunning = true;
+            requestAnimationFrame(gameLoop);
+        }
+    }
+
+
+    function update(deltaTime) {
+        if (!gameRunning) return;
+
+        // 자원 생성
+        resource += resourceGenerationRate * (deltaTime / 1000);
+        resourceBar.textContent = `🌊 태극력: ${Math.floor(resource)}`;
+
+        // 스테이지 진행 및 적 생성
+        stageTimer += deltaTime / 1000;
+        const stageData = STAGES[currentStage];
+        if (spawnIndex < stageData.waves.length && stageTimer >= stageData.waves[spawnIndex].time) {
+            spawnEnemy(stageData.waves[spawnIndex].type);
+            spawnIndex++;
+        }
+
+        // 모든 엔티티 업데이트
+        [...entities, playerBase, enemyBase].forEach(e => e.update(deltaTime, entities));
+
+        // 죽은 엔티티 제거
+        for (let i = entities.length - 1; i >= 0; i--) {
+            if (!entities[i].isAlive()) {
+                if (!entities[i].isAlly) {
+                    resource += entities[i].resource; // 적 처치 시 자원 획득
+                }
+                entities.splice(i, 1);
+            }
+        }
+
+        updateCooldownVisuals();
+        checkGameOver();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 배경 그리기
+        ctx.fillStyle = '#87CEEB'; // 하늘
+        ctx.fillRect(0, 0, canvas.width, canvas.height * 0.85);
+        ctx.fillStyle = '#1E90FF'; // 바다
+        ctx.fillRect(0, canvas.height * 0.85, canvas.width, canvas.height * 0.15);
+
+        // 기지 그리기
+        playerBase.draw(ctx);
+        enemyBase.draw(ctx);
+
+        // 엔티티 그리기 (y좌표 순으로 정렬하여 겹치지 않게)
+        entities.sort((a, b) => a.y - b.y);
+        entities.forEach(e => e.draw(ctx));
+
+        // 스테이지 정보
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${20 * scale}px 'Noto Sans KR'`;
+        ctx.textAlign = 'center';
+        ctx.fillText(STAGES[currentStage].name, canvas.width / 2, 30 * scale);
+    }
+
+    function gameLoop(timestamp) {
+        if (!gameRunning) return;
+
+        const deltaTime = timestamp - lastTime;
+        lastTime = timestamp;
+
+        update(deltaTime || 0);
+        draw();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    // 초기화
+    window.addEventListener('resize', () => {
+        resizeCanvas();
+        // 게임 상태에 따라 객체들의 크기와 위치도 재조정해야 함
+        // 간단하게 재시작하도록 처리하거나, 모든 객체의 scale을 다시 적용
+        if(playerBase) {
+            // 게임이 실행중이었다면 리사이즈에 맞춰서 위치/크기 재조정
+            playerBase.y = canvas.height - (120*scale);
+            enemyBase.y = canvas.height - (120*scale);
+            enemyBase.x = canvas.width - (80*scale);
+            // 모든 엔티티들의 width, height, x, y도 scale에 맞춰서 재조정 필요
+            // 이 예제에서는 단순화를 위해 게임 재시작 시점에만 정확히 세팅되도록 함
+            // 실제 게임에서는 엔티티 생성 시점에 scale 적용하거나 리사이즈 시 모두 업데이트
+        }
+    });
+
+    startButton.addEventListener('click', () => {
+        lastTime = performance.now();
+        startGame();
+    });
+
+    // 이미지 프리로드 후 게임 초기화
+    preloadImages().then(() => {
+        resizeCanvas();
+        createUnitButtons();
+    });
+</script>
+</body>
+</html>
