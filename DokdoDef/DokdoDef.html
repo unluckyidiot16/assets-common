@@ -328,7 +328,7 @@
 
     async function preloadImages() {
         const promises = [];
-        promises.push(loadImage('playerBase', 'https://unluckyidiot16.github.io/assets-common/DokdoDef/Dokdo.png', '🏝️'));
+        promises.push(loadImage('playerBase', 'https://unluckyidiot16.github.io/assets-common/DokdoDef/dokdo.png', '🏝️'));
         promises.push(loadImage('enemyBase', 'https://placehold.co/128x128/c0392b/ffffff?text=🌋', '🌋'));
         for (const [key, data] of Object.entries(UNIT_DATA)) { promises.push(loadImage(`unit_${key}`, data.iconPath, data.icon)); }
         for (const [key, data] of Object.entries(ENEMY_DATA)) { promises.push(loadImage(`enemy_${key}`, data.iconPath, data.icon)); }
