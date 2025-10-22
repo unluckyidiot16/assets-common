@@ -254,41 +254,58 @@
 
     // 적 유닛 정보
     const ENEMY_DATA = {
-        waste: { name: "해양 쓰레기", icon: "🗑️", iconPath: "https://placehold.co/64x64/7f8c8d/ffffff?text=🗑️", hp: 150, damage: 20, range: 40, speed: 1, resource: 10 },
-        oil: { name: "폐유", icon: "⚫", iconPath: "https://placehold.co/64x64/2c3e50/ffffff?text=⚫", hp: 400, damage: 35, range: 70, speed: 0.7, resource: 25 },
-        poacher: { name: "불법 어선", icon: "🚤", iconPath: "https://placehold.co/64x64/c0392b/ffffff?text=🚤", hp: 1200, damage: 60, range: 100, speed: 0.5, resource: 80 },
-        boss: { name: "초대형 폐기물", icon: "💥", iconPath: "https://placehold.co/100x100/e67e22/ffffff?text=💥", hp: 6000, damage: 120, range: 90, speed: 0.4, resource: 400 }
+        waste: { name: "해양 쓰레기", icon: "🗑️", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/recyclingbag.png", hp: 150, damage: 20, range: 40, speed: 1, resource: 10 },
+        oil: { name: "폐유", icon: "⚫", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/plastic.png", hp: 400, damage: 35, range: 70, speed: 0.7, resource: 25 },
+        poacher: { name: "불법 어선", icon: "🚤", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/pollution.png", hp: 1200, damage: 60, range: 100, speed: 0.5, resource: 80 },
+        boss: { name: "초대형 폐기물", icon: "💥", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/pollution.png", hp: 6000, damage: 120, range: 90, speed: 0.4, resource: 400 }
     };
 
     // 이미지 프리로드
     const images = {};
-    const loadImage = (key, path) => {
+    const loadImage = (key, path, fallbackIcon) => {
         return new Promise((resolve) => {
             const img = new Image();
-            // CORS (Cross-Origin Resource Sharing) 문제를 해결하기 위해 crossOrigin 속성 추가
             img.crossOrigin = "Anonymous";
             img.src = path;
+
             img.onload = () => {
                 images[key] = img;
                 resolve();
             };
+
             img.onerror = () => {
-                console.error(`Failed to load image: ${path}`);
-                images[key] = null; // 실패 시 null 또는 대체 이미지로 처리
-                resolve();
+                console.error(`Failed to load image: ${path}. Using fallback.`);
+                const fallbackImg = new Image();
+                fallbackImg.crossOrigin = "Anonymous";
+                fallbackImg.src = `https://placehold.co/64x64/cccccc/ffffff?text=${encodeURIComponent(fallbackIcon || '❓')}`;
+                fallbackImg.onload = () => {
+                    images[key] = fallbackImg;
+                    resolve();
+                };
+                fallbackImg.onerror = () => {
+                    console.error(`Failed to load fallback image for ${key}`);
+                    images[key] = null;
+                    resolve();
+                };
             };
         });
     };
 
-    async function preloadImages() {
-        const imagePaths = {
-            playerBase: "https://placehold.co/128x128/27ae60/ffffff?text=🏝️",
-            enemyBase: "https://placehold.co/128x128/c0392b/ffffff?text=🌋", // 적 기지는 임시 이미지 유지
-            ...Object.fromEntries(Object.entries(UNIT_DATA).map(([key, data]) => [`unit_${key}`, data.iconPath])),
-            ...Object.fromEntries(Object.entries(ENEMY_DATA).map(([key, data]) => [`enemy_${key}`, data.iconPath]))
-        };
 
-        const promises = Object.entries(imagePaths).map(([key, path]) => loadImage(key, path));
+    async function preloadImages() {
+        const promises = [];
+
+        promises.push(loadImage('playerBase', 'https://unluckyidiot16.github.io/assets-common/DokdoDef/Dokdo.png', '🏝️'));
+        promises.push(loadImage('enemyBase', 'https://placehold.co/128x128/c0392b/ffffff?text=🌋', '🌋')); // 적 기지는 임시 이미지 유지
+
+        for (const [key, data] of Object.entries(UNIT_DATA)) {
+            promises.push(loadImage(`unit_${key}`, data.iconPath, data.icon));
+        }
+
+        for (const [key, data] of Object.entries(ENEMY_DATA)) {
+            promises.push(loadImage(`enemy_${key}`, data.iconPath, data.icon));
+        }
+
         await Promise.all(promises);
         console.log("All images preloaded.");
     }
@@ -533,7 +550,7 @@
             button.innerHTML = `
                     <div class="unit-icon" style="background-image: url('${data.iconPath}')"></div>
                     <div class="unit-name">${data.name}</div>
-                    <div class="unit-cost">🌊 ${data.cost}</div>
+                    <div class.unit-cost">🌊 ${data.cost}</div>
                     <div class="cooldown-overlay"></div>
                 `;
             button.addEventListener('click', () => spawnUnit(key));
