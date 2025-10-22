@@ -16,6 +16,7 @@
             --text-color: #ffffff;
             --dark-text: #2c3e50;
             --ui-bg: rgba(44, 62, 80, 0.85);
+            --level-up-color: #f1c40f;
         }
 
         body, html {
@@ -64,6 +65,49 @@
             border-bottom-left-radius: 15px;
             border-bottom-right-radius: 15px;
         }
+
+        #top-ui-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #resource-bar, #level-up-bar {
+            background-color: var(--ui-bg);
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+        }
+
+        #level-up-button {
+            background-color: var(--level-up-color);
+            color: var(--dark-text);
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.2s;
+        }
+
+        #level-up-button:hover {
+            background-color: #f39c12;
+        }
+
+        #level-up-button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
 
         .unit-button {
             background-color: var(--main-blue);
@@ -125,19 +169,6 @@
             transition: transform 0.1s linear;
         }
 
-        #resource-bar {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: var(--ui-bg);
-            color: var(--text-color);
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
         #game-overlay {
             position: absolute;
             top: 0;
@@ -194,7 +225,11 @@
                 height: 30px;
                 font-size: 20px; /* Fallback for emoji */
             }
-            #resource-bar {
+            #top-ui-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            #resource-bar, #level-up-bar {
                 font-size: 14px;
                 padding: 8px 12px;
             }
@@ -215,7 +250,13 @@
 <div id="game-container">
     <canvas id="gameCanvas"></canvas>
     <div id="ui-container"></div>
-    <div id="resource-bar">🌊 태극력: 100</div>
+    <div id="top-ui-container">
+        <div id="resource-bar">🌊 태극력: 100</div>
+        <div id="level-up-bar">
+            <span>독도 Lv.1</span>
+            <button id="level-up-button">레벨 업 (비용: 150)</button>
+        </div>
+    </div>
     <div id="game-overlay">
         <h1>독도 디펜스</h1>
         <p>우리 땅 독도를 침략하는 적들을 막아내세요!<br>태극력을 모아 우리 유닛을 소환하여 적 기지를 파괴하세요.</p>
@@ -228,22 +269,28 @@
     const ctx = canvas.getContext('2d');
     const gameContainer = document.getElementById('game-container');
     const uiContainer = document.getElementById('ui-container');
+    const topUiContainer = document.getElementById('top-ui-container');
     const resourceBar = document.getElementById('resource-bar');
+    const levelUpBar = document.getElementById('level-up-bar');
+    const levelUpButton = document.getElementById('level-up-button');
     const gameOverlay = document.getElementById('game-overlay');
     const startButton = document.getElementById('startButton');
 
     let scale = 1;
     let gameSpeed = 1;
     let resource = 100;
-    let resourceGenerationRate = 2; // 초당 생성량
+    let resourceGenerationRate = 2;
     let lastTime = 0;
     let gameRunning = false;
     let currentStage = 0;
 
     let playerBase, enemyBase;
+    let dokdoLevel = 1;
+    let levelUpCost = 150;
     const entities = [];
+    const images = {}; // 이미지 객체 선언
 
-    // 아군 유닛 정보
+    // 유닛 정보... (이전과 동일)
     const UNIT_DATA = {
         shrimp: { name: "새우", icon: "🦐", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/shrimp.png", cost: 80, hp: 200, damage: 30, range: 50, speed: 2, cooldown: 2000 },
         squid: { name: "오징어", icon: "🦑", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/squid.png", cost: 100, hp: 300, damage: 40, range: 200, speed: 1, cooldown: 3000 },
@@ -252,7 +299,6 @@
         ship: { name: "배", icon: "🛶", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/ship.png", cost: 500, hp: 1500, damage: 150, range: 250, speed: 0.8, cooldown: 20000 }
     };
 
-    // 적 유닛 정보
     const ENEMY_DATA = {
         waste: { name: "해양 쓰레기", icon: "🗑️", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/recyclingbag.png", hp: 150, damage: 20, range: 40, speed: 1, resource: 10 },
         oil: { name: "폐유", icon: "⚫", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/plastic.png", hp: 400, damage: 35, range: 70, speed: 0.7, resource: 25 },
@@ -260,390 +306,177 @@
         boss: { name: "초대형 폐기물", icon: "💥", iconPath: "https://unluckyidiot16.github.io/assets-common/DokdoDef/pollution.png", hp: 6000, damage: 120, range: 90, speed: 0.4, resource: 400 }
     };
 
-    // 이미지 프리로드
-    const images = {};
     const loadImage = (key, path, fallbackIcon) => {
         return new Promise((resolve) => {
             const img = new Image();
             img.crossOrigin = "Anonymous";
             img.src = path;
-
-            img.onload = () => {
-                images[key] = img;
-                resolve();
-            };
-
+            img.onload = () => { images[key] = img; resolve(); };
             img.onerror = () => {
                 console.error(`Failed to load image: ${path}. Using fallback.`);
                 const fallbackImg = new Image();
                 fallbackImg.crossOrigin = "Anonymous";
                 fallbackImg.src = `https://placehold.co/64x64/cccccc/ffffff?text=${encodeURIComponent(fallbackIcon || '❓')}`;
-                fallbackImg.onload = () => {
-                    images[key] = fallbackImg;
-                    resolve();
-                };
-                fallbackImg.onerror = () => {
-                    console.error(`Failed to load fallback image for ${key}`);
-                    images[key] = null;
-                    resolve();
-                };
+                fallbackImg.onload = () => { images[key] = fallbackImg; resolve(); };
+                fallbackImg.onerror = () => { images[key] = null; resolve(); };
             };
         });
     };
 
-
     async function preloadImages() {
         const promises = [];
-
         promises.push(loadImage('playerBase', 'https://unluckyidiot16.github.io/assets-common/DokdoDef/Dokdo.png', '🏝️'));
-        promises.push(loadImage('enemyBase', 'https://placehold.co/128x128/c0392b/ffffff?text=🌋', '🌋')); // 적 기지는 임시 이미지 유지
-
-        for (const [key, data] of Object.entries(UNIT_DATA)) {
-            promises.push(loadImage(`unit_${key}`, data.iconPath, data.icon));
-        }
-
-        for (const [key, data] of Object.entries(ENEMY_DATA)) {
-            promises.push(loadImage(`enemy_${key}`, data.iconPath, data.icon));
-        }
-
+        promises.push(loadImage('enemyBase', 'https://placehold.co/128x128/c0392b/ffffff?text=🌋', '🌋'));
+        for (const [key, data] of Object.entries(UNIT_DATA)) { promises.push(loadImage(`unit_${key}`, data.iconPath, data.icon)); }
+        for (const [key, data] of Object.entries(ENEMY_DATA)) { promises.push(loadImage(`enemy_${key}`, data.iconPath, data.icon)); }
         await Promise.all(promises);
         console.log("All images preloaded.");
     }
 
 
-    // 스테이지 구성
     const STAGES = [
-        {
-            name: "1 스테이지: 해안 정화",
-            waves: [
-                { time: 2, type: 'waste' }, { time: 5, type: 'waste' }, { time: 9, type: 'oil' }, { time: 13, type: 'waste' }, { time: 16, type: 'waste' },
-                { time: 20, type: 'oil' }, { time: 25, type: 'waste' }, { time: 28, type: 'oil' }, { time: 32, type: 'waste' }, { time: 35, type: 'poacher' },
-                { time: 42, type: 'oil' }, { time: 45, type: 'waste' }, { time: 48, type: 'waste' }, { time: 52, type: 'poacher' }
-            ],
-            totalTime: 58
-        },
-        {
-            name: "2 스테이지: 오염원 추적",
-            waves: [
-                { time: 2, type: 'oil' }, { time: 4, type: 'poacher' }, { time: 8, type: 'waste' }, { time: 12, type: 'oil' }, { time: 15, 'type': 'poacher'},
-                { time: 22, type: 'oil' }, { time: 23, type: 'oil' }, { time: 28, type: 'poacher' }, { time: 33, type: 'waste' }, { time: 35, type: 'waste' },
-                { time: 40, type: 'poacher' }, { time: 42, type: "oil" }, { time: 48, type: 'waste' }, { time: 50, type: 'waste' }, { time: 54, type: 'poacher' },
-                { time: 60, type: 'poacher' }, { time: 61, type: 'oil' }
-            ],
-            totalTime: 70
-        },
-        {
-            name: "3 스테이지: 심해의 위협",
-            waves: [
-                { time: 3, type: 'poacher' }, { time: 5, type: 'oil' }, { time: 8, type: 'waste' }, { time: 12, type: 'poacher' }, { time: 15, type: 'oil' },
-                { time: 22, type: 'waste' }, { time: 24, type: 'oil' }, { time: 28, type: 'poacher' }, { time: 33, type: 'poacher' }, { time: 38, type: 'oil' },
-                { time: 45, type: 'oil' }, { time: 48, type: 'poacher' }, { time: 52, type: 'waste' }, { time: 58, type: 'poacher' }, { time: 65, type: 'poacher' },
-                { time: 75, type: 'boss' }
-            ],
-            totalTime: 90
-        }
+        { name: "1 스테이지: 해안 정화", waves: [ { time: 2, type: 'waste' }, { time: 5, type: 'waste' }, { time: 9, type: 'oil' }, { time: 13, type: 'waste' }, { time: 16, type: 'waste' }, { time: 20, type: 'oil' }, { time: 25, type: 'waste' }, { time: 28, type: 'oil' }, { time: 32, type: 'waste' }, { time: 35, type: 'poacher' }, { time: 42, type: 'oil' }, { time: 45, type: 'waste' }, { time: 48, type: 'waste' }, { time: 52, type: 'poacher' } ], totalTime: 58 },
+        { name: "2 스테이지: 오염원 추적", waves: [ { time: 2, type: 'oil' }, { time: 4, type: 'poacher' }, { time: 8, type: 'waste' }, { time: 12, type: 'oil' }, { time: 15, 'type': 'poacher'}, { time: 22, type: 'oil' }, { time: 23, type: 'oil' }, { time: 28, type: 'poacher' }, { time: 33, type: 'waste' }, { time: 35, type: 'waste' }, { time: 40, type: 'poacher' }, { time: 42, type: "oil" }, { time: 48, type: 'waste' }, { time: 50, type: 'waste' }, { time: 54, type: 'poacher' }, { time: 60, type: 'poacher' }, { time: 61, type: 'oil' } ], totalTime: 70 },
+        { name: "3 스테이지: 심해의 위협", waves: [ { time: 3, type: 'poacher' }, { time: 5, type: 'oil' }, { time: 8, type: 'waste' }, { time: 12, type: 'poacher' }, { time: 15, type: 'oil' }, { time: 22, type: 'waste' }, { time: 24, type: 'oil' }, { time: 28, type: 'poacher' }, { time: 33, type: 'poacher' }, { time: 38, type: 'oil' }, { time: 45, type: 'oil' }, { time: 48, type: 'poacher' }, { time: 52, type: 'waste' }, { time: 58, type: 'poacher' }, { time: 65, type: 'poacher' }, { time: 75, type: 'boss' } ], totalTime: 90 }
     ];
 
     let stageTimer = 0;
     let spawnIndex = 0;
 
-    // --- 게임 클래스 정의 ---
     class Entity {
         constructor(x, y, width, height, hp, icon, imageKey) {
-            this.x = x;
-            this.y = y;
-            this.width = width * scale;
-            this.height = height * scale;
-            this.maxHp = hp;
-            this.hp = hp;
-            this.icon = icon; // Fallback for emoji
-            this.image = images[imageKey]; // 실제 이미지 객체
-            this.attackTarget = null;
-            this.attackCooldown = 0;
+            this.x = x; this.y = y; this.width = width * scale; this.height = height * scale; this.maxHp = hp; this.hp = hp; this.icon = icon; this.image = images[imageKey]; this.attackTarget = null; this.attackCooldown = 0;
         }
-
         draw(ctx) {
-            if (this.image) {
-                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-            } else {
-                // 이미지 로드 실패 시 이모지 Fallback
-                ctx.font = `${this.height * 0.8}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(this.icon, this.x + this.width / 2, this.y + this.height / 2);
-            }
-
-            // 체력 바
-            const barWidth = this.width;
-            const barHeight = 5 * scale;
-            const yOffset = this.y - barHeight - 2;
-            ctx.fillStyle = '#e74c3c'; // red
-            ctx.fillRect(this.x, yOffset, barWidth, barHeight);
-            ctx.fillStyle = '#2ecc71'; // green
-            ctx.fillRect(this.x, yOffset, barWidth * (this.hp / this.maxHp), barHeight);
+            if (this.image) { ctx.drawImage(this.image, this.x, this.y, this.width, this.height); } else { ctx.font = `${this.height * 0.8}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(this.icon, this.x + this.width / 2, this.y + this.height / 2); }
+            const barWidth = this.width; const barHeight = 5 * scale; const yOffset = this.y - barHeight - 2; ctx.fillStyle = '#e74c3c'; ctx.fillRect(this.x, yOffset, barWidth, barHeight); ctx.fillStyle = '#2ecc71'; ctx.fillRect(this.x, yOffset, barWidth * (this.hp / this.maxHp), barHeight);
         }
-
-        update(deltaTime) {
-            if (this.attackCooldown > 0) {
-                this.attackCooldown -= deltaTime;
-            }
-        }
-
-        isAlive() {
-            return this.hp > 0;
-        }
-
-        takeDamage(damage) {
-            this.hp -= damage;
-        }
+        update(deltaTime) { if (this.attackCooldown > 0) { this.attackCooldown -= deltaTime; } }
+        isAlive() { return this.hp > 0; }
+        takeDamage(damage) { this.hp -= damage; }
     }
 
     class Base extends Entity {
-        constructor(x, y, width, height, hp, icon, imageKey) {
-            super(x, y, width, height, hp, icon, imageKey);
+        constructor(x, y, width, height, hp, icon, imageKey) { super(x, y, width, height, hp, icon, imageKey); }
+        draw(ctx) {
+            super.draw(ctx);
+            if (this.isAlly) {
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${18 * scale}px 'Noto Sans KR'`;
+                ctx.textAlign = 'center';
+                ctx.fillText(`Lv.${dokdoLevel}`, this.x + this.width / 2, this.y - 20 * scale);
+            }
         }
-
         update(deltaTime) {}
     }
 
 
     class Unit extends Entity {
-        constructor(x, y, width, height, data) {
-            super(x, y, width, height, data.hp, data.icon, `unit_${Object.keys(UNIT_DATA).find(key => UNIT_DATA[key] === data)}`);
-            this.damage = data.damage;
-            this.range = data.range * scale;
-            this.speed = data.speed * scale * gameSpeed;
-            this.isAlly = true;
-        }
-
+        constructor(x, y, width, height, data) { super(x, y, width, height, data.hp, data.icon, `unit_${Object.keys(UNIT_DATA).find(key => UNIT_DATA[key] === data)}`); this.damage = data.damage; this.range = data.range * scale; this.speed = data.speed * scale * gameSpeed; this.isAlly = true; }
         update(deltaTime, entities) {
-            super.update(deltaTime);
-            this.attackTarget = null;
-            let closestEnemy = null;
-            let closestDistance = Infinity;
-
-            for (const entity of entities) {
-                if (!entity.isAlly && entity.isAlive()) {
-                    const distance = entity.x - (this.x + this.width);
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestEnemy = entity;
-                    }
-                }
-            }
-
-            const baseDistance = enemyBase.x - (this.x + this.width);
-            if (baseDistance < closestDistance) {
-                closestDistance = baseDistance;
-                closestEnemy = enemyBase;
-            }
-
-            if (closestEnemy) {
-                if (closestDistance <= this.range) {
-                    this.attack(closestEnemy);
-                } else {
-                    this.x += this.speed;
-                }
-            } else {
-                if (this.x + this.width < enemyBase.x) {
-                    this.x += this.speed;
-                }
-            }
+            super.update(deltaTime); this.attackTarget = null; let closestEnemy = null; let closestDistance = Infinity;
+            for (const entity of entities) { if (!entity.isAlly && entity.isAlive()) { const distance = entity.x - (this.x + this.width); if (distance < closestDistance) { closestDistance = distance; closestEnemy = entity; } } }
+            const baseDistance = enemyBase.x - (this.x + this.width); if (baseDistance < closestDistance) { closestDistance = baseDistance; closestEnemy = enemyBase; }
+            if (closestEnemy) { if (closestDistance <= this.range) { this.attack(closestEnemy); } else { this.x += this.speed; } } else { if (this.x + this.width < enemyBase.x) { this.x += this.speed; } }
         }
-
-        attack(target) {
-            if (this.attackCooldown <= 0) {
-                target.takeDamage(this.damage);
-                this.attackCooldown = 1000;
-            }
-        }
+        attack(target) { if (this.attackCooldown <= 0) { target.takeDamage(this.damage); this.attackCooldown = 1000; } }
     }
 
     class Enemy extends Entity {
-        constructor(x, y, width, height, data) {
-            const key = Object.keys(ENEMY_DATA).find(k => ENEMY_DATA[k] === data);
-            super(x, y, width, height, data.hp, data.icon, `enemy_${key}`);
-            this.damage = data.damage;
-            this.range = data.range * scale;
-            this.speed = data.speed * scale * gameSpeed;
-            this.resource = data.resource;
-            this.isAlly = false;
-        }
-
+        constructor(x, y, width, height, data) { const key = Object.keys(ENEMY_DATA).find(k => ENEMY_DATA[k] === data); super(x, y, width, height, data.hp, data.icon, `enemy_${key}`); this.damage = data.damage; this.range = data.range * scale; this.speed = data.speed * scale * gameSpeed; this.resource = data.resource; this.isAlly = false; }
         update(deltaTime, entities) {
-            super.update(deltaTime);
-            this.attackTarget = null;
-            let closestAlly = null;
-            let closestDistance = Infinity;
-
-            for (const entity of entities) {
-                if (entity.isAlly && entity.isAlive()) {
-                    const distance = this.x - (entity.x + entity.width);
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestAlly = entity;
-                    }
-                }
-            }
-
-            const baseDistance = this.x - (playerBase.x + playerBase.width);
-            if (baseDistance < closestDistance) {
-                closestDistance = baseDistance;
-                closestAlly = playerBase;
-            }
-
-
-            if (closestAlly) {
-                if (closestDistance <= this.range) {
-                    this.attack(closestAlly);
-                } else {
-                    this.x -= this.speed;
-                }
-            } else {
-                if (this.x > playerBase.x + playerBase.width) {
-                    this.x -= this.speed;
-                }
-            }
+            super.update(deltaTime); this.attackTarget = null; let closestAlly = null; let closestDistance = Infinity;
+            for (const entity of entities) { if (entity.isAlly && entity.isAlive()) { const distance = this.x - (entity.x + entity.width); if (distance < closestDistance) { closestDistance = distance; closestAlly = entity; } } }
+            const baseDistance = this.x - (playerBase.x + playerBase.width); if (baseDistance < closestDistance) { closestDistance = baseDistance; closestAlly = playerBase; }
+            if (closestAlly) { if (closestDistance <= this.range) { this.attack(closestAlly); } else { this.x -= this.speed; } } else { if (this.x > playerBase.x + playerBase.width) { this.x -= this.speed; } }
         }
-        attack(target) {
-            if (this.attackCooldown <= 0) {
-                target.takeDamage(this.damage);
-                this.attackCooldown = 1000;
-            }
-        }
+        attack(target) { if (this.attackCooldown <= 0) { target.takeDamage(this.damage); this.attackCooldown = 1000; } }
     }
 
-    // --- 게임 함수 ---
-
     function resizeCanvas() {
-        const containerRatio = gameContainer.clientWidth / gameContainer.clientHeight;
-        const gameRatio = 16 / 9;
-
-        if (containerRatio > gameRatio) {
-            canvas.height = gameContainer.clientHeight;
-            canvas.width = canvas.height * gameRatio;
-        } else {
-            canvas.width = gameContainer.clientWidth;
-            canvas.height = canvas.width / gameRatio;
-        }
-
+        const containerRatio = gameContainer.clientWidth / gameContainer.clientHeight; const gameRatio = 16 / 9;
+        if (containerRatio > gameRatio) { canvas.height = gameContainer.clientHeight; canvas.width = canvas.height * gameRatio; } else { canvas.width = gameContainer.clientWidth; canvas.height = canvas.width / gameRatio; }
         uiContainer.style.width = `${canvas.width}px`;
-        uiContainer.style.borderBottomLeftRadius = '15px';
-        uiContainer.style.borderBottomRightRadius = '15px';
-
-        const containerRect = gameContainer.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-        resourceBar.style.left = `${canvasRect.left - containerRect.left + 10}px`;
-        resourceBar.style.top = `${canvasRect.top - containerRect.top + 10}px`;
-
-        scale = canvas.width / 1200;
-        gameSpeed = scale;
+        const containerRect = gameContainer.getBoundingClientRect(); const canvasRect = canvas.getBoundingClientRect();
+        topUiContainer.style.left = `${canvasRect.left - containerRect.left + 10}px`; topUiContainer.style.top = `${canvasRect.top - containerRect.top + 10}px`;
+        scale = canvas.width / 1200; gameSpeed = scale;
     }
 
     function createUnitButtons() {
         uiContainer.innerHTML = '';
         for (const key in UNIT_DATA) {
-            const data = UNIT_DATA[key];
-            const button = document.createElement('button');
-            button.className = 'unit-button';
-            button.dataset.unit = key;
-            button.innerHTML = `
-                    <div class="unit-icon" style="background-image: url('${data.iconPath}')"></div>
-                    <div class="unit-name">${data.name}</div>
-                    <div class.unit-cost">🌊 ${data.cost}</div>
-                    <div class="cooldown-overlay"></div>
-                `;
-            button.addEventListener('click', () => spawnUnit(key));
-            uiContainer.appendChild(button);
-            data.lastSpawnTime = -data.cooldown;
+            const data = UNIT_DATA[key]; const button = document.createElement('button'); button.className = 'unit-button'; button.dataset.unit = key;
+            button.innerHTML = `<div class="unit-icon" style="background-image: url('${data.iconPath}')"></div> <div class="unit-name">${data.name}</div> <div class="unit-cost">🌊 ${data.cost}</div> <div class="cooldown-overlay"></div>`;
+            button.addEventListener('click', () => spawnUnit(key)); uiContainer.appendChild(button); data.lastSpawnTime = -data.cooldown;
         }
     }
 
     function spawnUnit(type) {
-        const data = UNIT_DATA[type];
-        const now = Date.now();
+        const data = UNIT_DATA[type]; const now = Date.now();
         if (resource >= data.cost && now - data.lastSpawnTime >= data.cooldown) {
-            resource -= data.cost;
-            data.lastSpawnTime = now;
+            resource -= data.cost; data.lastSpawnTime = now;
             const unit = new Unit(playerBase.x + playerBase.width, canvas.height - (70 * scale) - (40*scale), 50, 40, data);
-            entities.push(unit);
-            updateCooldownVisuals();
+            entities.push(unit); updateCooldownVisuals();
         }
     }
 
     function spawnEnemy(type) {
-        const data = ENEMY_DATA[type];
-        let width = 50, height = 40;
-        if(type === 'boss') {
-            width = 80; height = 80;
-        }
+        const data = ENEMY_DATA[type]; let width = 50, height = 40; if(type === 'boss') { width = 80; height = 80; }
         const enemy = new Enemy(canvas.width - width * scale, canvas.height - (70 * scale) - (height * scale), width, height, data);
         entities.push(enemy);
     }
 
     function updateCooldownVisuals() {
-        const now = Date.now();
-        const buttons = document.querySelectorAll('.unit-button');
+        const now = Date.now(); const buttons = document.querySelectorAll('.unit-button');
         buttons.forEach(button => {
-            const unitType = button.dataset.unit;
-            const data = UNIT_DATA[unitType];
-            const timeSinceSpawn = now - data.lastSpawnTime;
-            const cooldown = data.cooldown;
-
+            const unitType = button.dataset.unit; const data = UNIT_DATA[unitType]; const timeSinceSpawn = now - data.lastSpawnTime; const cooldown = data.cooldown;
             if (timeSinceSpawn < cooldown) {
-                button.classList.add('on-cooldown');
-                const overlay = button.querySelector('.cooldown-overlay');
-                const progress = 1 - (timeSinceSpawn / cooldown);
-                overlay.style.transform = `translateY(${progress * 100}%)`;
+                button.classList.add('on-cooldown'); const overlay = button.querySelector('.cooldown-overlay'); const progress = 1 - (timeSinceSpawn / cooldown); overlay.style.transform = `translateY(${progress * 100}%)`;
             } else {
-                button.classList.remove('on-cooldown');
-                const overlay = button.querySelector('.cooldown-overlay');
-                overlay.style.transform = `translateY(100%)`;
+                button.classList.remove('on-cooldown'); const overlay = button.querySelector('.cooldown-overlay'); overlay.style.transform = `translateY(100%)`;
             }
         });
     }
 
-    function checkGameOver() {
-        if (!playerBase.isAlive()) {
-            endGame(false);
-        }
-        if (!enemyBase.isAlive()) {
-            const stageData = STAGES[currentStage];
-            const allEnemiesSpawned = stageTimer >= stageData.totalTime;
-            const noEnemiesOnField = !entities.some(e => !e.isAlly);
+    function updateLevelUpUI() {
+        const levelSpan = levelUpBar.querySelector('span');
+        levelSpan.textContent = `독도 Lv.${dokdoLevel}`;
+        levelUpButton.textContent = `레벨 업 (비용: ${levelUpCost})`;
+        levelUpButton.disabled = resource < levelUpCost;
+    }
 
-            if (allEnemiesSpawned && noEnemiesOnField) {
-                endGame(true);
-            }
+    function levelUpDokdo() {
+        if (resource >= levelUpCost) {
+            resource -= levelUpCost;
+            dokdoLevel++;
+            levelUpCost = Math.floor(levelUpCost * 1.6);
+
+            playerBase.maxHp += 1000;
+            playerBase.hp = playerBase.maxHp; // 레벨업 시 체력 완전 회복
+            resourceGenerationRate += 0.5;
+
+            updateLevelUpUI();
+        }
+    }
+
+    function checkGameOver() {
+        if (!playerBase.isAlive()) { endGame(false); }
+        if (!enemyBase.isAlive()) {
+            const stageData = STAGES[currentStage]; const allEnemiesSpawned = stageTimer >= stageData.totalTime; const noEnemiesOnField = !entities.some(e => !e.isAlly);
+            if (allEnemiesSpawned && noEnemiesOnField) { endGame(true); }
         }
     }
 
     function endGame(isWin) {
-        gameRunning = false;
-        gameOverlay.style.display = 'flex';
-        const h1 = gameOverlay.querySelector('h1');
-        const p = gameOverlay.querySelector('p');
-        const btn = gameOverlay.querySelector('button');
-
+        gameRunning = false; gameOverlay.style.display = 'flex'; const h1 = gameOverlay.querySelector('h1'); const p = gameOverlay.querySelector('p'); const btn = gameOverlay.querySelector('button');
         if (isWin) {
             if (currentStage < STAGES.length - 1) {
-                h1.textContent = "승리!";
-                p.textContent = `${STAGES[currentStage].name} 클리어! 다음 스테이지에 도전하세요.`;
-                btn.textContent = "다음 스테이지";
-                currentStage++;
-                btn.onclick = startGame;
+                h1.textContent = "승리!"; p.textContent = `${STAGES[currentStage].name} 클리어! 다음 스테이지에 도전하세요.`; btn.textContent = "다음 스테이지"; currentStage++; btn.onclick = startGame;
             } else {
-                h1.textContent = "최종 승리!";
-                p.textContent = "모든 스테이지를 클리어하고 독도를 완벽하게 지켜냈습니다!";
-                btn.textContent = "다시 시작";
-                currentStage = 0;
-                btn.onclick = startGame;
+                h1.textContent = "최종 승리!"; p.textContent = "모든 스테이지를 클리어하고 독도를 완벽하게 지켜냈습니다!"; btn.textContent = "다시 시작"; currentStage = 0; btn.onclick = startGame;
             }
         } else {
-            h1.textContent = "패배";
-            p.textContent = "독도를 지키지 못했습니다... 다시 도전하여 우리 땅을 되찾으세요.";
-            btn.textContent = "다시 도전";
-            btn.onclick = startGame;
+            h1.textContent = "패배"; p.textContent = "독도를 지키지 못했습니다... 다시 도전하여 우리 땅을 되찾으세요."; btn.textContent = "다시 도전"; btn.onclick = startGame;
         }
     }
 
@@ -655,17 +488,19 @@
         stageTimer = 0;
         spawnIndex = 0;
 
+        dokdoLevel = 1;
+        levelUpCost = 150;
+        resourceGenerationRate = 2;
+
         playerBase = new Base(0, canvas.height - (120*scale), 80, 120, 5000, '🏝️', 'playerBase');
+        playerBase.isAlly = true; // 아군 기지 식별
         enemyBase = new Base(canvas.width - (80*scale), canvas.height - (120*scale), 80, 120, STAGES[currentStage].totalTime * 250, '🌋', 'enemyBase');
 
-        for(const key in UNIT_DATA){
-            UNIT_DATA[key].lastSpawnTime = -UNIT_DATA[key].cooldown;
-        }
+        for(const key in UNIT_DATA){ UNIT_DATA[key].lastSpawnTime = -UNIT_DATA[key].cooldown; }
 
-        if (!gameRunning) {
-            gameRunning = true;
-            requestAnimationFrame(gameLoop);
-        }
+        updateLevelUpUI();
+
+        if (!gameRunning) { gameRunning = true; requestAnimationFrame(gameLoop); }
     }
 
 
@@ -674,6 +509,7 @@
 
         resource += resourceGenerationRate * (deltaTime / 1000);
         resourceBar.textContent = `🌊 태극력: ${Math.floor(resource)}`;
+        levelUpButton.disabled = resource < levelUpCost;
 
         stageTimer += deltaTime / 1000;
         const stageData = STAGES[currentStage];
@@ -686,9 +522,7 @@
 
         for (let i = entities.length - 1; i >= 0; i--) {
             if (!entities[i].isAlive()) {
-                if (!entities[i].isAlly) {
-                    resource += entities[i].resource;
-                }
+                if (!entities[i].isAlly) { resource += entities[i].resource; }
                 entities.splice(i, 1);
             }
         }
@@ -700,58 +534,37 @@
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 배경
-        ctx.fillStyle = '#87CEEB';
-        ctx.fillRect(0, 0, canvas.width, canvas.height * 0.85);
-        ctx.fillStyle = '#1E90FF';
-        ctx.fillRect(0, canvas.height * 0.85, canvas.width, canvas.height * 0.15);
+        ctx.fillStyle = '#87CEEB'; ctx.fillRect(0, 0, canvas.width, canvas.height * 0.85);
+        ctx.fillStyle = '#1E90FF'; ctx.fillRect(0, canvas.height * 0.85, canvas.width, canvas.height * 0.15);
 
-        // 기지
         playerBase.draw(ctx);
         enemyBase.draw(ctx);
 
-        // 엔티티 (y좌표 정렬)
         entities.sort((a, b) => a.y - b.y);
         entities.forEach(e => e.draw(ctx));
 
-        // 스테이지 정보
-        ctx.fillStyle = 'white';
-        ctx.font = `bold ${20 * scale}px 'Noto Sans KR'`;
-        ctx.textAlign = 'center';
+        ctx.fillStyle = 'white'; ctx.font = `bold ${20 * scale}px 'Noto Sans KR'`; ctx.textAlign = 'center';
         ctx.fillText(STAGES[currentStage].name, canvas.width / 2, 30 * scale);
     }
 
     function gameLoop(timestamp) {
         if (!gameRunning) return;
-
-        const deltaTime = timestamp - lastTime;
-        lastTime = timestamp;
-
-        update(deltaTime || 0);
-        draw();
-
+        const deltaTime = timestamp - lastTime; lastTime = timestamp;
+        update(deltaTime || 0); draw();
         requestAnimationFrame(gameLoop);
     }
 
-    // 초기화
     window.addEventListener('resize', () => {
         resizeCanvas();
         if(playerBase) {
-            playerBase.y = canvas.height - (120*scale);
-            enemyBase.y = canvas.height - (120*scale);
-            enemyBase.x = canvas.width - (80*scale);
+            playerBase.y = canvas.height - (120*scale); enemyBase.y = canvas.height - (120*scale); enemyBase.x = canvas.width - (80*scale);
         }
     });
 
-    startButton.addEventListener('click', () => {
-        lastTime = performance.now();
-        startGame();
-    });
+    levelUpButton.addEventListener('click', levelUpDokdo);
+    startButton.addEventListener('click', () => { lastTime = performance.now(); startGame(); });
 
-    preloadImages().then(() => {
-        resizeCanvas();
-        createUnitButtons();
-    });
+    preloadImages().then(() => { resizeCanvas(); createUnitButtons(); });
 </script>
 </body>
 </html>
