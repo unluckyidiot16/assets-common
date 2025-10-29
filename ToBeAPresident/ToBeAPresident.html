@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>대한민국 대통령 되기</title>
+    <title>대한민국 대통령 되기 (v1.3)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -52,10 +52,22 @@
     </div>
 
     <!-- 게임 오버 화면 -->
-    <div id="game-over-screen" class="hidden absolute inset-0 bg-gray-800 z-30 flex flex-col items-center justify-center p-8 text-white text-center rounded-2xl">
-        <h1 id="game-over-title" class="text-4xl font-bold mb-4">임기 종료!</h1>
+    <div id="game-over-screen" class="hidden absolute inset-0 bg-gray-800 z-30 flex flex-col items-center justify-center p-8 text-white text-center rounded-2xl overflow-y-auto">
+        <!-- NEW: 타이틀 + 쉬운 용어사전 버튼 -->
+        <div class="flex items-center justify-center gap-2 mb-4">
+            <h1 id="game-over-title" class="text-4xl font-bold">임기 종료!</h1>
+            <button id="easy-glossary-btn" class="text-3xl bg-blue-500 text-white rounded-full w-10 h-10 flex-shrink-0 flex items-center justify-center font-bold shadow-lg hover:bg-blue-600 transition -mt-1">?</button>
+        </div>
+
         <p id="game-over-message" class="mb-6">당신의 임기 동안의 성과는 다음과 같습니다.</p>
         <div id="final-stats" class="w-full mb-8"></div>
+
+        <!-- NEW: 나의 정책 기록 -->
+        <h3 class="text-lg font-bold mt-2 mb-2">나의 정책 기록</h3>
+        <div id="policy-history" class="w-full h-32 overflow-y-auto bg-gray-700 rounded-lg p-2 text-left text-sm mb-6">
+            <!-- 정책 기록이 여기에 삽입됩니다. -->
+        </div>
+
         <button id="restart-btn" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-blue-600 transition-transform transform hover:scale-105">다시하기</button>
     </div>
 
@@ -65,6 +77,17 @@
             <button id="close-glossary-btn" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
             <h2 class="text-xl font-bold mb-4">알아두면 좋은 용어</h2>
             <div id="glossary-content" class="text-left space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- NEW: 6학년 용어 사전 모달 -->
+    <div id="easy-glossary-modal" class="hidden absolute inset-0 z-40 flex items-center justify-center p-4 modal-backdrop rounded-2xl">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 relative">
+            <button id="close-easy-glossary-btn" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            <h2 class="text-xl font-bold mb-4">6학년을 위한 용어 사전</h2>
+            <div id="easy-glossary-content" class="text-left space-y-3 max-h-80 overflow-y-auto">
+                <!-- 쉬운 용어가 여기에 삽입됩니다. -->
+            </div>
         </div>
     </div>
 
@@ -150,9 +173,18 @@
             {"term":"사이버 보안","short":"해킹을 막고 정보를 지키는 일"},
             {"term":"데이터 개방","short":"안전하게 정보를 나누어 쓰는 일"},
             {"term":"인구구조","short":"어린이·어른·노인의 비율과 수"},
-            {"term":"행복","short":"사람들이 기분 좋고 안전하고 건강한 정도"}
+            {"term":"행복","short":"사람들이 기분 좋고 안전하고 건강한 정도"},
+            {"term":"기본소득", "short":"모든 국민에게 조건 없이 돈을 줌"},
+            {"term":"선별복지", "short":"도움이 꼭 필요한 사람에게 돈을 줌"},
+            {"term":"AI", "short":"사람처럼 생각하는 컴퓨터 기술"},
+            {"term":"가짜뉴스", "short":"사실이 아닌 거짓 정보/뉴스"},
+            {"term":"팩트체크", "short":"정보가 사실인지 확인하는 일"},
+            {"term":"저출산", "short":"아이를 적게 낳는 현상"},
+            {"term":"양육수당", "short":"아이 키울 때 나라에서 주는 돈"},
+            {"term":"기후 위기", "short":"지구가 뜨거워져 생기는 심각한 문제"}
         ],
         "cards": [
+            // (기존 카드 데이터... C001 ~ C025)
             {"id":"C001","stage":"기초다지기","title":"학교 보수 vs 도로 보수","text":"먼저 어디를 고칠까요?","glossary_refs":["예산","경제","행복"],"choices":[{"label":"학교 먼저", "effects":{"행복":2,"예산":-2,"경제":0,"신뢰":1,"지속":1}, "hint":"편한 학교는 아이들에게 좋아요."},{"label":"도로 먼저", "effects":{"행복":0,"예산":-2,"경제":2,"신뢰":0,"지속":0}, "hint":"길이 좋아지면 물건이 더 빨리 움직여요."}]},
             {"id":"C002","stage":"기초다지기","title":"물가 안정 쿠폰","text":"장바구니 물가가 올랐습니다.","glossary_refs":["물가","쿠폰","예산"],"choices":[{"label":"쿠폰 시행", "effects":{"행복":2,"예산":-2,"경제":1,"신뢰":0,"지속":0}, "hint":"일부 물건을 싸게 살 수 있어요."},{"label":"시장 자율", "effects":{"행복":-1,"예산":0,"경제":1,"신뢰":1,"지속":0}, "hint":"가게가 스스로 가격을 정해요."}]},
             {"id":"C003","stage":"기초다지기","title":"공공의료 인력 늘리기","text":"병원 사람이 부족해요.","glossary_refs":["공공의료","예산"],"choices":[{"label":"정원 확대", "effects":{"행복":2,"예산":-2,"경제":0,"신뢰":1,"지속":0}, "hint":"더 많은 의사·간호사가 생겨요."},{"label":"민간 협약", "effects":{"행복":1,"예산":-1,"경제":0,"신뢰":1,"지속":0}, "hint":"민간 병원과 손잡아요."}]},
@@ -172,9 +204,55 @@
             {"id":"C017","stage":"미래준비","title":"숙련 이민 vs 재교육","text":"사람이 부족한 분야를 채웁니다.","glossary_refs":["이민","재교육"],"choices":[{"label":"숙련 이민", "effects":{"행복":0,"예산":-1,"경제":2,"신뢰":0,"지속":0}, "hint":"지금 필요한 실력 확보."},{"label":"국내 재교육", "effects":{"행복":1,"예산":-2,"경제":1,"신뢰":1,"지속":0}, "hint":"우리도 잘하게!"}]},
             {"id":"C018","stage":"미래준비","title":"재생에너지 단지","text":"전기를 어떻게 늘릴까요?","glossary_refs":["재생에너지","발전소","예산"],"choices":[{"label":"대규모 착수", "effects":{"행복":0,"예산":-3,"경제":0,"신뢰":1,"지속":3}, "hint":"처음엔 돈이 들지만 오래 좋아요.", "project":{"name":"재생에너지 단지","upkeep":1,"dur":8,"tick":{"지속":1}} },{"label":"점진 설치", "effects":{"행복":0,"예산":-1,"경제":0,"신뢰":1,"지속":1}, "hint":"천천히, 꾸준히."}]},
             {"id":"C019","stage":"미래준비","title":"노후도시 재생 vs 신도시","text":"어디에 먼저 힘을 쓸까요?","glossary_refs":["도시 재생","신도시","예산"],"choices":[{"label":"도시 재생", "effects":{"행복":2,"예산":-2,"경제":0,"신뢰":1,"지속":1}, "hint":"오래된 동네가 다시 활기."}, {"label":"신도시", "effects":{"행복":1,"예산":-2,"경제":1,"신뢰":0,"지속":0}, "hint":"새로운 집과 일터."}]},
-            {"id":"C020","stage":"미래준비","title":"사이버 보안 투자","text":"정보를 안전하게 지킬까요?","glossary_refs":["사이버 보안","디지털 문해","예산"],"choices":[{"label":"핵심 인프라 강화", "effects":{"행복":0,"예산":-2,"경제":0,"신뢰":2,"지속":0}, "hint":"큰 사고를 막아요."},{"label":"생활 편의 앱", "effects":{"행복":1,"예산":-1,"경제":1,"신뢰":0,"지속":0}, "hint":"생활이 편해져요."}]}
+            {"id":"C020","stage":"미래준비","title":"사이버 보안 투자","text":"정보를 안전하게 지킬까요?","glossary_refs":["사이버 보안","디지털 문해","예산"],"choices":[{"label":"핵심 인프라 강화", "effects":{"행복":0,"예산":-2,"경제":0,"신뢰":2,"지속":0}, "hint":"큰 사고를 막아요."},{"label":"생활 편의 앱", "effects":{"행복":1,"예산":-1,"경제":1,"신뢰":0,"지속":0}, "hint":"생활이 편해져요."}]},
+            {"id":"C021","stage":"성장도전","title":"기본소득 vs 선별복지","text":"복지 예산을 어떻게 배분할까요?","glossary_refs":["기본소득","선별복지","예산","행복"],"choices":[{"label":"모든 국민에게", "effects":{"행복":2,"예산":-3,"경제":1,"신뢰":0,"지속":0}, "hint":"모두가 최소한의 생활을 보장받아요."},{"label":"어려운 곳에 집중", "effects":{"행복":1,"예산":-2,"경제":0,"신뢰":2,"지속":0}, "hint":"예산을 더 효율적으로 사용할 수 있어요."}]},
+            {"id":"C022","stage":"성장도전","title":"AI 산업 육성","text":"미래 먹거리인 AI에 투자할까요?","glossary_refs":["AI","경제","연구개발","예산"],"choices":[{"label":"정부 주도 투자", "effects":{"행복":0,"예산":-2,"경제":3,"신뢰":0,"지속":1}, "hint":"빠른 기술 발전을 이룰 수 있어요."},{"label":"민간 기업 지원", "effects":{"행복":0,"예산":-1,"경제":2,"신뢰":1,"지속":1}, "hint":"시장의 창의성을 극대화해요."}]},
+            {"id":"C023","stage":"기초다지기","title":"언론 신뢰 회복","text":"가짜뉴스 문제가 심각합니다.","glossary_refs":["가짜뉴스","팩트체크","사회 신뢰"],"choices":[{"label":"공공 팩트체크", "effects":{"행복":0,"예산":-1,"경제":0,"신뢰":2,"지속":0}, "hint":"정확한 정보 전달에 도움이 돼요."},{"label":"언론사 자율 규제", "effects":{"행복":0,"예산":0,"경제":0,"신뢰":-1,"지속":0}, "hint":"언론의 자유를 존중하는 방식이에요."}]},
+            {"id":"C024","stage":"미래준비","title":"저출산 대책","text":"인구 감소 속도가 빠릅니다.","glossary_refs":["저출산","양육수당","인구구조","예산"],"choices":[{"label":"양육수당 인상", "effects":{"행복":2,"예산":-3,"경제":1,"신뢰":0,"지속":1}, "hint":"가정의 경제적 부담을 바로 덜어줘요."},{"label":"보육시설 확충", "effects":{"행복":1,"예산":-2,"경제":1,"신뢰":1,"지속":2}, "hint":"믿고 맡길 수 있는 환경을 만들어요."}]},
+            {"id":"C025","stage":"미래준비","title":"기후 위기 대응","text":"이상 기후 현상이 잦아지고 있습니다.","glossary_refs":["기후 위기","지속가능성","탄소세","경제"],"choices":[{"label":"신재생에너지 의무화", "effects":{"행복":0,"예산":-1,"경제":-1,"신뢰":1,"지속":3}, "hint":"장기적으로 꼭 필요한 일이에요."},{"label":"산업계 자율 감축", "effects":{"행복":0,"예산":0,"경제":1,"신뢰":0,"지속":1}, "hint":"경제에 주는 충격을 줄일 수 있어요."}]}
         ]
     };
+
+    // --- 연간 특별 예산 카드 ---
+    const ANNUAL_BUDGET_CARD = {
+        "id":"S001", // Special ID
+        "title":"연간 세수 보고",
+        "text":"경제 성장으로 인해 올해 세수가 예상보다 많습니다! 초과된 세수를 어떻게 사용할까요?",
+        "glossary_refs":["예산", "경제", "세금"],
+        "choices":[
+            {"label":"예산 증액", "effects":{"예산":2, "경제":1}, "hint":"확보된 세수로 나라의 재정을 튼튼히 합니다."},
+            {"label":"국민 환급", "effects":{"행복":2, "예산":-1, "신뢰": 1}, "hint":"초과 세수를 국민에게 돌려줍니다."}
+        ]
+    };
+
+    // --- NEW: 6학년을 위한 쉬운 용어 사전 ---
+    const EASY_GLOSSARY = [
+        {"term":"예산", "short":"나라가 1년 동안 쓸 돈을 미리 정하는 것."},
+        {"term":"경제", "short":"물건을 만들고, 팔고, 사는 모든 활동."},
+        {"term":"사회 신뢰", "short":"사람들이 서로 믿고 규칙을 잘 지키는 것."},
+        {"term":"지속가능성", "short":"미래 세대도 우리처럼 잘 살 수 있게 환경과 자원을 아끼는 것."},
+        {"term":"세금", "short":"나라 일을 하는 데 필요한 돈을 국민이 함께 내는 것."},
+        {"term":"보조금", "short":"어려운 사람이나 중요한 일을 돕기 위해 나라가 주는 돈."},
+        {"term":"규제", "short":"모두의 안전과 약속을 지키기 위해 만든 규칙."},
+        {"term":"규제 샌드박스", "short":"새로운 기술을 (모래 놀이터처럼) 안전한 곳에서 먼저 시험해보는 제도."},
+        {"term":"세액공제", "short":"내야 할 세금의 일부를 깎아주는 것."},
+        {"term":"연구개발(R&D)", "short":"새로운 물건이나 기술을 만들기 위해 연구하는 것."},
+        {"term":"공공요금", "short":"전기, 버스, 지하철처럼 모두가 쓰는 서비스의 값."},
+        {"term":"탄소세", "short":"지구를 덥게 만드는 '탄소'를 내보내는 만큼 내는 세금."},
+        {"term":"바우처", "short":"나라가 \"이걸 사세요\"하고 정해진 곳에 쓸 수 있게 주는 돈(이용권)."},
+        {"term":"이민", "short":"다른 나라 사람이 우리나라에 와서 사는 것."},
+        {"term":"재교육", "short":"새로운 기술이나 지식을 다시 배우는 것."},
+        {"term":"도시 재생", "short":"낡은 동네를 고쳐서 다시 살기 좋게 만드는 일."},
+        {"term":"디지털 문해", "short":"컴퓨터나 스마트폰을 잘 쓰고, 인터넷 정보를 잘 가려내는 능력."},
+        {"term":"사이버 보안", "short":"해킹을 막아 우리 정보를 인터넷에서 안전하게 지키는 일."},
+        {"term":"기본소득", "short":"모든 국민에게 조건 없이 똑같이 나눠주는 돈."},
+        {"term":"선별복지", "short":"돈이 부족하거나 도움이 꼭 필요한 사람을 골라서 도와주는 것."},
+        {"term":"AI (인공지능)", "short":"사람처럼 생각하고 배우는 컴퓨터 기술."},
+        {"term":"팩트체크", "short":"어떤 말이 진짜인지 가짜인지 확인하는 일."},
+        {"term":"기후 위기", "short":"지구가 너무 뜨거워져서 날씨가 이상해지고 위험해지는 일."},
+        {"term":"저출산", "short":"아이를 적게 낳아서 나라의 어린이 숫자가 줄어드는 것."},
+        {"term":"양육수당", "short":"아이를 키우는 부모님에게 나라가 매달 주는 돈."}
+    ];
 
     // DOM 요소
     const indicatorsContainer = document.getElementById('indicators-container');
@@ -197,6 +275,12 @@
     const finalStats = document.getElementById('final-stats');
     const restartBtn = document.getElementById('restart-btn');
     const effectPopupContainer = document.getElementById('effect-popup-container');
+    // NEW: 게임 오버 화면 요소
+    const policyHistory = document.getElementById('policy-history');
+    const easyGlossaryBtn = document.getElementById('easy-glossary-btn');
+    const easyGlossaryModal = document.getElementById('easy-glossary-modal');
+    const closeEasyGlossaryBtn = document.getElementById('close-easy-glossary-btn');
+    const easyGlossaryContent = document.getElementById('easy-glossary-content');
 
 
     // 게임 상태
@@ -214,6 +298,7 @@
             lastChoiceDirection: null,
             fatigueCount: 0,
             gameOver: false,
+            policyHistory: [], // NEW: 정책 기록 추가
         };
     }
 
@@ -221,11 +306,9 @@
         indicatorsContainer.innerHTML = '';
         gameData.indicators.forEach(indicator => {
             const indicatorEl = document.createElement('div');
-            // --- UPDATE: Increased height from h-2.5 to h-5 ---
             indicatorEl.className = 'w-full bg-gray-200 rounded-full h-5 relative overflow-hidden';
             indicatorEl.innerHTML = `
                     <div id="bar-${indicator.key}" class="indicator-bar-inner ${indicator.color} h-5 rounded-full" style="width: 50%"></div>
-                    // --- UPDATE: Increased text size from text-xs to text-sm ---
                     <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white" style="text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">${indicator.label}</div>
                 `;
             indicatorsContainer.appendChild(indicatorEl);
@@ -250,12 +333,25 @@
         if (state.deck.length === 0) {
             state.stageIndex++;
             if (state.stageIndex >= gameData.stages.length) {
-                endGame("임기 종료");
-                return;
+                // 덱이 다 떨어져도 턴이 남았으면 기초 덱을 다시 섞습니다.
+                if (state.turn < state.maxTurns) {
+                    state.stageIndex = 0; // 다시 처음 스테이지로
+                    setupDeck();
+                } else {
+                    endGame("임기 종료");
+                    return;
+                }
+            } else {
+                setupDeck();
             }
-            setupDeck();
         }
-        state.currentCard = state.deck.pop();
+        // 덱이 비어있으면 setupDeck()에서 채워졌으므로 다시 확인
+        if (state.deck.length > 0) {
+            state.currentCard = state.deck.pop();
+        } else {
+            // 이 경우는 모든 카드가 소진되고 턴도 끝난 경우
+            endGame("임기 종료");
+        }
     }
 
     function updateUI() {
@@ -311,7 +407,18 @@
             cardElement.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
             cardElement.style.transform = 'translateY(0) scale(1)';
             cardElement.style.opacity = '1';
-            drawCard();
+
+            // --- PATCH: 연간 예산 카드 로직 ---
+            // 1년차, 2년차, 3년차, 4년차 말 (4, 8, 12, 16턴)
+            let isSpecialEventTurn = (state.turn % 4 === 0 && state.turn > 0 && state.turn < state.maxTurns);
+
+            if (isSpecialEventTurn) {
+                state.currentCard = ANNUAL_BUDGET_CARD; // ★ 특별 카드 할당
+            } else {
+                drawCard(); // ★ 일반 카드 뽑기
+            }
+            // --- END PATCH ---
+
             updateUI();
         }, 50);
     }
@@ -331,8 +438,12 @@
         const rect = indicatorEl.getBoundingClientRect();
         const containerRect = effectPopupContainer.getBoundingClientRect();
 
-        popup.style.left = `${rect.left - containerRect.left + rect.width / 2 - popup.offsetWidth / 2}px`;
-        popup.style.top = `${rect.top - containerRect.top}px`;
+        const leftPos = rect.left - containerRect.left + (rect.width / 2);
+        const topPos = rect.top - containerRect.top;
+
+        popup.style.left = `${leftPos}px`;
+        popup.style.top = `${topPos}px`;
+        popup.style.transform = 'translateX(-50%)'; // X축 중앙 정렬
 
         effectPopupContainer.appendChild(popup);
 
@@ -345,6 +456,15 @@
         const choice = state.currentCard.choices[choiceIndex];
         const direction = choiceIndex === 0 ? 'left' : 'right';
         cardElement.classList.add(direction === 'left' ? 'exit-left' : 'exit-right');
+
+        // NEW: 정책 기록
+        const cardTitle = state.currentCard.title;
+        const choiceLabel = state.currentCard.choices[choiceIndex].label;
+        // 연간 세수 보고는 정책이 아니므로 제외
+        if (state.currentCard.id !== 'S001') {
+            state.policyHistory.push({ title: cardTitle, choice: choiceLabel });
+        }
+
 
         // 피로도 시스템
         let fatiguePenalty = 0;
@@ -433,9 +553,10 @@
 
         const sortedIndicators = Object.entries(state.indicators).sort((a, b) => b[1] - a[1]);
         const highestIndicator = sortedIndicators[0][0];
+        const lowestIndicator = sortedIndicators[sortedIndicators.length - 1][0];
 
         let title;
-        if (state.indicators[highestIndicator] <= 0) {
+        if (state.indicators[lowestIndicator] <= 0) {
             title = "국가 위기";
         } else if (state.turn < state.maxTurns) {
             title = "위기 발생";
@@ -456,10 +577,25 @@
             statEl.className = 'w-full bg-gray-700 rounded-full h-6 mb-2 relative';
             statEl.innerHTML = `
                     <div class="indicator-bar-inner ${indicator.color} h-6 rounded-full" style="width: ${value * 10}%"></div>
-                     <span class="absolute inset-0 text-center font-bold text-white leading-6">${indicator.label.split(' ')[1]}: ${value.toFixed(1)}</span>
+                     <span class="absolute inset-0 text-center font-bold text-white leading-6">${indicator.label.split(' ')[1]}: ${value.toFixed(0)}</span>
                 `;
             finalStats.appendChild(statEl);
         });
+
+        // NEW: 정책 기록 표시
+        policyHistory.innerHTML = '';
+        if (state.policyHistory.length === 0) {
+            policyHistory.innerHTML = '<p class="text-gray-400 text-center">선택한 정책이 없습니다.</p>';
+        } else {
+            state.policyHistory.forEach(policy => {
+                const policyEl = document.createElement('div');
+                policyEl.className = 'mb-1';
+                // (예시) C001: 학교 먼저
+                policyEl.innerHTML = `<strong class="text-blue-300">${policy.title}:</strong> ${policy.choice}`;
+                policyHistory.appendChild(policyEl);
+            });
+        }
+
 
         gameOverScreen.classList.remove('hidden');
     }
@@ -494,6 +630,23 @@
         glossaryModal.classList.add('hidden');
     }
 
+    // --- NEW: 6학년 용어사전 기능 ---
+    function showEasyGlossary() {
+        easyGlossaryContent.innerHTML = '';
+        EASY_GLOSSARY.forEach(termData => {
+            const termEl = document.createElement('div');
+            termEl.innerHTML = `<p><strong class="font-bold text-blue-600">${termData.term}:</strong> ${termData.short}</p>`;
+            easyGlossaryContent.appendChild(termEl);
+        });
+        easyGlossaryModal.classList.remove('hidden');
+    }
+
+    function hideEasyGlossary() {
+        easyGlossaryModal.classList.add('hidden');
+    }
+    // --- END NEW ---
+
+
     function startGame() {
         startScreen.classList.add('hidden');
         initGameState();
@@ -516,6 +669,15 @@
     glossaryModal.addEventListener('click', (e) => {
         if (e.target === glossaryModal) {
             hideGlossary();
+        }
+    });
+
+    // --- NEW: 쉬운 용어사전 이벤트 리스너 ---
+    easyGlossaryBtn.addEventListener('click', showEasyGlossary);
+    closeEasyGlossaryBtn.addEventListener('click', hideEasyGlossary);
+    easyGlossaryModal.addEventListener('click', (e) => {
+        if (e.target === easyGlossaryModal) {
+            hideEasyGlossary();
         }
     });
 
