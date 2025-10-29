@@ -216,12 +216,18 @@
     // --- 연간 특별 예산 카드 ---
     const ANNUAL_BUDGET_CARD = {
         "id":"S001", // Special ID
-        "title":"연간 세수 보고",
-        "text":"경제 성장으로 인해 올해 세수가 예상보다 많습니다! 초과된 세수를 어떻게 사용할까요?",
-        "glossary_refs":["예산", "경제", "세금"],
+        "title":"미래 성장 동력 투자", // 변경: 타이틀
+        "text":"경제부에서 '차세대 AI' 사업에 대규모 투자를 제안했습니다. 성공하면 막대한 예산을 확보하지만, 실패 위험이 있습니다.", // 변경: 내용
+        "glossary_refs":["예산", "경제", "AI", "연구개발"], // 변경: 관련 용어
         "choices":[
-            {"label":"예산 증액", "effects":{"예산":2, "경제":1}, "hint":"확보된 세수로 나라의 재정을 튼튼히 합니다."},
-            {"label":"국민 환급", "effects":{"행복":2, "예산":-1, "신뢰": 1}, "hint":"초과 세수를 국민에게 돌려줍니다."}
+            // 변경: 0번 선택지를 '적극적 투자' (도박)로 변경
+            {"label":"적극적 투자",
+                "effects":{}, // 효과는 handleChoice에서 수동 처리
+                "hint":"60% 확률로 예산+4, 경제+1. 40% 확률로 예산-2, 신뢰-1."},
+            // 변경: 1번 선택지를 '안정적 운용' (안전)로 변경
+            {"label":"안정적 운용",
+                "effects":{"예산":1, "신뢰": 1},
+                "hint":"투자를 보류하고 예산을 확보합니다."}
         ]
     };
 
@@ -450,6 +456,23 @@
         setTimeout(() => popup.remove(), 1400);
     }
 
+    // --- NEW: 효과 적용 헬퍼 함수 ---
+    // 효과 적용 로직을 별도 함수로 분리 (중복 제거 및 특별 카드 로직 적용)
+    function applyEffects(effects, fatiguePenalty) {
+        for (const key in effects) {
+            let change = effects[key];
+            if (fatiguePenalty !== 0 && change !== 0) {
+                change += fatiguePenalty; // 피로도 적용
+            }
+            state.indicators[key] += change;
+            state.indicators[key] = Math.max(0, Math.min(10, state.indicators[key]));
+
+            if (change !== 0) {
+                createEffectPopup(key, change);
+            }
+        }
+    }
+
     function handleChoice(choiceIndex) {
         if (state.gameOver) return;
 
@@ -478,19 +501,26 @@
             fatiguePenalty = -1;
         }
 
-        // 효과 적용
-        for (const key in choice.effects) {
-            let change = choice.effects[key];
-            if (fatiguePenalty !== 0 && change !==0) {
-                change += fatiguePenalty; // 피로도 적용
-            }
-            state.indicators[key] += change;
-            state.indicators[key] = Math.max(0, Math.min(10, state.indicators[key]));
+        // --- UPDATE: 효과 적용 로직 변경 ---
+        const cardId = state.currentCard.id;
+        // const choiceLabel = choice.label; // <-- FIX: This line caused the error and was removed. 'choiceLabel' is already defined above.
 
-            if (change !== 0) {
-                createEffectPopup(key, change);
+        if (cardId === 'S001' && choiceLabel === '적극적 투자') {
+            // S001 카드의 '적극적 투자' 선택 시 (확률 이벤트)
+            if (Math.random() < 0.6) { // 60% 성공 확률
+                console.log("투자 성공!");
+                const successEffects = { "예산": 4, "경제": 1 };
+                applyEffects(successEffects, fatiguePenalty);
+            } else { // 40% 실패 확률
+                console.log("투자 실패!");
+                const failureEffects = { "예산": -2, "신뢰": -1 };
+                applyEffects(failureEffects, fatiguePenalty);
             }
+        } else {
+            // 그 외 모든 일반 카드 및 S001의 '안정적 운용' 선택 시
+            applyEffects(choice.effects, fatiguePenalty);
         }
+        // --- END UPDATE ---
 
         // 프로젝트 추가
         if (choice.project && state.activeProjects.length < 3) {
@@ -684,4 +714,6 @@
 </script>
 </body>
 </html>
+
+
 
