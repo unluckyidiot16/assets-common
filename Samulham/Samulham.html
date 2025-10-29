@@ -13,6 +13,8 @@
             border-radius: 12px;
             border: 1px solid #e2e8f0;
             cursor: pointer;
+            /* UI 개선: 캔버스에 그림자 추가 */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -250,7 +252,14 @@
 
     function drawCard(x, y, w, h, title, subtitle = '', emoji = '', selected = false) {
         ctx.beginPath();
-        ctx.fillStyle = '#ffffff';
+
+        // UI 개선: 선택된 카드는 배경색 추가
+        if (selected) {
+            ctx.fillStyle = '#eff6ff'; // blue-50
+        } else {
+            ctx.fillStyle = '#ffffff';
+        }
+
         ctx.roundRect(x, y, w, h, 12);
         ctx.fill();
 
@@ -284,10 +293,20 @@
     }
 
     function drawButton(x, y, w, h, text, disabled = false) {
+        // UI 개선: 버튼에 그림자 추가
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetY = 2;
+
         ctx.beginPath();
-        ctx.fillStyle = disabled ? '#e2e8f0' : '#2563eb'; // slate-200 or blue-600
+        // UI 개선: 버튼 색상 변경 (조금 더 밝은 파란색)
+        ctx.fillStyle = disabled ? '#e2e8f0' : '#3b82f6'; // slate-200 or blue-500
         ctx.roundRect(x, y, w, h, 12);
         ctx.fill();
+
+        // 그림자 리셋
+        ctx.restore();
 
         ctx.fillStyle = disabled ? '#94a3b8' : '#ffffff'; // slate-400 or white
         ctx.font = 'bold 16px Inter, sans-serif';
@@ -324,8 +343,6 @@
         ctx.textAlign = 'left';
     }
 
-    // ===== 파트별 그리기 =====
-
     function drawStart() {
         drawTitle('[처음] 사물함을 정리하면 좋은 점을 골라봅시다. (2개 이상)');
 
@@ -350,7 +367,6 @@
 
     function drawMiddle() {
         const currentMiddleRound = acceptedSentences.length; // 1, 2, or 3
-        drawTitle(`[중간 ${currentMiddleRound}/3] 사물과 방법을 짝지어 봅시다.`);
 
         clickables = [];
         const col1X = 20;
@@ -360,6 +376,7 @@
 
         // '중간' 파트에서 생성된 문장이 있다면, 그것만 보여줌
         if (generatedSentence) {
+            // [수정] 겹침 문제 해결: '문장이 완성되었습니다!' 제목만 그리기
             drawTitle("문장이 완성되었어요!");
             wrapText(generatedSentence, 20, 100, canvas.width - 40, 28);
 
@@ -369,6 +386,9 @@
             clickables.push({ bounds: [btnX, 250, btnW, 50], action: 'completeMiddle' });
             return;
         }
+
+        // [수정] 겹침 문제 해결: '짝지어 봅시다' 제목은 문장 생성 전에만 그리기
+        drawTitle(`[중간 ${currentMiddleRound}/3] 사물과 방법을 짝지어 봅시다.`);
 
         // 1) 사물 고르기
         ctx.fillStyle = '#475569'; // slate-600
@@ -440,8 +460,26 @@
         const btn1X = (canvas.width / 2) - btnW - 10;
         const btn2X = (canvas.width / 2) + 10;
 
+        // UI 개선: 마지막 버튼 색상 변경 (패들렛: 녹색 계열)
         drawButton(btn1X, btnY, btnW, btnH, "글 복사하기");
-        drawButton(btn2X, btnY, btnW, btnH, "패들렛에 내보내기");
+
+        // "패들렛에 내보내기" 버튼을 더 눈에 띄게 변경
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetY = 2;
+        ctx.beginPath();
+        ctx.fillStyle = '#10b981'; // emerald-500
+        ctx.roundRect(btn2X, btnY, btnW, btnH, 12);
+        ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = '#ffffff'; // white
+        ctx.font = 'bold 16px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText("패들렛에 내보내기", btn2X + btnW / 2, btnY + btnH / 2);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
 
         clickables = [
             { bounds: [btn1X, btnY, btnW, btnH], action: 'copyText' },
@@ -612,4 +650,6 @@
 </script>
 </body>
 </html>
+
+
 
