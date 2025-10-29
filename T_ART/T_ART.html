@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNS 토론 배틀 (T-ARA)</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter 폰트 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Noto Sans KR 폰트 우선 적용 */
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            min-height: 100vh;
+            overscroll-behavior-y: contain;
+        }
+
+        /* AI 말풍선 꼬리 */
+        .speech-bubble {
+            position: relative;
+        }
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border: 15px solid transparent;
+            border-top-color: #e5e7eb; /* bg-gray-200 */
+            border-bottom: 0;
+            margin-bottom: -15px;
+        }
+
+        /* 카드 기본 스타일 */
+        .card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 카드가 선택 슬롯에 있을 때 (클릭 비활성화) */
+        .card-in-slot {
+            cursor: default;
+            pointer-events: none;
+        }
+        .card-in-slot:hover {
+            transform: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* 카드 비활성화 (힌트 사용 시) */
+        .card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* 정신력 하트 애니메이션 */
+        .heart-beat {
+            animation: heartBeat 1.2s infinite ease-in-out;
+        }
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .heart-empty {
+            color: #d1d5db; /* gray-400 */
+            animation: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen overflow-y-auto">
+
+<div id="game-container" class="container mx-auto p-2 sm:p-4 max-w-4xl h-full flex flex-col">
+
+    <!-- === 시작 화면 === -->
+    <div id="start-screen" class="flex flex-col items-center justify-center text-center bg-white rounded-lg shadow-xl p-6 sm:p-8 my-auto">
+        <h1 class="text-3xl sm:text-4xl font-bold text-indigo-600 mb-4">T-ARA 토론 배틀</h1>
+        <p class="text-base sm:text-lg text-gray-700 mb-2">Tiki-Taka Argument</p>
+        <div class="bg-gray-100 rounded-lg p-4 sm:p-6 my-4 sm:my-6 w-full">
+            <h2 class="text-xl sm:text-2xl font-bold mb-3">토론 주제</h2>
+            <p class="text-lg sm:text-xl text-gray-800">"SNS 사용을 제한해야 한다 (연령/시간 제한 포함)"</p>
+        </div>
+        <p class="text-base sm:text-lg text-gray-600 mb-8">당신의 입장을 선택하세요.</p>
+        <div class="flex flex-col sm:flex-row gap-4 w-full">
+            <button id="start-pro" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 sm:py-4 px-6 rounded-lg text-base sm:text-lg transition-colors shadow-lg">
+                [찬성] 측으로 시작<br>
+                <span class="text-sm font-normal">(AI는 반대 측)</span>
+            </button>
+            <button id="start-con" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 sm:py-4 px-6 rounded-lg text-base sm:text-lg transition-colors shadow-lg">
+                [반대] 측으로 시작<br>
+                <span class="text-sm font-normal">(AI는 찬성 측)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- === 게임 화면 (숨김) === -->
+    <div id="game-screen" class="hidden flex-col flex-1 min-h-0">
+        <!-- 1. 상태 표시줄 -->
+        <div id="status-bar" class="flex items-center justify-between bg-white rounded-lg shadow-md p-3 sm:p-4 mb-4 w-full">
+            <div class="flex items-center gap-2 sm:gap-4">
+                <span id="stage-display" class="text-lg sm:text-xl font-bold text-indigo-600">Stage 1 / 10</span>
+                <div id="will-display" class="flex gap-1 text-2xl sm:text-3xl">
+                    <!-- 정신력 아이콘 (JS로 생성) -->
+                </div>
+            </div>
+            <button id="hint-button" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-2 px-3 sm:px-4 rounded-lg shadow transition-all opacity-50 cursor-not-allowed text-sm sm:text-base">
+                💡 힌트 (<span id="hint-count">1</span>)
+            </button>
+        </div>
+
+        <!-- 2. AI 영역 -->
+        <div id="ai-area" class="mb-4">
+            <div class="flex items-end gap-3 mb-2">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl sm:text-2xl shadow-inner">🤖</div>
+                <span id="ai-role" class="text-base sm:text-lg font-semibold text-gray-700">AI [반대 측]</span>
+            </div>
+            <div class="speech-bubble bg-gray-200 rounded-lg rounded-bl-none p-4 sm:p-5 text-gray-800 text-base sm:text-lg shadow-md">
+                <p id="ai-claim">"AI가 첫 번째 주장을 준비 중입니다..."</p>
+            </div>
+        </div>
+
+        <!-- 3. 플레이어 선택 영역 -->
+        <div id="selection-area" class="bg-white rounded-lg shadow-inner p-3 sm:p-4 mb-4">
+            <h3 class="text-xs sm:text-sm font-semibold text-gray-500 uppercase mb-3 text-center">당신의 반박 (주장 1 + 근거 1)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 주장 카드 슬롯 -->
+                <div id="slot-claim" class="bg-gray-100 rounded-lg border-2 border-dashed border-blue-400 h-28 sm:h-32 flex items-center justify-center text-blue-600 font-semibold p-4 text-sm sm:text-base text-center">
+                    반박 주장을 이곳에
+                </div>
+                <!-- 근거 카드 슬롯 -->
+                <div id="slot-evidence" class="bg-gray-100 rounded-lg border-2 border-dashed border-red-400 h-28 sm:h-32 flex items-center justify-center text-red-600 font-semibold p-4 text-sm sm:text-base text-center">
+                    근거를 이곳에
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 플레이어 핸드 (스크롤) -->
+        <div id="player-hand-wrapper" class="flex-1 overflow-y-auto bg-gray-200 rounded-lg p-3 sm:p-4 shadow-inner">
+            <!-- 핸드 타이틀 (JS로 변경) -->
+            <h3 id="hand-title" class="text-base sm:text-lg font-semibold text-gray-700 mb-3">1. 반박 주장을 선택하세요</h3>
+            <div id="player-hand" class="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
+                <!-- 플레이어 카드 (JS로 생성) -->
+            </div>
+        </div>
+
+        <!-- 5. 액션 버튼 -->
+        <div class="mt-4 flex gap-4">
+            <button id="submit-button" class="flex-1 bg-green-600 text-white font-bold py-3 sm:py-4 px-6 rounded-lg text-lg sm:text-xl shadow-lg transition-all opacity-50 cursor-not-allowed" disabled>
+                주장하기
+            </button>
+            <button id="reset-selection-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 sm:py-4 px-6 rounded-lg text-base sm:text-lg shadow-lg transition-all">
+                다시 선택
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- === 결과 모달 (숨김) === -->
+<div id="result-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md text-center">
+        <h2 id="modal-title" class="text-2xl sm:text-3xl font-bold mb-4"></h2>
+        <p id="modal-message" class="text-base sm:text-lg text-gray-700 mb-8 whitespace-pre-wrap"></p>
+        <button id="modal-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg transition-colors">
+            <!-- 버튼 텍스트 (JS로 설정) -->
+        </button>
+    </div>
+</div>
+
+<script>
+    // --- 1. 게임 데이터 (1:1 매칭으로 확장) ---
+    const MASTER_CARDS = {
+        // --- 찬성 (제한 필요) ---
+        "pro-claim-1": { type: "claim", text: "표현의 자유도 중요하지만, 청소년을 유해 정보로부터 보호하는 것이 더 시급합니다." },
+        "pro-claim-2": { type: "claim", text: "SNS는 '중독'을 유발하도록 설계되어, 건강한 일상(수면, 학습)을 망가뜨립니다." },
+        "pro-claim-3": { type: "claim", text: "가상 공간에만 몰두하면, 실제 대면 소통 능력과 공감 능력이 저하될 수 있습니다." },
+        "pro-claim-4": { type: "claim", text: "SNS는 타인과 끊임없이 비교하게 만들어, 소외감(FOMO)과 상대적 박탈감을 조장합니다." },
+        "pro-claim-5": { type: "claim", text: "사이버불링, 신상털기 등 청소년 대상 범죄가 SNS를 통해 발생하므로 강력한 규제가 필요합니다." },
+        "pro-claim-6": { type: "claim", text: "아직 비판적 사고가 미숙한 청소년에게 '절대적인 자유'는 위험하며, 보호 장치가 먼저입니다." },
+        "pro-claim-7": { type: "claim", text: "가정 내 지도로는 한계가 명확합니다. 법적, 제도적 최소한의 안전망이 필요합니다." },
+        "pro-claim-8": { type: "claim", text: "성인 인증, 야간 셧다운 등 연령/시간에 따른 구체적인 제한이 실질적인 보호 수단입니다." },
+        "pro-claim-9": { type: "claim", text: "공부와 과제에 집중해야 할 시기에, SNS는 가장 큰 학습 방해 요소입니다." },
+        "pro-claim-10": { type: "claim", text: "가짜뉴스와 선동 자료가 무분별하게 유포되는 통로이므로, 청소년 접근을 제한해야 합니다." },
+        "pro-claim-joker1": { type: "claim", text: "SNS는 로고가 파란색이라서 기분이 우울해지니 금지해야 합니다.", joker: true },
+
+        "pro-evidence-1": { type: "evidence", text: "SNS 사용 시간이 긴 청소년일수록 우울감과 불안감을 느낄 확률이 높다는 구체적인 연구 결과가 있습니다." },
+        "pro-evidence-2": { type: "evidence", text: "청소년들은 사이버불링, 신상털기, 디지털 성범죄 등 즉각적인 위험에 노출되기 쉽습니다." },
+        "pro-evidence-3": { type: "evidence", text: "국내 통계에 따르면 청소년 10명 중 3명이 'SNS 중독 위험군'으로 분류되어, 단순한 놀이 수준을 넘었습니다." },
+        "pro-evidence-4": { type: "evidence", text: "전문가들은 14세 미만은 유해 정보에 대한 비판적 사고가 미숙하므로, '보호받을 권리'가 우선되어야 한다고 조언합니다." },
+        "pro-evidence-5": { type: "evidence", text: "타인의 과장된 행복을 보며 '나만 뒤처지는 것'을 두려워하는 'FOMO 증후군'은 청소년의 정신 건강에 악영향을 줍니다." },
+        "pro-evidence-6": { type: "evidence", text: "대면 소통이 줄면 갈등 조율 능력이 떨어져, 학교 폭력이 사이버불링 같은 새로운 양상으로 번지기도 합니다." },
+        "pro-evidence-7": { type: "evidence", text: "수면 부족은 뇌 발달에 치명적이며, 야간 SNS 사용은 청소년의 수면의 질을 심각하게 저하합니다." },
+        "pro-evidence-8": { type: "evidence", text: "실제 많은 청소년 범죄가 SNS에서 만나 계획되고 실행되는 등, 범죄의 온상이 되고 있습니다." },
+        "pro-evidence-9": { type: "evidence", text: "미국, 프랑스 등 여러 국가에서도 청소년의 SNS 사용을 제한하는 법안을 도입했거나 논의 중입니다." },
+        "pro-evidence-10": { type: "evidence", text: "SNS의 알고리즘은 사용자를 자극적인 콘텐츠에만 머무르게 하여, 생각의 폭을 좁히는 '필터 버블'을 만듭니다." },
+        "pro-evidence-joker1": { type: "evidence", text: "통계청에 따르면, 우리나라 1인당 연간 쌀 소비량은 56.7kg입니다.", joker: true },
+
+        // --- 반대 (허용/자율) ---
+        "con-claim-1": { type: "claim", text: "무조건 막는 것은 답이 아닙니다. 올바른 사용법(리터러시)을 교육하는 것이 우선입니다." },
+        "con-claim-2": { type: "claim", text: "SNS는 청소년의 당연한 '표현의 자유'이며, 강제로 막는 것은 소통 권리를 침해하는 것입니다." },
+        "con-claim-3": { type: "claim", text: "정보 격차를 해소하고, 지역이나 환경에 상관없이 동등한 학습 기회를 제공하는 순기능이 있습니다." },
+        "con-claim-4": { type: "claim", text: "정보를 찾고, 비판하고, 활용하는 '디지털 시민의식'을 기르기 위해 반드시 필요한 도구입니다." },
+        "con-claim-5": { type: "claim", text: "위험은 존재하지만, 신고/차단 기능 등 스스로를 보호할 장치도 이미 마련되어 있습니다." },
+        "con-claim-6": { type: "claim", text: "청소년을 '보호 대상'으로만 보는 것은, 그들의 자율성과 판단력을 무시하는 것입니다." },
+        "con-claim-7": { type: "claim", text: "제한은 오히려 음지 문화를 만들 뿐입니다. 양지로 끌어내 교육하는 것이 맞습니다." },
+        "con-claim-8": { type: "claim", text: "긴급 재난이나 위급 상황 시, SNS는 가장 빠른 연락 및 정보 공유 수단이 됩니다." },
+        "con-claim-9": { type: "claim", text: "다양한 사람들과 교류하며 사회성을 기르고, 자신의 정체성을 표현하는 중요한 창구입니다." },
+        "con-claim-10": { type: "claim", text: "일률적인 제한보다는, 가정 환경과 개인의 성숙도에 따른 '자율적 선택'이 중요합니다." },
+        "con-claim-joker1": { type: "claim", text: "모든 학생은 아침으로 피자를 먹을 권리가 있다고 생각합니다.", joker: true },
+
+        "con-evidence-1": { type: "evidence", text: "친구들과 온라인 스터디 그룹을 만들거나, 과제 수행을 위해 자료를 공유하는 등 긍정적인 활용 사례가 많습니다." },
+        "con-evidence-2": { type: "evidence", text: "디지털 리터러시 교육(신고/차단 기능, 가짜뉴스 판별)을 받은 학생은 스스로 위험을 대처할 확률이 높습니다." },
+        "con-evidence-3": { type: "evidence", text: "헌법에서 보장하는 '표현의 자유'는 핵심 기본권이므로, 청소년이라는 이유로 과도하게 제한하는 것은 위헌 소지가 있습니다." },
+        "con-evidence-4": { type: "evidence", text: "긴급 재난(지진 등) 상황에서 정보를 빠르게 전파하거나, 위기 시 친구에게 도움을 요청하는 생명의 창구가 됩니다." },
+        "con-evidence-5": { type: "evidence", text: "정보의 홍수 속에서 유익한 정보를 찾고, 가짜뉴스를 판별하는 능력(미디어 리터러시)은 미래 사회의 핵심 역량입니다." },
+        "con-evidence-6": { type: "evidence", text: "자신의 의견을 표현하고, 사회/정치적 캠페인에 참여하는 등 민주주의와 사회 참여를 학습하는 긍정적인 창구가 됩니다." },
+        "con-evidence-7": { type: "evidence", text: "과거 '게임 셧다운제'가 실효성 없이 청소년의 권리만 침해했다는 비판을 참고해야 합니다." },
+        "con-evidence-8": { type: "evidence", text: "유엔아동권리협약은 아동/청소년의 정보 접근권과 표현의 자유를 보장하고 있습니다." },
+        "con-evidence-9": { type: "evidence", text: "관심사가 같은 친구들을 온라인에서 만나며 소외감을 극복하고, 긍정적인 자아를 형성한 사례도 많습니다." },
+        "con-evidence-10": { type: "evidence", text: "스스로 시간을 조절하고 책임지는 법을 배우는 것도 '성장 과정'의 일부입니다." },
+        "con-evidence-joker1": { type: "evidence", text: "과학적 사실에 따르면, 지구는 태양 주위를 1년에 한 바퀴 돕니다.", joker: true }
+    };
+
+    const PLAYER_HANDS = {
+        pro: [
+            "pro-claim-1", "pro-claim-2", "pro-claim-3", "pro-claim-4", "pro-claim-5", "pro-claim-6", "pro-claim-7", "pro-claim-8", "pro-claim-9", "pro-claim-10", "pro-claim-joker1",
+            "pro-evidence-1", "pro-evidence-2", "pro-evidence-3", "pro-evidence-4", "pro-evidence-5", "pro-evidence-6", "pro-evidence-7", "pro-evidence-8", "pro-evidence-9", "pro-evidence-10", "pro-evidence-joker1"
+        ],
+        con: [
+            "con-claim-1", "con-claim-2", "con-claim-3", "con-claim-4", "con-claim-5", "con-claim-6", "con-claim-7", "con-claim-8", "con-claim-9", "con-claim-10", "con-claim-joker1",
+            "con-evidence-1", "con-evidence-2", "con-evidence-3", "con-evidence-4", "con-evidence-5", "con-evidence-6", "con-evidence-7", "con-evidence-8", "con-evidence-9", "con-evidence-10", "con-evidence-joker1"
+        ]
+    };
+
+    // --- (수정) 스테이지 데이터: "단일 정답 1:1 매칭"으로 변경 ---
+    const STAGE_SET_A = [ // Player: Pro
+        { "id": "S1", "ai_stance": "con", "ai_claim": "SNS를 금지하거나 제한하면 표현의 자유가 줄어들어요.", "ok_claim_id": "pro-claim-1", "ok_evidence_id": "pro-evidence-4" },
+        { "id": "S2", "ai_stance": "con", "ai_claim": "친구·가족과 소통하려면 SNS가 꼭 필요해요.", "ok_claim_id": "pro-claim-3", "ok_evidence_id": "pro-evidence-6" },
+        { "id": "S3", "ai_stance": "con", "ai_claim": "금지보다 올바른 사용법 교육이 더 효과적이에요.", "ok_claim_id": "pro-claim-7", "ok_evidence_id": "pro-evidence-9" },
+        { "id": "S4", "ai_stance": "con", "ai_claim": "신고·차단 기능이 있으니 위험해도 스스로 해결할 수 있어요.", "ok_claim_id": "pro-claim-5", "ok_evidence_id": "pro-evidence-8" },
+        { "id": "S5", "ai_stance": "con", "ai_claim": "과제나 공부에도 SNS 자료가 도움이 돼요.", "ok_claim_id": "pro-claim-9", "ok_evidence_id": "pro-evidence-10" },
+        { "id": "S6", "ai_stance": "con", "ai_claim": "연령과 상관없이 책임감만 있으면 스스로 조절할 수 있어요.", "ok_claim_id": "pro-claim-2", "ok_evidence_id": "pro-evidence-3" },
+        { "id": "S7", "ai_stance": "con", "ai_claim": "밤에도 친구가 도와달라면 바로 연락해야 하잖아요.", "ok_claim_id": "pro-claim-8", "ok_evidence_id": "pro-evidence-7" },
+        { "id": "S8", "ai_stance": "con", "ai_claim": "다들 쓰는데 혼자만 제한하면 소외될 수 있어요.", "ok_claim_id": "pro-claim-4", "ok_evidence_id": "pro-evidence-5" },
+        { "id": "S9", "ai_stance": "con", "ai_claim": "가정에서만 지켜보면 충분하고 규칙까진 필요 없어요.", "ok_claim_id": "pro-claim-6", "ok_evidence_id": "pro-evidence-2" },
+        { "id": "S10", "ai_stance": "con", "ai_claim": "제한은 과해요. 완전 자유가 더 낫죠.", "ok_claim_id": "pro-claim-10", "ok_evidence_id": "pro-evidence-1" }
+    ];
+
+    const STAGE_SET_B = [ // Player: Con
+        { "id": "A1", "ai_stance": "pro", "ai_claim": "초등학생은 판단력이 미숙하니 연령에 따라 제한해야 해요.", "ok_claim_id": "con-claim-6", "ok_evidence_id": "con-evidence-10" },
+        { "id": "A2", "ai_stance": "pro", "ai_claim": "밤 늦게 SNS를 쓰면 수면과 집중력이 망가져요. 야간 제한이 필요해요.", "ok_claim_id": "con-claim-7", "ok_evidence_id": "con-evidence-7" },
+        { "id": "A3", "ai_stance": "pro", "ai_claim": "SNS 알림 때문에 숙제가 방해돼요. 공부 우선이 되려면 제한해야 해요.", "ok_claim_id": "con-claim-3", "ok_evidence_id": "con-evidence-1" },
+        { "id": "A4", "ai_stance": "pro", "ai_claim": "사이버폭력과 개인정보 유출이 위험하니 제한이 필요해요.", "ok_claim_id": "con-claim-5", "ok_evidence_id": "con-evidence-2" },
+        { "id": "A5", "ai_stance": "pro", "ai_claim": "발달 단계상 감정 조절이 어려워서 단계별 규칙이 꼭 필요해요.", "ok_claim_id": "con-claim-9", "ok_evidence_id": "con-evidence-9" },
+        { "id": "A6", "ai_stance": "pro", "ai_claim": "가정에서의 관리만으로는 부족해요. 일괄 제한이 더 안전해요.", "ok_claim_id": "con-claim-10", "ok_evidence_id": "con-evidence-3" },
+        { "id": "A7", "ai_stance": "pro", "ai_claim": "밤에도 위험한 일이 생길 수 있어요. 그래서 야간 제한이 필요하죠.", "ok_claim_id": "con-claim-8", "ok_evidence_id": "con-evidence-4" },
+        { "id": "A8", "ai_stance": "pro", "ai_claim": "다들 쓰다 보면 중독될 수 있어요. 제한으로 습관을 잡아야 해요.", "ok_claim_id": "con-claim-1", "ok_evidence_id": "con-evidence-5" },
+        { "id": "A9", "ai_stance": "pro", "ai_claim": "과제 중에는 SNS가 산만함을 만들어요. 사용을 막아야 집중돼요.", "ok_claim_id": "con-claim-4", "ok_evidence_id": "con-evidence-6" },
+        { "id": "A10", "ai_stance": "pro", "ai_claim": "전면 제한이 가장 안전해요. 예외를 두면 구멍이 생겨요.", "ok_claim_id": "con-claim-2", "ok_evidence_id": "con-evidence-8" }
+    ];
+
+    // 게임 설정
+    const GAME_CONFIG = {
+        totalStages: 10,
+        startingWill: 3,
+        hintsPerRun: 1,
+        easyStages: 3,
+    };
+
+    // --- 2. DOM 요소 ---
+    const startScreen = document.getElementById('start-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const startProButton = document.getElementById('start-pro');
+    const startConButton = document.getElementById('start-con');
+    const stageDisplay = document.getElementById('stage-display');
+    const willDisplay = document.getElementById('will-display');
+    const hintButton = document.getElementById('hint-button');
+    const hintCount = document.getElementById('hint-count');
+    const aiRole = document.getElementById('ai-role');
+    const aiClaim = document.getElementById('ai-claim');
+    const slotClaim = document.getElementById('slot-claim');
+    const slotEvidence = document.getElementById('slot-evidence');
+    const handTitle = document.getElementById('hand-title');
+    const playerHand = document.getElementById('player-hand');
+    const submitButton = document.getElementById('submit-button');
+    const resetSelectionButton = document.getElementById('reset-selection-button');
+    const resultModal = document.getElementById('result-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    let modalButton = document.getElementById('modal-button');
+
+    // --- 3. 게임 상태 변수 ---
+    let currentStageIndex = 0;
+    let mentalPower = GAME_CONFIG.startingWill;
+    let hintsLeft = GAME_CONFIG.hintsPerRun;
+    let playerStance = null;
+    let currentStageSet = [];
+    let currentPlayerHandIds = [];
+    let selectedClaimId = null;
+    let selectedEvidenceId = null;
+    let gameInProgress = false;
+    let selectionPhase = 'claim';
+    let hintActive = false;
+    let hintPool = [];
+    let currentHandCache = [];
+
+    // --- 4. 핵심 게임 로직 ---
+
+    const shuffle = (array) => {
+        let newArr = [...array];
+        for (let i = newArr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+        }
+        return newArr;
+    };
+
+    function initGame() {
+        gameInProgress = false;
+        startScreen.classList.remove('hidden');
+        startScreen.classList.add('flex');
+        gameScreen.classList.add('hidden');
+        gameScreen.classList.remove('flex');
+        resultModal.classList.add('hidden');
+    }
+
+    function startGame(stance) {
+        playerStance = stance;
+        currentStageIndex = 0;
+        mentalPower = GAME_CONFIG.startingWill;
+        hintsLeft = GAME_CONFIG.hintsPerRun;
+        gameInProgress = true;
+
+        if (stance === 'pro') {
+            currentStageSet = STAGE_SET_A;
+            currentPlayerHandIds = PLAYER_HANDS.pro;
+            aiRole.textContent = "AI [반대 측]";
+        } else {
+            currentStageSet = STAGE_SET_B;
+            currentPlayerHandIds = PLAYER_HANDS.con;
+            aiRole.textContent = "AI [찬성 측]";
+        }
+
+        slotClaim.innerHTML = '반박 주장을 이곳에';
+        slotEvidence.innerHTML = '근거를 이곳에';
+        selectedClaimId = null;
+        selectedEvidenceId = null;
+
+        startScreen.classList.add('hidden');
+        startScreen.classList.remove('flex');
+        gameScreen.classList.remove('hidden');
+        gameScreen.classList.add('flex');
+
+        loadStage(currentStageIndex);
+        updateStatusUI();
+        resetHintButton();
+    }
+
+    function createCardElement(id, data) {
+        const el = document.createElement('div');
+        el.id = `card-${id}`;
+        el.dataset.id = id;
+        el.dataset.type = data.type;
+
+        const isClaim = data.type === 'claim';
+        const bgColor = isClaim ? 'bg-blue-100' : 'bg-red-100';
+        const borderColor = isClaim ? 'border-blue-300' : 'border-red-300';
+        const headerText = isClaim ? '반박 주장' : '근거';
+        const headerColor = isClaim ? 'text-blue-700' : 'text-red-700';
+
+        if (data.joker) {
+            el.classList.add('opacity-80', 'border-gray-400');
+        }
+
+        el.className += ` card ${bgColor} border-b-4 ${borderColor} rounded-lg p-3 sm:p-4 shadow-md min-h-[120px] sm:min-h-[140px] flex flex-col justify-between`;
+        el.innerHTML = `
+                <span class="block text-xs font-bold ${headerColor} uppercase">${headerText}</span>
+                <p class="text-gray-800 text-sm sm:text-base font-medium mt-2 flex-1">${data.text}</p>
+            `;
+        el.addEventListener('click', () => onCardClick(id, data.type));
+        return el;
+    }
+
+    function loadStage(index) {
+        if (index >= currentStageSet.length) {
+            gameInProgress = false;
+            showResultModal("최종 승리!", "축하합니다! AI의 모든 주장을 완벽하게 반박했습니다.", "다시 시작하기", initGame);
+            return;
+        }
+        const stage = currentStageSet[index];
+        aiClaim.textContent = stage.ai_claim;
+        resetStageUI();
+    }
+
+    function resetStageUI() {
+        selectedClaimId = null;
+        selectedEvidenceId = null;
+        slotClaim.innerHTML = '반박 주장을 이곳에';
+        slotEvidence.innerHTML = '근거를 이곳에';
+        selectionPhase = 'claim';
+        hintActive = false;
+        hintPool = [];
+        currentHandCache = [];
+        renderPlayerHand();
+        checkSubmitButton();
+        updateHintButtonState();
+    }
+
+    // (버그 수정) 플레이어 핸드 렌더링 (단일 정답 로직 기준)
+    function renderPlayerHand() {
+        playerHand.innerHTML = '';
+        let idsToShow = [];
+
+        const stage = currentStageSet[currentStageIndex];
+        const isEarlyStage = currentStageIndex < GAME_CONFIG.easyStages; // 0, 1, 2
+
+        // 1. 공통 풀 정의
+        const allClaims = currentPlayerHandIds.filter(id => MASTER_CARDS[id].type === 'claim');
+        const allEvidence = currentPlayerHandIds.filter(id => MASTER_CARDS[id].type === 'evidence');
+
+        // --- (수정) 단일 정답 ID를 배열로 감싸서 기존 로직 재활용 ---
+        const okClaims = [stage.ok_claim_id];
+        const okEvidence = [stage.ok_evidence_id];
+
+        // --- (수정) 이제 incorrect 풀이 항상 넉넉하게 보장됨 (10 normal + 1 joker) ---
+        const incorrectClaims = allClaims.filter(id => id !== stage.ok_claim_id);
+        const incorrectEvidence = allEvidence.filter(id => id !== stage.ok_evidence_id);
+
+        // 2. 오답 풀 분리 (조커 / 매력적)
+        const jokerClaims = incorrectClaims.filter(id => MASTER_CARDS[id].joker);
+        const attractiveClaims = incorrectClaims.filter(id => !MASTER_CARDS[id].joker);
+        const jokerEvidence = incorrectEvidence.filter(id => MASTER_CARDS[id].joker);
+        const attractiveEvidence = incorrectEvidence.filter(id => !MASTER_CARDS[id].joker);
+
+        // (공통) 오답 3개 뽑는 헬퍼 함수
+        const getThreeIncorrect = (jokerPool, attractivePool, incorrectPool) => {
+            let incorrectSet = [];
+            if (isEarlyStage && jokerPool.length > 0) {
+                incorrectSet.push(shuffle(jokerPool)[0]); // 1 Joker
+            }
+
+            // 3개가 될 때까지 '매력적 오답'으로 채움 (이미 넣은 조커 제외)
+            const attractiveNeeded = 3 - incorrectSet.length;
+            const attractiveToAdd = shuffle(attractivePool.filter(id => !incorrectSet.includes(id))).slice(0, attractiveNeeded);
+            incorrectSet.push(...attractiveToAdd);
+
+            // [버그 수정] 그래도 3개가 안되면, '전체 오답'에서 마저 채움
+            const finalNeeded = 3 - incorrectSet.length;
+            if (finalNeeded > 0) {
+                // 이 로직은 이제 거의 실행되지 않지만, 만약의 경우를 대비한 안전 장치
+                const finalFallbackPool = incorrectPool.filter(id => !incorrectSet.includes(id));
+                incorrectSet.push(...shuffle(finalFallbackPool).slice(0, finalNeeded));
+            }
+            return incorrectSet;
+        };
+
+
+        if (selectionPhase === 'claim') {
+            // --- 3A. 주장 선택지 구성 (4개) ---
+            handTitle.textContent = '1. 반박 주장 4개 중 1개를 선택하세요';
+
+            // 1개는 무조건 정답
+            idsToShow.push(okClaims[0]);
+
+            // 3개는 오답
+            const incorrectSet = getThreeIncorrect(jokerClaims, attractiveClaims, incorrectClaims);
+            idsToShow.push(...incorrectSet);
+
+            idsToShow = shuffle(idsToShow);
+
+        } else { // 'evidence'
+
+            if (hintActive) {
+                // --- 3B. 근거 선택 (힌트 사용) ---
+                handTitle.textContent = '2. [힌트] 2개의 근거 중 선택하세요';
+                idsToShow = shuffle(hintPool);
+            } else {
+                // --- 3C. 근거 선택지 구성 (4개) ---
+                handTitle.textContent = '2. 근거 4개 중 1개를 선택하세요';
+
+                // 1개는 무조건 정답
+                idsToShow.push(okEvidence[0]);
+
+                // 3개는 오답
+                const incorrectSet = getThreeIncorrect(jokerEvidence, attractiveEvidence, incorrectEvidence);
+                idsToShow.push(...incorrectSet);
+
+                idsToShow = shuffle(idsToShow);
+            }
+        }
+
+        // 4. 렌더링
+        currentHandCache = idsToShow; // 힌트 로직을 위해 캐시
+        idsToShow.forEach(id => {
+            if (!id) return; // 안전 장치
+            const cardData = MASTER_CARDS[id];
+            const cardEl = createCardElement(id, cardData);
+            playerHand.appendChild(cardEl);
+        });
+
+        // 카드 개수에 따른 그리드 조정 (항상 2열)
+        playerHand.classList.add('md:grid-cols-2');
+        playerHand.classList.remove('md:grid-cols-3');
+    }
+
+    // 상태 UI 업데이트
+    function updateStatusUI() {
+        stageDisplay.textContent = `Stage ${currentStageIndex + 1} / ${GAME_CONFIG.totalStages}`;
+        willDisplay.innerHTML = '';
+        for (let i = 0; i < GAME_CONFIG.startingWill; i++) {
+            const heart = document.createElement('span');
+            if (i < mentalPower) {
+                heart.textContent = '❤️';
+                heart.className = 'heart-beat';
+            } else {
+                heart.textContent = '🤍';
+                heart.className = 'heart-empty';
+            }
+            willDisplay.appendChild(heart);
+        }
+    }
+
+    // --- 5. 카드 선택 로직 ---
+
+    // 카드 클릭 시
+    function onCardClick(id, type) {
+        if (!gameInProgress) return;
+        const cardData = MASTER_CARDS[id];
+
+        if (type === 'claim' && selectionPhase === 'claim') {
+            selectedClaimId = id;
+            const cardElForSlot = createCardElement(id, cardData);
+            cardElForSlot.classList.add('card-in-slot');
+            slotClaim.innerHTML = '';
+            slotClaim.appendChild(cardElForSlot);
+
+            selectionPhase = 'evidence';
+            renderPlayerHand();
+            updateHintButtonState();
+
+        } else if (type === 'evidence' && selectionPhase === 'evidence') {
+            selectedEvidenceId = id;
+            const cardElForSlot = createCardElement(id, cardData);
+            cardElForSlot.classList.add('card-in-slot');
+            slotEvidence.innerHTML = '';
+            slotEvidence.appendChild(cardElForSlot);
+
+            if (hintActive) {
+                disableWrongHintCard();
+            }
+        }
+        checkSubmitButton();
+    }
+
+    // 제출 버튼 활성화/비활성화
+    function checkSubmitButton() {
+        if (selectedClaimId && selectedEvidenceId) {
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    // --- 6. 제출 및 결과 처리 ---
+
+    // '주장하기' 버튼 클릭
+    function handleSubmit() {
+        if (submitButton.disabled || !gameInProgress) return;
+        const stage = currentStageSet[currentStageIndex];
+
+        // --- (수정) 단일 정답으로 판정 ---
+        const isClaimOk = stage.ok_claim_id === selectedClaimId;
+        const isEvidenceOk = stage.ok_evidence_id === selectedEvidenceId;
+
+        if (isClaimOk && isEvidenceOk) {
+            handleSuccess();
+        } else {
+            handleFailure(stage);
+        }
+    }
+
+    // 성공
+    function handleSuccess() {
+        currentStageIndex++;
+        showResultModal(
+            "성공!",
+            "정확한 반박입니다! AI가 다음 주장을 준비합니다.",
+            "다음 스테이지",
+            () => {
+                resultModal.classList.add('hidden');
+                loadStage(currentStageIndex);
+                updateStatusUI();
+            }
+        );
+    }
+
+    // 실패
+    function handleFailure(stage) {
+        mentalPower--;
+        updateStatusUI();
+        if (mentalPower <= 0) {
+            gameInProgress = false;
+            showResultModal("게임 오버", "정신력이 0이 되었습니다. AI의 주장에 밀렸습니다.", "처음부터 다시하기", initGame);
+        } else {
+            // --- (수정) 단일 정답으로 피드백 ---
+            const correctClaimId = stage.ok_claim_id;
+            const correctEvidenceId = stage.ok_evidence_id;
+            const correctClaimText = MASTER_CARDS[correctClaimId].text;
+            const correctEvidenceText = MASTER_CARDS[correctEvidenceId].text;
+
+            const feedback = `이것이 정답 조합입니다:\n\n[주장]\n"${correctClaimText.trim()}"\n\n[근거]\n"${correctEvidenceText.trim()}"`;
+
+            showResultModal(
+                "실패...",
+                `정신력이 1 감소했습니다. (남은 정신력: ${mentalPower})\n\n${feedback}`,
+                "다시 시도하기",
+                () => {
+                    resultModal.classList.add('hidden');
+                    resetStageUI();
+                }
+            );
+        }
+    }
+
+    // --- 7. 힌트 로직 ---
+
+    // 힌트 버튼 클릭
+    function handleHint() {
+        if (selectionPhase !== 'evidence' || hintsLeft <= 0 || hintActive || !gameInProgress) return;
+
+        hintsLeft--;
+        hintActive = true;
+        hintButton.disabled = true;
+        hintCount.textContent = hintsLeft;
+        updateHintButtonState();
+
+        const stage = currentStageSet[currentStageIndex];
+
+        // --- (수정) 단일 정답으로 힌트 풀 구성 ---
+        const okEvidenceInHand = currentHandCache.filter(id => stage.ok_evidence_id === id);
+        const incorrectEvidenceInHand = currentHandCache.filter(id => stage.ok_evidence_id !== id);
+
+        const correctHintCard = okEvidenceInHand[0]; // 무조건 정답 1개
+        const incorrectHintCard = shuffle(incorrectEvidenceInHand)[0]; // 오답 1개
+
+        hintPool = [correctHintCard, incorrectHintCard].filter(id => id); // [정답, 오답]
+
+        renderPlayerHand(); // 힌트가 적용된 핸드로 다시 렌더링 (2개만)
+
+        showResultModal(
+            "힌트 사용!",
+            `근거 카드의 후보를 ${hintPool.length}개로 좁혔습니다.`,
+            "확인",
+            () => resultModal.classList.add('hidden')
+        );
+    }
+
+    // 힌트 사용 시, 오답 카드를 비활성화
+    function disableWrongHintCard() {
+        const wrongCardId = hintPool.find(id => id !== selectedEvidenceId);
+        if (wrongCardId) {
+            const wrongCardEl = document.getElementById(`card-${wrongCardId}`);
+            if (wrongCardEl) {
+                wrongCardEl.classList.add('disabled');
+            }
+        }
+    }
+
+    // 힌트 버튼 상태 업데이트
+    function updateHintButtonState() {
+        const isHintAvailable = (hintsLeft > 0 && selectionPhase === 'evidence' && !hintActive);
+        hintButton.disabled = !isHintAvailable;
+        if (isHintAvailable) {
+            hintButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            hintButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    // 게임 시작 시 힌트 버튼 리셋
+    function resetHintButton() {
+        hintCount.textContent = hintsLeft;
+        updateHintButtonState();
+    }
+
+    // --- 8. 유틸리티 (모달) ---
+    function showResultModal(title, message, buttonText, callback) {
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+
+        const newButton = modalButton.cloneNode(true);
+        newButton.textContent = buttonText;
+        modalButton.parentNode.replaceChild(newButton, modalButton);
+        newButton.addEventListener('click', callback, { once: true });
+        modalButton = newButton;
+
+        resultModal.classList.remove('hidden');
+        resultModal.classList.add('flex');
+    }
+
+    // --- 9. 이벤트 리스너 ---
+    document.addEventListener('DOMContentLoaded', () => {
+        startProButton.addEventListener('click', () => startGame('pro'));
+        startConButton.addEventListener('click', () => startGame('con'));
+
+        submitButton.addEventListener('click', handleSubmit);
+        resetSelectionButton.addEventListener('click', resetStageUI);
+        hintButton.addEventListener('click', handleHint);
+
+        initGame(); // 앱 시작
+    });
+
+</script>
+</body>
+</html>
+
