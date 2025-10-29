@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정리하기 글쓰기 게임 (사물함)</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 캔버스 스타일 */
+        canvas {
+            background-color: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-slate-50 to-slate-100 min-h-screen py-8 px-4">
+
+<div class="max-w-3xl mx-auto">
+    <!-- 헤더 -->
+    <header class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-extrabold text-slate-800">사물함 정리 글쓰기</h1>
+            <p class="text-slate-600 text-sm">단계별로 문장을 완성하고, 마지막에 '처음-중간-끝' 구조의 글로 묶어봐요.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button
+                    id="restartButton"
+                    class="px-3 py-1 rounded-lg border bg-white text-slate-700 hover:shadow text-sm"
+            >
+                처음부터 다시하기
+            </button>
+        </div>
+    </header>
+
+    <!-- 진행도 (HTML) -->
+    <div class="mb-6">
+        <div class="flex justify-between text-xs text-slate-600">
+            <span id="progressText">단계 1 / 4</span>
+            <span id="progressPct">0%</span>
+        </div>
+        <div class="h-2 mt-1 rounded-full bg-slate-200 overflow-hidden">
+            <div id="progressBar" class="h-full bg-blue-500 transition-all" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- 캔버스 -->
+    <canvas id="gameCanvas" width="800" height="700" class="w-full"></canvas>
+
+    <!-- 도움말 (HTML) -->
+    <div class="mt-6">
+        <h2 class="text-sm font-bold text-slate-700">학습팁</h2>
+        <div class="p-4 rounded-xl border bg-white text-sm text-slate-700 leading-relaxed">
+            <ul class="list-disc pl-5 space-y-1">
+                <li>'처음' 부분(사물함)은 정리하는 이유를 생각하며 골라봐요.</li>
+                <li>'중간' 부분(사물+방법)은 사물에 어울리는 정리 방법을 짝지어 문장을 만들어요.</li>
+                <li>마지막에 완성된 글을 패들렛에 붙여넣고 친구들과 공유해 보세요.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== 데이터 정의 (사용자 요청 반영) =====
+
+    // [중간] 파트용 데이터
+    const ITEMS = [
+        { id: "textbook", name: "교과서", emoji: "📚" },
+        { id: "notebook", name: "공책", emoji: "🗒️" },
+        { id: "file", name: "파일", emoji: "📁" },
+        { id: "pencils", name: "색연필", emoji: "🖍️" },
+        { id: "glue", name: "풀", emoji: "🧴" },
+        { id: "scissors", name: "가위", emoji: "✂️" },
+        { id: "recorder", name: "리코더", emoji: "🎵" },
+        { id: "jumprope", name: "줄넘기", emoji: "🤸" },
+        { id: "artwork", name: "수업 작품", emoji: "🎨" },
+    ];
+
+    const METHODS = [
+        { id: "stand_up", name: "세우거나 꽂기", hint: "책처럼 세워요" },
+        { id: "in_basket", name: "정리 바구니에 담기", hint: "바구니에 모아요" },
+        { id: "in_pouch", name: "정리 주머니에 넣기", hint: "주머니에 넣어요" },
+        { id: "take_home", name: "분류해서 집으로 가져가기", hint: "집으로!" },
+    ];
+
+    // 새로운 데이터에 맞춘 짝짓기 규칙
+    const VALID = {
+        textbook: ["stand_up", "take_home"],
+        notebook: ["stand_up", "take_home"],
+        file: ["stand_up", "take_home"],
+        pencils: ["in_basket", "in_pouch"],
+        glue: ["in_basket", "in_pouch"],
+        scissors: ["in_basket", "in_pouch"],
+        recorder: ["in_basket", "in_pouch", "take_home"],
+        jumprope: ["in_basket", "in_pouch", "take_home"],
+        artwork: ["take_home", "in_basket"],
+    };
+
+    // [처음] 파트용 데이터 (이전과 동일)
+    const LOCKER_STATEMENTS = [
+        { id: "good1", text: "필요한 물건을 금방 찾을 수 있어요.", type: "good" },
+        { id: "good2", text: "사물함이 깨끗해져서 기분이 좋아요.", type: "good" },
+        { id: "good3", text: "준비물을 잊어버리지 않아요.", type: "good" },
+        { id: "bad1", text: "시간이 너무 오래 걸려서 귀찮아요.", type: "bad" },
+        { id: "bad2", text: "정리하는 것은 재미없어요.", type: "bad" },
+        { id: "bad3", text: "어차피 금방 다시 더러워져요.", type: "bad" },
+    ];
+
+    const TOTAL_ROUNDS = 4; // 처음 1 + 중간 3
+    const PADLET_URL = "https://padlet.com/anjaehyeong0619/samulham"; // 패들렛 주소
+
+    // ===== 캔버스 및 게임 상태 =====
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const restartButton = document.getElementById('restartButton');
+
+    // HTML 진행도 UI 요소
+    const progressTextEl = document.getElementById('progressText');
+    const progressPctEl = document.getElementById('progressPct');
+    const progressBarEl = document.getElementById('progressBar');
+
+    // 게임 상태 변수
+    let phase = 'start'; // 'start', 'middle', 'finished'
+    let acceptedSentences = [];
+    let usedItemIds = [];
+
+    // '처음' 파트 상태
+    let selectedLockerIds = [];
+
+    // '중간' 파트 상태
+    let selectedItem = null;
+    let selectedMethod = null;
+    let generatedSentence = "";
+
+    let errorMessage = "";
+
+    // 클릭 가능한 영역 (카드, 버튼)
+    let clickables = [];
+
+    // ===== 유틸 함수 =====
+    function stripTrailingPeriod(s) {
+        return s.trim().replace(/[.。]+$/g, "");
+    }
+
+    // [처음] 파트 문장 생성 (이유가 앞으로)
+    function makeStartSentence() {
+        const reasons = LOCKER_STATEMENTS
+            .filter(s => selectedLockerIds.includes(s.id))
+            .map(s => {
+                // "필요한 물건을 금방 찾을 수 있어요." -> "필요한 물건을 금방 찾고"
+                // "사물함이 깨끗해져서 기분이 좋아요." -> "사물함이 깨끗해져서 기분이 좋고"
+                return stripTrailingPeriod(s.text)
+                    .replace(/ 있어요.$/, " 있고")
+                    .replace(/ 좋아요.$/, " 좋고")
+                    .replace(/ 않아요.$/, " 않고");
+            });
+
+        // "필요한 물건을 금방 찾고, 사물함이 깨끗해져서 기분이 좋고"
+        let reasonText = reasons.join(", ");
+        // 마지막 '고'를 '기'로 변경
+        if (reasonText.endsWith("고")) {
+            reasonText = reasonText.substring(0, reasonText.lastIndexOf("고")) + "기";
+        }
+
+        return `${reasonText} 위해서, 저는 사물함을 정리했습니다.`;
+    }
+
+    // [중간] 파트 문장 생성 (이유가 앞으로)
+    function makeMiddleSentence(item, method) {
+        const core = `나는 ${item.name}을(를) ${method.name} 방법으로 정리했다.`;
+
+        // 새 아이템에 맞춘 이유
+        const reasonMap = {
+            textbook: "교과서를 빨리 찾기",
+            notebook: "공책을 바로 꺼내기",
+            file: "필요한 파일을 찾기",
+            pencils: "학용품을 편하게 쓰기",
+            glue: "학용품을 편하게 쓰기",
+            scissors: "학용품을 편하게 쓰기",
+            recorder: "악기를 안전하게 보관하기",
+            jumprope: "체육 도구를 챙기기",
+            artwork: "작품을 소중히 보관하기",
+        };
+
+        const reason = (reasonMap[item.id] ?? "깔끔하게 사용하기") + " 위해서";
+        return `${reason}, ${core}`;
+    }
+
+    // '끝' 파트 글 조합 (수정됨)
+    function buildComposition() {
+        if (acceptedSentences.length < TOTAL_ROUNDS) return "문장이 부족합니다.";
+
+        const [startRaw, mid1Raw, mid2Raw, mid3Raw] = acceptedSentences;
+
+        const intro = "저의 사물함 정리 경험을 소개합니다.";
+
+        // [이유] 위해서, 저는 사물함을 정리했습니다. ->
+        // [이유] 위해서, 먼저 저는 사물함을 정리했습니다.
+        const start = stripTrailingPeriod(startRaw).replace("저는", "먼저 저는");
+
+        // [이유] 위해서, 나는 [사물]을 정리했다. ->
+        // [이유] 위해서, 첫째로, [사물]을 정리했다.
+        const mid1 = stripTrailingPeriod(mid1Raw).replace("나는", "첫째로,");
+        const mid2 = stripTrailingPeriod(mid2Raw).replace("나는", "둘째로,");
+        const mid3 = stripTrailingPeriod(mid3Raw).replace("나는", "셋째로,");
+
+        const end = "이렇게 정리를 하고 나니 기분이 상쾌하고 좋았습니다. 앞으로도 제 물건을 스스로 정리하는 습관을 들이겠습니다.";
+
+        // \n\n으로 문단 구분
+        return `${intro}\n\n${start}.\n\n${mid1}. ${mid2}. ${mid3}.\n\n${end}`;
+    }
+
+    // ===== 캔버스 그리기 함수 =====
+
+    function wrapText(text, x, y, maxWidth, lineHeight, color = '#1e293b') {
+        ctx.fillStyle = color;
+        ctx.font = '18px Inter, sans-serif';
+        let words = text.split(' ');
+        let line = '';
+        let testY = y;
+
+        for (let n = 0; n < words.length; n++) {
+            let testLine = line + words[n] + ' ';
+            let metrics = ctx.measureText(testLine);
+            let testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line, x, testY);
+                line = words[n] + ' ';
+                testY += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, x, testY);
+    }
+
+    function drawMultiLineText(text, x, y, lineHeight) {
+        ctx.fillStyle = '#1e293b'; // slate-800
+        ctx.font = '18px Inter, sans-serif';
+        const lines = text.split('\n');
+        lines.forEach((line, index) => {
+            ctx.fillText(line, x, y + (index * lineHeight));
+        });
+    }
+
+    function drawCard(x, y, w, h, title, subtitle = '', emoji = '', selected = false) {
+        ctx.beginPath();
+        ctx.fillStyle = '#ffffff';
+        ctx.roundRect(x, y, w, h, 12);
+        ctx.fill();
+
+        ctx.strokeStyle = selected ? '#2563eb' : '#cbd5e1'; // blue-600 or slate-300
+        ctx.lineWidth = selected ? 2 : 1;
+        ctx.stroke();
+
+        // 내용
+        let textX = x + 16;
+        if (emoji) {
+            ctx.font = '24px Inter, sans-serif';
+            ctx.fillText(emoji, x + 16, y + 36);
+            textX += 36;
+        }
+
+        ctx.fillStyle = '#1e293b'; // slate-800
+        ctx.font = 'bold 16px Inter, sans-serif';
+        // 텍스트가 카드 넘치지 않게
+        const titleWidth = ctx.measureText(title).width;
+        if (titleWidth > (w - (textX - x) - 16)) {
+            ctx.font = 'bold 14px Inter, sans-serif';
+        }
+
+        ctx.fillText(title, textX, y + 32);
+
+        if (subtitle) {
+            ctx.fillStyle = '#64748b'; // slate-500
+            ctx.font = '14px Inter, sans-serif';
+            ctx.fillText(subtitle, textX, y + 54);
+        }
+    }
+
+    function drawButton(x, y, w, h, text, disabled = false) {
+        ctx.beginPath();
+        ctx.fillStyle = disabled ? '#e2e8f0' : '#2563eb'; // slate-200 or blue-600
+        ctx.roundRect(x, y, w, h, 12);
+        ctx.fill();
+
+        ctx.fillStyle = disabled ? '#94a3b8' : '#ffffff'; // slate-400 or white
+        ctx.font = 'bold 16px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x + w / 2, y + h / 2);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+    }
+
+    function drawTitle(text) {
+        ctx.fillStyle = '#334155'; // slate-700
+        ctx.font = 'bold 20px Inter, sans-serif';
+        ctx.fillText(text, 20, 40);
+    }
+
+    function drawError() {
+        if (!errorMessage) return;
+
+        let color = '#dc2626'; // rose-600 (기본값: 에러)
+        let text = errorMessage;
+
+        if (errorMessage === "copied") {
+            color = '#16a34a'; // green-600
+            text = "글이 복사되었습니다! 새 탭에 붙여넣으세요.";
+        } else if (errorMessage === "copyFailed") {
+            text = "복사에 실패했어요. 다시 시도해 주세요.";
+        }
+
+        ctx.fillStyle = color;
+        ctx.font = 'bold 16px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, canvas.width / 2, canvas.height - 20);
+        ctx.textAlign = 'left';
+    }
+
+    // ===== 파트별 그리기 =====
+
+    function drawStart() {
+        drawTitle('[처음] 사물함을 정리하면 좋은 점을 골라봅시다. (2개 이상)');
+
+        clickables = [];
+        const cardW = (canvas.width - 80) / 3;
+        const cardH = 100;
+
+        LOCKER_STATEMENTS.forEach((card, i) => {
+            const x = 20 + (i % 3) * (cardW + 20);
+            const y = 80 + Math.floor(i / 3) * (cardH + 20);
+            const selected = selectedLockerIds.includes(card.id);
+            drawCard(x, y, cardW, cardH, card.text, '', '', selected);
+            clickables.push({ id: card.id, type: card.type, bounds: [x, y, cardW, cardH], action: 'selectLocker' });
+        });
+
+        const isDisabled = selectedLockerIds.length < 2;
+        const btnW = 250;
+        const btnX = (canvas.width - btnW) / 2;
+        drawButton(btnX, 320, btnW, 50, "'처음' 부분 문장 만들기", isDisabled);
+        clickables.push({ bounds: [btnX, 320, btnW, 50], action: 'completeStart', disabled: isDisabled });
+    }
+
+    function drawMiddle() {
+        const currentMiddleRound = acceptedSentences.length; // 1, 2, or 3
+        drawTitle(`[중간 ${currentMiddleRound}/3] 사물과 방법을 짝지어 봅시다.`);
+
+        clickables = [];
+        const col1X = 20;
+        const col2X = canvas.width / 2 + 10;
+        const cardW = (canvas.width / 2) - 30;
+        const cardH = 70; // 카드가 많아져서 높이 살짝 줄임
+
+        // '중간' 파트에서 생성된 문장이 있다면, 그것만 보여줌
+        if (generatedSentence) {
+            drawTitle("문장이 완성되었어요!");
+            wrapText(generatedSentence, 20, 100, canvas.width - 40, 28);
+
+            const btnW = 150;
+            const btnX = (canvas.width - btnW) / 2;
+            drawButton(btnX, 250, btnW, 50, "다음 단계로");
+            clickables.push({ bounds: [btnX, 250, btnW, 50], action: 'completeMiddle' });
+            return;
+        }
+
+        // 1) 사물 고르기
+        ctx.fillStyle = '#475569'; // slate-600
+        ctx.font = 'bold 16px Inter, sans-serif';
+        ctx.fillText("1) 정리할 사물", col1X, 90);
+
+        const remainingItems = ITEMS.filter(x => !usedItemIds.includes(x.id));
+        const itemsToDraw = remainingItems.length ? remainingItems : ITEMS;
+
+        itemsToDraw.forEach((item, i) => {
+            const x = col1X;
+            const y = 110 + i * (cardH + 10);
+            if (y > 550) return; // 캔버스 넘어가지 않게
+            const selected = selectedItem?.id === item.id;
+            drawCard(x, y, cardW, cardH, item.name, '', item.emoji, selected);
+            clickables.push({ ...item, bounds: [x, y, cardW, cardH], action: 'selectItem' });
+        });
+
+        // 2) 방법 고르기
+        ctx.fillStyle = '#475569';
+        ctx.font = 'bold 16px Inter, sans-serif';
+        ctx.fillText("2) 정리할 방법", col2X, 90);
+
+        METHODS.forEach((method, i) => {
+            const x = col2X;
+            const y = 110 + i * (cardH + 10);
+            const selected = selectedMethod?.id === method.id;
+            drawCard(x, y, cardW, cardH, method.name, method.hint, '', selected);
+            clickables.push({ ...method, bounds: [x, y, cardW, cardH], action: 'selectMethod' });
+        });
+
+        // 3) 문장 만들기 버튼
+        const canGenerate = selectedItem && selectedMethod && VALID[selectedItem.id]?.includes(selectedMethod.id);
+        const isDisabled = !canGenerate;
+
+        if (selectedItem && selectedMethod && !canGenerate) {
+            errorMessage = "이 조합은 어색해요. 다른 방법을 골라보세요.";
+        }
+
+        const btnW = 200;
+        const btnX = (canvas.width - btnW) / 2;
+        const btnY = 600; // 버튼 위치 하단 고정
+
+        drawButton(btnX, btnY, btnW, 50, "문장 만들기", isDisabled);
+        clickables.push({ bounds: [btnX, btnY, btnW, 50], action: 'generateMiddle', disabled: isDisabled });
+    }
+
+    function drawFinished() {
+        drawTitle("🎉 완성! 나의 사물함 정리 글");
+
+        const composition = buildComposition();
+
+        // 완성된 글 그리기
+        ctx.save();
+        ctx.fillStyle = '#f8fafc'; // slate-50
+        ctx.strokeStyle = '#e2e8f0'; // slate-200
+        ctx.lineWidth = 1;
+        ctx.roundRect(20, 80, canvas.width - 40, canvas.height - 200, 12);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        drawMultiLineText(composition, 40, 120, 32);
+
+        // 버튼 그리기
+        const btnW = 220; // 버튼 텍스트 길어짐
+        const btnH = 50;
+        const btnY = canvas.height - 100;
+        const btn1X = (canvas.width / 2) - btnW - 10;
+        const btn2X = (canvas.width / 2) + 10;
+
+        drawButton(btn1X, btnY, btnW, btnH, "글 복사하기");
+        drawButton(btn2X, btnY, btnW, btnH, "패들렛에 내보내기");
+
+        clickables = [
+            { bounds: [btn1X, btnY, btnW, btnH], action: 'copyText' },
+            { bounds: [btn2X, btnY, btnW, btnH], action: 'exportToPadlet' }
+        ];
+    }
+
+    // ===== 메인 그리기 함수 =====
+    function draw() {
+        // 캔버스 지우기 (에러 메시지 영역 제외)
+        ctx.clearRect(0, 0, canvas.width, canvas.height - 40);
+
+        // 에러 메시지 초기화 (그리기 전에)
+        let lastErrorMessage = errorMessage;
+        errorMessage = "";
+
+        if (phase === 'start') {
+            drawStart();
+        } else if (phase === 'middle') {
+            drawMiddle();
+        } else if (phase === 'finished') {
+            // finished 단계에서는 복사 메시지를 유지해야 함
+            if (lastErrorMessage === "copied") errorMessage = "copied";
+            drawFinished();
+        }
+
+        // 에러 메시지 영역 지우고 새로 그리기
+        ctx.clearRect(0, canvas.height - 40, canvas.width, 40);
+        drawError();
+        updateProgressUI(); // HTML 진행도 업데이트
+    }
+
+    // ===== 진행도 UI 업데이트 =====
+    function updateProgressUI() {
+        const currentRound = acceptedSentences.length + 1;
+        const isFinished = phase === 'finished';
+
+        const displayRound = isFinished ? TOTAL_ROUNDS : currentRound;
+        const pct = isFinished ? 100 : Math.round(((currentRound - 1) / TOTAL_ROUNDS) * 100);
+
+        progressTextEl.innerText = `단계 ${displayRound} / ${TOTAL_ROUNDS}`;
+        progressPctEl.innerText = `${pct}%`;
+        progressBarEl.style.width = `${pct}%`;
+    }
+
+    // ===== 클릭 핸들러 =====
+    function handleClick(event) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (event.clientX - rect.left) * scaleX;
+        const y = (event.clientY - rect.top) * scaleY;
+
+        let needsRedraw = false;
+        let asyncAction = false; // 복사/내보내기 같은 비동기 액션 플래그
+
+        for (const item of clickables) {
+            const [bx, by, bw, bh] = item.bounds;
+            if (x >= bx && x <= bx + bw && y >= by && y <= by + bh) {
+                if (item.disabled) continue;
+
+                if (item.action === 'selectLocker') {
+                    if (item.type === 'bad') {
+                        errorMessage = "이건 정리의 좋은 점이 아닌 것 같아요. 다시 골라보세요!";
+                    } else {
+                        if (selectedLockerIds.includes(item.id)) {
+                            selectedLockerIds = selectedLockerIds.filter(id => id !== item.id);
+                        } else {
+                            selectedLockerIds.push(item.id);
+                        }
+                    }
+                    needsRedraw = true;
+                }
+
+                else if (item.action === 'completeStart') {
+                    const sentence = makeStartSentence();
+                    acceptedSentences.push(sentence);
+                    phase = 'middle';
+                    needsRedraw = true;
+                }
+
+                else if (item.action === 'selectItem') {
+                    selectedItem = item;
+                    needsRedraw = true;
+                }
+
+                else if (item.action === 'selectMethod') {
+                    selectedMethod = item;
+                    needsRedraw = true;
+                }
+
+                else if (item.action === 'generateMiddle') {
+                    generatedSentence = makeMiddleSentence(selectedItem, selectedMethod);
+                    needsRedraw = true;
+                }
+
+                else if (item.action === 'completeMiddle') {
+                    acceptedSentences.push(generatedSentence);
+                    usedItemIds.push(selectedItem.id);
+
+                    selectedItem = null;
+                    selectedMethod = null;
+                    generatedSentence = "";
+
+                    if (acceptedSentences.length >= TOTAL_ROUNDS) {
+                        phase = 'finished';
+                    }
+                    needsRedraw = true;
+                }
+
+                // --- '끝' 파트 액션 ---
+                else if (item.action === 'copyText') {
+                    asyncAction = true;
+                    const composition = buildComposition();
+                    navigator.clipboard.writeText(composition).then(() => {
+                        errorMessage = "copied";
+                        draw(); // 프라미스 안에서 다시 그리기
+                    }).catch(err => {
+                        console.error("복사 실패:", err);
+                        errorMessage = "copyFailed";
+                        draw();
+                    });
+                }
+
+                else if (item.action === 'exportToPadlet') {
+                    asyncAction = true;
+                    const composition = buildComposition();
+                    navigator.clipboard.writeText(composition).then(() => {
+                        errorMessage = "copied";
+                        window.open(PADLET_URL, '_blank'); // 패들렛 열기
+                        draw(); // 프라미스 안에서 다시 그리기
+                    }).catch(err => {
+                        console.error("복사 실패:", err);
+                        errorMessage = "copyFailed";
+                        draw();
+                    });
+                }
+
+                break;
+            }
+        }
+
+        if (needsRedraw && !asyncAction) {
+            draw();
+        }
+    }
+
+    // ===== 게임 시작 및 리셋 =====
+    function restartGame() {
+        phase = 'start';
+        acceptedSentences = [];
+        usedItemIds = [];
+        selectedLockerIds = [];
+        selectedItem = null;
+        selectedMethod = null;
+        generatedSentence = "";
+        errorMessage = "";
+        clickables = [];
+        draw();
+    }
+
+    // 이벤트 리스너 연결
+    canvas.addEventListener('click', handleClick);
+    restartButton.addEventListener('click', restartGame);
+
+    // 게임 시작
+    draw();
+</script>
+</body>
+</html>
+
