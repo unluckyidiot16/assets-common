@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circle Curling 5.0 (Game Modes)</title>
+    <title>Circle Curling 6.0 (New Unlocks)</title>
     <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -18,7 +18,6 @@
                     linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
             background-size: 20px 20px;
             cursor: grab;
-            /* **FIX: JS로 스크롤을 제어하므로 touch-action 제거** */
             touch-action: none;
         }
 
@@ -33,7 +32,7 @@
         /* 스크롤 컨테이너 */
         #scroll-container {
             height: 600px;
-            overflow-y: auto; /* JS가 제어하지만, 만약을 위해 auto M */
+            overflow-y: auto;
             scroll-behavior: smooth;
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -42,11 +41,11 @@
             display: none;
         }
 
-        /* **NEW: 잠금/비활성 버튼 스타일** */
+        /* 잠금/비활성 버튼 스타일 */
         .btn-locked {
             @apply bg-gray-300 text-gray-500 cursor-not-allowed flex items-center justify-center;
         }
-        /* **NEW: 발사 버튼 비활성화 스타일** */
+        /* 발사 버튼 비활성화 스타일 */
         #fire-button:disabled {
             @apply bg-gray-400 text-gray-200 cursor-not-allowed;
         }
@@ -54,7 +53,7 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-<!-- **NEW: 게임 모드 선택 모달** -->
+<!-- 게임 모드 선택 모달 -->
 <div id="mode-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-20">
     <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
         <h2 class="text-3xl font-bold mb-6">Circle Curling</h2>
@@ -63,10 +62,19 @@
             <button id="mode-practice" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold text-lg">
                 1. 혼자 연습하기
             </button>
-            <button id="mode-ai" class="w-full bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-lg font-semibold text-lg">
-                2. AI 대전
+            <button id="mode-ai-normal" class="w-full bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-lg font-semibold text-lg">
+                2. AI 대전 (Normal)
             </button>
-            <button id="mode-2p" class="w-full bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-lg font-semibold text-lg">
+            <!-- AI 하드 모드 버튼 -->
+            <button id="mode-ai-hard" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-5 py-3 rounded-lg font-semibold text-lg">
+                <!-- JS가 이 버튼을 활성화/비활성화 -->
+            </button>
+            <!-- 2P 'Normal' 모드 버튼 -->
+            <button id="mode-2p-normal" class="w-full bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-lg font-semibold text-lg">
+                <!-- JS가 이 버튼을 활성화/비활성화 -->
+            </button>
+            <!-- **NEW: 2P 'Hard' 모드 버튼** -->
+            <button id="mode-2p-hard" class="w-full bg-teal-500 hover:bg-teal-600 text-white px-5 py-3 rounded-lg font-semibold text-lg">
                 <!-- JS가 이 버튼을 활성화/비활성화 -->
             </button>
         </div>
@@ -108,13 +116,11 @@
     <!-- (C) 하단 입력 영역 -->
     <div id="control-panel">
         <p id="control-text" class="text-center text-gray-600 mb-2">
-            <!-- **MODIFIED: 텍스트 변경** -->
             발사 버튼을 길게 눌러 힘을 조절하세요!
         </p>
-        <div id="power-gauge-container" class="w-full bg-gray-200 rounded-full h-6 overflow-hidden mb-4"> <!-- **NEW: mb-4 추가** -->
+        <div id="power-gauge-container" class="w-full bg-gray-200 rounded-full h-6 overflow-hidden mb-4">
             <div id="power-gauge" class="bg-gradient-to-r from-green-400 to-red-500 h-6 rounded-full" style="width: 0%;"></div>
         </div>
-        <!-- **NEW: 발사 버튼 추가** -->
         <button id="fire-button" class="w-full bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg font-semibold text-lg">
             발사 (HOLD)
         </button>
@@ -144,8 +150,10 @@
 
     // 모드 버튼
     const modePracticeBtn = document.getElementById('mode-practice');
-    const modeAiBtn = document.getElementById('mode-ai');
-    const mode2pBtn = document.getElementById('mode-2p');
+    const modeAiBtn = document.getElementById('mode-ai-normal');
+    const modeAiHardBtn = document.getElementById('mode-ai-hard');
+    const mode2pNormalBtn = document.getElementById('mode-2p-normal'); // **MODIFIED: ID 변경**
+    const mode2pHardBtn = document.getElementById('mode-2p-hard');   // **NEW**
 
     // 게임 UI
     const gameTitle = document.getElementById('game-title');
@@ -159,7 +167,6 @@
 
     const controlText = document.getElementById('control-text');
     const powerGauge = document.getElementById('power-gauge');
-    // **NEW: 발사 버튼**
     const fireButton = document.getElementById('fire-button');
 
     // 결과 모달
@@ -172,7 +179,11 @@
 
     // --- 2. 게임 상태 및 상수 ---
     const canvasSize = { width: canvas.width, height: canvas.height }; // 600 x 2400
-    const center = { x: canvasSize.width / 2, y: canvasSize.height * 0.25 }; // y = 600
+    const centerBaseX = canvasSize.width / 2;
+    let center = { x: centerBaseX, y: canvasSize.height * 0.25 }; // y = 600
+    let centerVelocityX = 4.0;
+    const centerMinX = 100;
+    const centerMaxX = canvasSize.width - 100;
 
     const FRICTION = 0.98;
     const MIN_SPEED = 8;
@@ -185,7 +196,7 @@
     const GAUGE_SPEED = 0.02;
 
     let gameState = 'init'; // 'init', 'ready', 'charging', 'moving', 'stopped', 'end'
-    let gameMode = 'practice'; // 'practice', 'ai', '2p'
+    let gameMode = 'practice'; // 'practice', 'ai', 'hard-ai', '2p-normal', '2p-hard'
     let currentRound = 1;
     let currentTurn = 'player1'; // 'player1', 'player2', 'ai'
 
@@ -197,7 +208,7 @@
     let isOOB = false;
 
     let stone = {
-        x: center.x,
+        x: centerBaseX,
         y: canvasSize.height - 50, // 2350
         radius: 20,
         color: '#D92525' // Player 1 Red
@@ -206,14 +217,12 @@
 
     let gaugePower = 0, gaugeDirection = 1, gaugePaused = false, gaugePauseTime = 0, gaugeLoopId = null;
 
-    // **NEW: 스크롤 및 해금 상태**
     let aiWins = 0;
     let isDragging = false;
     let lastPointerY = 0;
 
     // --- 3. 그리기 함수 ---
 
-    // **NEW: PX to CM 변환 함수**
     function pxToCm(px) {
         return (px / 100).toFixed(1);
     }
@@ -237,7 +246,6 @@
     }
 
     function drawStone() {
-        // **NEW: 턴에 따라 스톤 색 변경**
         if (currentTurn === 'player1') stone.color = '#D92525'; // Red
         else if (currentTurn === 'player2') stone.color = '#1D4ED8'; // Blue
         else if (currentTurn === 'ai') stone.color = '#1D4ED8'; // Blue
@@ -255,7 +263,7 @@
     function drawFeedback() {
         if (isOOB) return;
 
-        // 1. 'd' (나의 거리) 선 그리기 (기존 노란선)
+        // 1. 'd' (나의 거리) 선 그리기
         ctx.beginPath();
         ctx.moveTo(center.x, center.y);
         ctx.lineTo(stone.x, stone.y);
@@ -263,7 +271,6 @@
         ctx.lineWidth = 4;
         ctx.stroke();
         const labelPos = { x: (center.x + stone.x) / 2, y: (center.y + stone.y) / 2 };
-        // **MODIFIED: CM 단위 사용**
         const dText = `d = ${pxToCm(lastDistance)}cm`;
         ctx.font = 'bold 16px sans-serif';
         ctx.fillStyle = '#000';
@@ -275,7 +282,7 @@
         ctx.fillText(dText, 10, -5);
         ctx.restore();
 
-        // **NEW: 2. 'r' (목표 반지름) 선 그리기**
+        // 2. 'r' (목표 반지름) 선 그리기
         ctx.beginPath();
         ctx.moveTo(center.x, center.y);
         ctx.lineTo(center.x, center.y - currentTargetRadius); // 중심에서 원 위쪽 가장자리까지
@@ -284,13 +291,12 @@
         ctx.setLineDash([8, 4]); // 'r'은 점선으로 표시
         ctx.stroke();
 
-        // 'r' 라벨 추가
         ctx.font = 'bold 16px sans-serif';
         ctx.fillStyle = '#D92525';
         ctx.fillText(`r = ${pxToCm(currentTargetRadius)}cm`, center.x + 10, center.y - (currentTargetRadius / 2));
 
 
-        // 3. 'd' (나의 거리) 원 그리기 (기존 파란 점선)
+        // 3. 'd' (나의 거리) 원 그리기
         ctx.beginPath();
         ctx.arc(center.x, center.y, lastDistance, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(59, 130, 246, 0.7)';
@@ -302,8 +308,29 @@
 
     // --- 4. 게임 로직 ---
 
+    function updateCenterPosition() {
+        // 게임 플레이 중에만 이동
+        if (gameState === 'ready' || gameState === 'charging' || gameState === 'moving' || gameState === 'stopped' || gameState === 'ai_turn') {
+            center.x += centerVelocityX;
+            if (center.x < centerMinX || center.x > centerMaxX) {
+                centerVelocityX *= -1;
+            }
+        }
+    }
+
+    function predictCenter(frames) {
+        let futureX = center.x;
+        let futureVelX = centerVelocityX;
+        for (let i = 0; i < frames; i++) {
+            futureX += futureVelX;
+            if (futureX < centerMinX || futureX > centerMaxX) {
+                futureVelX *= -1;
+            }
+        }
+        return futureX;
+    }
+
     function showDistanceScroll() {
-        // AI 턴에는 스크롤 애니메이션 생략
         if (currentTurn === 'ai') {
             scrollContainer.scrollTop = scrollContainer.scrollHeight;
             return;
@@ -315,25 +342,18 @@
     }
 
     function updateCamera() {
-        // **MODIFIED: Calculate scroll position based on relative canvas position**
-        // This accounts for the canvas being scaled (h-auto) inside the container.
-
-        // 1. Stone's relative position (e.g., 0.8 = 80% down the canvas)
         const relativeStoneY = stone.y / canvasSize.height;
-
-        // 2. Total scrollable height of the scaled canvas
         const totalScrollHeight = scrollContainer.scrollHeight;
-
-        // 3. The scroll position that would put the stone's top at the container's top
         const stoneScrollTop = relativeStoneY * totalScrollHeight;
-
-        // 4. Adjust to center the stone in the middle of the visible container
         const targetScroll = stoneScrollTop - (scrollContainer.clientHeight / 2);
-
         scrollContainer.scrollTop = targetScroll;
     }
 
     function gameLoop() {
+        // **MODIFIED: 2P 하드 모드 추가**
+        if (gameMode === 'hard-ai' || gameMode === '2p-hard') {
+            updateCenterPosition();
+        }
         clearCanvas();
         drawBackground();
         if (gameState === 'moving') {
@@ -356,35 +376,47 @@
         if (Math.hypot(velocity.x, velocity.y) < 0.1) { handleStop(false); }
     }
 
-    function fireStone(power, playerType) {
+    function fireStone(power, playerType, customDir = null) {
         const speed = MIN_SPEED + power * (MAX_SPEED - MIN_SPEED);
         const startY = canvasSize.height - 50;
-        const dir = { x: center.x - stone.x, y: center.y - startY };
-        const dist = Math.hypot(dir.x, dir.y);
-        const normDir = { x: dir.x / dist, y: dir.y / dist };
+
+        let normDir;
+        if (customDir) {
+            // AI (Hard Mode)가 조준 방향을 제공
+            const dist = Math.hypot(customDir.x, customDir.y);
+            normDir = { x: customDir.x / dist, y: customDir.y / dist };
+        } else {
+            // 플레이어 또는 AI (Normal) 또는 2P (Hard)
+            let targetX = center.x;
+            // 2P 하드 모드에서 플레이어가 조준할 때의 센터 X값 사용
+            if (gameMode === '2p-hard') {
+                targetX = center.x;
+            }
+            const dir = { x: targetX - stone.x, y: center.y - startY };
+            const dist = Math.hypot(dir.x, dir.y);
+            normDir = { x: dir.x / dist, y: dir.y / dist };
+        }
+
         velocity = { x: normDir.x * speed, y: normDir.y * speed };
         gameState = 'moving';
         isOOB = false;
-        canvas.style.cursor = 'default'; // 발사 시 커서 기본값
-        // **NEW: 발사 시 버튼 비활성화**
+        canvas.style.cursor = 'default';
         fireButton.disabled = true;
     }
 
     function handleStop(outOfBounds) {
         velocity = { x: 0, y: 0 };
-        gameState = 'stopped'; // <-- This is key, drawFeedback() will now run
+        gameState = 'stopped';
         isOOB = outOfBounds;
 
         if (isOOB) { lastDistance = 9999; }
         else { lastDistance = Math.hypot(stone.x - center.x, stone.y - center.y); }
 
-        // **MODIFIED: Add 3-second delay before showing modal**
         setTimeout(() => {
             judgeRound(lastDistance);
-        }, 3000); // 3-second (3000ms) delay
+        }, 3000); // 3초 지연
     }
 
-    // 판정 로직
     function judgeRound(d) {
         const r = currentTargetRadius;
         let error, message, stars, score;
@@ -399,7 +431,6 @@
         }
         score = Math.round(score);
 
-        // **NEW: 턴에 따라 점수 저장**
         if (currentTurn === 'player1') player1Scores.push(score);
         else if (currentTurn === 'player2') player2Scores.push(score);
         else if (currentTurn === 'ai') aiScores.push(score);
@@ -408,12 +439,10 @@
         showModal(stars, message, d, r, score);
     }
 
-    // 모달 표시
     function showModal(stars, message, d, r, score) {
         modal.classList.remove('hidden');
         setTimeout(() => modal.classList.remove('opacity-0'), 10);
 
-        // **NEW: 턴 이름 표시**
         let turnName = "Player 1";
         if (currentTurn === 'player2') turnName = "Player 2";
         else if (currentTurn === 'ai') turnName = "AI";
@@ -424,7 +453,6 @@
         if (isOOB) {
             modalStats.innerHTML = `결과: <span class="font-bold text-red-500">Out of Bounds</span><br>획득 점수: <span class="font-bold">${score}점</span>`;
         } else {
-            // **MODIFIED: CM 단위 사용**
             modalStats.innerHTML = `
                     목표 반지름 (r): <span class="font-bold text-red-500">${pxToCm(r)}cm</span><br>
                     나의 거리 (d): <span class="font-bold text-blue-500">${pxToCm(d)}cm</span><br>
@@ -434,7 +462,6 @@
         modalButton.textContent = '다음 턴 진행';
     }
 
-    // 최종 리포트
     function showFinalReport() {
         gameState = 'end';
         let title = '최종 결과';
@@ -446,28 +473,34 @@
         if (gameMode === 'practice') {
             stars = `총점: ${p1Total}점`;
             stats = `5 라운드 연습을 완료했습니다.`;
-        } else if (gameMode === 'ai') {
+        } else if (gameMode === 'ai' || gameMode === 'hard-ai') {
             const aiTotal = aiScores.reduce((a, b) => a + b, 0);
+            const hardSuffix = (gameMode === 'hard-ai') ? ' (Hard)' : '';
             if (p1Total > aiTotal) {
-                stars = '<span class="text-red-500">Player 1 승리!</span>';
-                // **NEW: 승리 기록**
-                aiWins = parseInt(localStorage.getItem('circleCurlingAiWins') || '0');
-                localStorage.setItem('circleCurlingAiWins', (aiWins + 1));
+                stars = `<span class="text-red-500">Player 1 승리!${hardSuffix}</span>`;
+                // **MODIFIED: 승리 기록 (노멀 모드만)**
+                if (gameMode === 'ai') {
+                    aiWins = parseInt(localStorage.getItem('circleCurlingAiNormalWins') || '0');
+                    localStorage.setItem('circleCurlingAiNormalWins', (aiWins + 1));
+                }
             } else if (aiTotal > p1Total) {
-                stars = '<span class="text-blue-500">AI 승리!</span>';
+                stars = `<span class="text-blue-500">AI 승리!${hardSuffix}</span>`;
             } else {
-                stars = '<span class="text-gray-800">무승부</span>';
+                stars = `<span class="text-gray-800">무승부${hardSuffix}</span>`;
             }
             stats = `Player 1 총점: <span class="font-bold text-red-500">${p1Total}점</span><br>
                          AI 총점: <span class="font-bold text-blue-500">${aiTotal}점</span>`;
-        } else if (gameMode === '2p') {
+
+            // **MODIFIED: 2P 모드 분리**
+        } else if (gameMode === '2p-normal' || gameMode === '2p-hard') {
             const p2Total = player2Scores.reduce((a, b) => a + b, 0);
+            const hardSuffix = (gameMode === '2p-hard') ? ' (Hard)' : '';
             if (p1Total > p2Total) {
-                stars = '<span class="text-red-500">Player 1 승리!</span>';
+                stars = `<span class="text-red-500">Player 1 승리!${hardSuffix}</span>`;
             } else if (p2Total > p1Total) {
-                stars = '<span class="text-blue-500">Player 2 승리!</span>';
+                stars = `<span class="text-blue-500">Player 2 승리!${hardSuffix}</span>`;
             } else {
-                stars = '<span class="text-gray-800">무승부</span>';
+                stars = `<span class="text-gray-800">무승부${hardSuffix}</span>`;
             }
             stats = `Player 1 총점: <span class="font-bold text-red-500">${p1Total}점</span><br>
                          Player 2 총점: <span class="font-bold text-blue-500">${p2Total}점</span>`;
@@ -478,24 +511,20 @@
         modalMessage.textContent = "대전이 종료되었습니다. 수고하셨습니다!";
         modalStats.innerHTML = stats;
         modalButton.textContent = '모드 선택으로';
-        // **NEW: 게임 종료 시 버튼 비활성화**
         fireButton.disabled = true;
     }
 
-    // **NEW: 턴/라운드 관리 로직 (모드별 분기)**
     function nextTurn() {
         modal.classList.add('opacity-0');
         setTimeout(() => modal.classList.add('hidden'), 200);
         resetStone();
 
         if (gameState === 'end') {
-            // 게임 종료 시 모드 선택 화면으로
             gameContainer.classList.add('hidden');
             showModeSelection();
             return;
         }
 
-        // --- 1. 연습 모드 ---
         if (gameMode === 'practice') {
             currentRound++;
             if (currentRound > MAX_ROUNDS) {
@@ -507,8 +536,7 @@
                 gameState = 'ready';
             }
         }
-        // --- 2. AI 대전 모드 ---
-        else if (gameMode === 'ai') {
+        else if (gameMode === 'ai' || gameMode === 'hard-ai') {
             if (currentTurn === 'player1') {
                 currentTurn = 'ai';
                 updateTurnUI();
@@ -526,8 +554,8 @@
                 }
             }
         }
-        // --- 3. 2P 대전 모드 ---
-        else if (gameMode === '2p') {
+        // **MODIFIED: 2P 모드 분리**
+        else if (gameMode === '2p-normal' || gameMode === '2p-hard') {
             if (currentTurn === 'player1') {
                 currentTurn = 'player2';
             } else {
@@ -546,24 +574,33 @@
         }
     }
 
-    // AI 턴 로직
     function aiTurn() {
         gameState = 'ai_turn';
         controlText.textContent = "AI가 생각 중입니다...";
-        // **NEW: AI 턴 시작 시 버튼 비활성화**
         fireButton.disabled = true;
 
         const travelDistToCenter = stone.y - center.y;
         const targetTravelDist = travelDistToCenter - currentTargetRadius;
         const targetSpeed = targetTravelDist * (1 - FRICTION);
         let targetPower = (targetSpeed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED);
-        const aiError = (Math.random() - 0.5) * 0.1; // +/- 5%
+        const aiError = (Math.random() - 0.5) * 0.1; // +/- 5% 파워 에러
         targetPower = Math.max(0, Math.min(1, targetPower + aiError));
-        setTimeout(() => { fireStone(targetPower, 'ai'); }, 1500);
+
+        let fireDir = null;
+        if (gameMode === 'hard-ai') {
+            const speed = MIN_SPEED + targetPower * (MAX_SPEED - MIN_SPEED);
+            let approxFrames = (stone.y - center.y) / (speed * 0.75);
+            const futureCenterX = predictCenter(approxFrames);
+            const aiErrorX = (Math.random() - 0.5) * 50; // +/- 25px X축 에러
+            const aimX = futureCenterX + aiErrorX;
+            fireDir = { x: aimX - stone.x, y: center.y - (canvasSize.height - 50) };
+        }
+
+        setTimeout(() => { fireStone(targetPower, 'ai', fireDir); }, 1500);
     }
 
     function resetStone() {
-        stone.x = center.x;
+        stone.x = centerBaseX;
         stone.y = canvasSize.height - 50; // 2350
         velocity = { x: 0, y: 0 };
         lastDistance = 0;
@@ -571,22 +608,20 @@
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
         canvas.style.cursor = 'grab';
 
-        // **MODIFIED: 버튼 상태는 updateTurnUI()가 하도록 텍스트만 설정**
         if (gameState === 'ready') {
-            const isPlayerTurn = (currentTurn === 'player1' || (currentTurn === 'player2' && gameMode === '2p'));
+            const isPlayerTurn = (currentTurn === 'player1' || (currentTurn === 'player2' && (gameMode === '2p-normal' || gameMode === '2p-hard')));
             controlText.textContent = isPlayerTurn ? "발사 버튼을 길게 눌러 힘 조절!" : "AI가 생각 중입니다...";
         }
     }
 
-    // UI 업데이트
     function updateScoreUI() {
         const p1Total = player1Scores.reduce((a, b) => a + b, 0);
         player1ScoreDisplay.textContent = `Player 1: ${p1Total}`;
 
-        if (gameMode === 'ai') {
+        if (gameMode === 'ai' || gameMode === 'hard-ai') {
             const aiTotal = aiScores.reduce((a, b) => a + b, 0);
             player2ScoreDisplay.textContent = `AI: ${aiTotal}`;
-        } else if (gameMode === '2p') {
+        } else if (gameMode === '2p-normal' || gameMode === '2p-hard') {
             const p2Total = player2Scores.reduce((a, b) => a + b, 0);
             player2ScoreDisplay.textContent = `Player 2: ${p2Total}`;
         }
@@ -598,10 +633,10 @@
 
         if (gameMode === 'practice') {
             turnText = 'Player';
-        } else if (gameMode === 'ai') {
+        } else if (gameMode === 'ai' || gameMode === 'hard-ai') {
             turnText = (currentTurn === 'player1') ? 'Player 1' : 'AI';
             turnColor = (currentTurn === 'player1') ? 'text-red-500' : 'text-blue-500';
-        } else if (gameMode === '2p') {
+        } else if (gameMode === '2p-normal' || gameMode === '2p-hard') {
             turnText = (currentTurn === 'player1') ? 'Player 1' : 'Player 2';
             turnColor = (currentTurn === 'player1') ? 'text-red-500' : 'text-blue-500';
         }
@@ -610,11 +645,9 @@
         currentTurnSpan.className = turnColor;
         roundDisplay.textContent = `Round ${currentRound} / ${MAX_ROUNDS}`;
 
-        // **NEW: 턴에 따라 발사 버튼 활성화/비활성화**
-        const isPlayerTurn = (currentTurn === 'player1' || (currentTurn === 'player2' && gameMode === '2p'));
+        const isPlayerTurn = (currentTurn === 'player1' || (currentTurn === 'player2' && (gameMode === '2p-normal' || gameMode === '2p-hard')));
         fireButton.disabled = !isPlayerTurn;
 
-        // **NEW: 턴에 따라 컨트롤 텍스트 업데이트**
         if (isPlayerTurn && gameState === 'ready') {
             controlText.textContent = "발사 버튼을 길게 눌러 힘 조절!";
         } else if (currentTurn === 'ai') {
@@ -622,8 +655,6 @@
         }
     }
 
-
-    // --- 5. 핑퐁 게이지 로직 ---
     function updateGauge() {
         const now = Date.now();
         if (gaugePaused) {
@@ -642,16 +673,8 @@
 
     // --- 6. 이벤트 핸들러 ---
 
-    // **REMOVED/REPLACED: Old handlers**
-    // function handlePointerDown(e) { ... }
-    // function handlePointerMove(e) { ... }
-    // function handlePointerUp(e) { ... }
-
-    // **NEW: 1. 캔버스 드래그(스크롤) 핸들러**
     function handleCanvasDragStart(e) {
-        // 게이지 충전 중이거나 스톤이 움직일 땐 스크롤 방지
         if (gameState === 'charging' || gameState === 'moving') return;
-
         e.preventDefault();
         isDragging = true;
         lastPointerY = e.clientY;
@@ -660,7 +683,6 @@
 
     function handleCanvasDragMove(e) {
         if (!isDragging) return;
-
         e.preventDefault();
         const deltaY = e.clientY - lastPointerY;
         scrollContainer.scrollTop -= deltaY;
@@ -673,16 +695,11 @@
         canvas.style.cursor = 'grab';
     }
 
-
-    // **NEW: 2. 발사 버튼 핸들러**
     function handleButtonPress(e) {
-        // 턴이 아니거나, 'ready' 상태가 아니면 무시
         if (gameState !== 'ready' || (currentTurn !== 'player1' && currentTurn !== 'player2')) return;
-
         e.preventDefault();
         gameState = 'charging';
         controlText.textContent = "타이밍을 맞춰 손을 떼세요!";
-
         gaugePower = 0;
         gaugeDirection = 1;
         gaugePaused = false;
@@ -692,14 +709,12 @@
 
     function handleButtonRelease(e) {
         if (gameState !== 'charging') return;
-
         e.preventDefault();
         if (gaugeLoopId) cancelAnimationFrame(gaugeLoopId);
         gaugeLoopId = null;
         controlText.textContent = "발사!";
         fireStone(gaugePower, currentTurn);
     }
-
 
     modalButton.addEventListener('click', () => {
         if (gameState === 'end' || gameState === 'stopped') {
@@ -711,11 +726,9 @@
 
     function setNewRadius() {
         currentTargetRadius = RADIUS_OPTIONS[Math.floor(Math.random() * RADIUS_OPTIONS.length)];
-        // **MODIFIED: CM 단위 사용**
         radiusText.textContent = `목표 반지름: ${pxToCm(currentTargetRadius)}cm`;
     }
 
-    // **NEW: 게임 시작 함수 (모드별 설정)**
     function startGame(mode) {
         gameMode = mode;
         gameState = 'ready';
@@ -726,28 +739,36 @@
         aiScores = [];
 
         setNewRadius();
-        resetStone();
         updateScoreUI();
 
-        // 모드별 UI 설정
+        center.x = centerBaseX;
+        centerVelocityX = 4.0;
+        resetStone();
+
         if (mode === 'practice') {
             gameTitle.textContent = '혼자 연습하기';
-            scoreDisplay.classList.add('hidden'); // 점수판 숨기기
+            scoreDisplay.classList.add('hidden');
+            player2ScoreDisplay.textContent = '';
         } else if (mode === 'ai') {
-            gameTitle.textContent = 'AI 대전';
+            gameTitle.textContent = 'AI 대전 (Normal)';
             scoreDisplay.classList.remove('hidden');
             player2ScoreDisplay.textContent = 'AI: 0';
-        } else if (mode === '2p') {
-            gameTitle.textContent = '친구와 대결하기';
+        } else if (mode === 'hard-ai') {
+            gameTitle.textContent = 'AI 대전 (Hard)';
+            scoreDisplay.classList.remove('hidden');
+            player2ScoreDisplay.textContent = 'AI: 0';
+        } else if (mode === '2p-normal') {
+            gameTitle.textContent = '친구와 대결 (Normal)';
+            scoreDisplay.classList.remove('hidden');
+            player2ScoreDisplay.textContent = 'Player 2: 0';
+        } else if (mode === '2p-hard') {
+            gameTitle.textContent = '친구와 대결 (Hard)';
             scoreDisplay.classList.remove('hidden');
             player2ScoreDisplay.textContent = 'Player 2: 0';
         }
 
         updateTurnUI();
-        // **MODIFIED: 버튼 비활성화는 updateTurnUI()가 담당**
-        // controlText.textContent = "하단의 스톤을 클릭해 발사를 준비하세요!";
 
-        // 모달 숨기고 게임 보이기
         modeModal.classList.add('opacity-0');
         setTimeout(() => modeModal.classList.add('hidden'), 200);
         gameContainer.classList.remove('hidden');
@@ -755,53 +776,76 @@
         setTimeout(showDistanceScroll, 100);
     }
 
-    // **NEW: 모드 선택 화면 표시 (페이지 로드 시)**
     function showModeSelection() {
-        aiWins = parseInt(localStorage.getItem('circleCurlingAiWins') || '0');
+        aiWins = parseInt(localStorage.getItem('circleCurlingAiNormalWins') || '0');
 
         modeModal.classList.remove('hidden');
         modeModal.classList.remove('opacity-0');
 
-        // 2P 모드 해금 조건
-        if (aiWins >= 3) {
-            mode2pBtn.textContent = '3. 친구와 대결하기 (2P)';
-            mode2pBtn.classList.remove('btn-locked');
-            mode2pBtn.disabled = false;
+        // 1. AI 하드 모드 (1승)
+        if (aiWins >= 1) {
+            modeAiHardBtn.textContent = '3. AI 대전 (Hard)';
+            modeAiHardBtn.classList.remove('btn-locked');
+            modeAiHardBtn.disabled = false;
         } else {
-            mode2pBtn.innerHTML = `
+            modeAiHardBtn.innerHTML = `
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
                     </svg>
-                    (AI 대전 ${3 - aiWins}승 더 필요)
+                    (AI Normal ${1 - aiWins}승 더 필요)
                 `;
-            mode2pBtn.classList.add('btn-locked');
-            mode2pBtn.disabled = true;
+            modeAiHardBtn.classList.add('btn-locked');
+            modeAiHardBtn.disabled = true;
+        }
+
+        // 2. 2P 노멀 모드 (2승)
+        if (aiWins >= 2) {
+            mode2pNormalBtn.textContent = '4. 친구와 대결 (Normal)';
+            mode2pNormalBtn.classList.remove('btn-locked');
+            mode2pNormalBtn.disabled = false;
+        } else {
+            mode2pNormalBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+                    </svg>
+                    (AI Normal ${2 - aiWins}승 더 필요)
+                `;
+            mode2pNormalBtn.classList.add('btn-locked');
+            mode2pNormalBtn.disabled = true;
+        }
+
+        // 3. 2P 하드 모드 (3승)
+        if (aiWins >= 3) {
+            mode2pHardBtn.textContent = '5. 친구와 대결 (Hard)';
+            mode2pHardBtn.classList.remove('btn-locked');
+            mode2pHardBtn.disabled = false;
+        } else {
+            mode2pHardBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+                    </svg>
+                    (AI Normal ${3 - aiWins}승 더 필요)
+                `;
+            mode2pHardBtn.classList.add('btn-locked');
+            mode2pHardBtn.disabled = true;
         }
     }
 
     // 이벤트 리스너
-    // **REMOVED: 기존 캔버스 발사 리스너**
-    // canvas.addEventListener('pointerdown', handlePointerDown);
-    // canvas.addEventListener('pointermove', handlePointerMove);
-    // window.addEventListener('pointerup', handlePointerUp); // window에서 떼도 인식
-    // window.addEventListener('pointercancel', handlePointerUp); // 취소 시 드래그 종료
-
-    // **NEW: 새 이벤트 리스너 등록**
-    // 캔버스 스크롤용
     canvas.addEventListener('pointerdown', handleCanvasDragStart);
     canvas.addEventListener('pointermove', handleCanvasDragMove);
     canvas.addEventListener('pointerup', handleCanvasDragEnd);
-    canvas.addEventListener('pointerleave', handleCanvasDragEnd); // 캔버스 밖으로 나가면 드래그 중지
+    canvas.addEventListener('pointerleave', handleCanvasDragEnd);
 
-    // 발사 버튼용
     fireButton.addEventListener('pointerdown', handleButtonPress);
     fireButton.addEventListener('pointerup', handleButtonRelease);
-    fireButton.addEventListener('pointerleave', handleButtonRelease); // 버튼 밖으로 나가도 발사 (터치 시 유용)
-
+    fireButton.addEventListener('pointerleave', handleButtonRelease);
 
     modePracticeBtn.addEventListener('click', () => startGame('practice'));
     modeAiBtn.addEventListener('click', () => startGame('ai'));
-    mode2pBtn.addEventListener('click', () => startGame('2p'));
+    modeAiHardBtn.addEventListener('click', () => startGame('hard-ai'));
+    mode2pNormalBtn.addEventListener('click', () => startGame('2p-normal')); // **MODIFIED**
+    mode2pHardBtn.addEventListener('click', () => startGame('2p-hard'));   // **NEW**
 
     // 게임 시작!
     showModeSelection();
@@ -810,7 +854,4 @@
 
 </body>
 </html>
-
-
-
 
