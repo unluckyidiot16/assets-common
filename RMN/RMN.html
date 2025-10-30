@@ -3,717 +3,720 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>콰드 만들기 (가져오기 & 키커)</title>
+    <title>Rhythm Memory Note - Easy Mode</title>
+
+    <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Inter 폰트 로드 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; }
-        .card {
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            user-select: none;
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+            overflow: hidden; /* 스크롤바 숨김 */
         }
-        .card:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+
+        /* 게임 컨테이너 */
+        #game-container {
+            width: 100%;
+            max-width: 600px;
+            height: 600px;
         }
-        .card.face-down {
-            background-color: #4b5563; /* gray-600 */
+
+        /* 플레이 트랙 */
+        #play-area {
+            position: relative;
+            height: 200px;
+            background-color: #1a202c; /* bg-gray-900 */
+            overflow: hidden;
+            border-radius: 0.5rem;
+            border: 2px solid #4a5568; /* border-gray-600 */
         }
-        .player-hand .card {
-            cursor: pointer;
+
+        /* 판정선 */
+        #judgment-line {
+            position: absolute;
+            left: 20%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: #00ffff; /* Cyan */
+            box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+            z-index: 10;
         }
-        .player-area.active {
-            background-color: #fef9c3; /* yellow-100 */
-            border-color: #facc15; /* yellow-400 */
+
+        /* 스크롤되는 음표 (막대기 -> 이미지 컨테이너로 변경) */
+        .scrolling-note {
+            position: absolute;
+            left: 100%; /* 오른쪽 바깥에서 시작 */
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+            transition: filter 0.2s, opacity 0.2s, transform 0.2s;
         }
-        .modal-backdrop {
-            animation: fadeIn 0.3s ease-out;
+        .scrolling-note img {
+            width: 60px; /* 음표 이미지 크기 고정 */
+            height: 60px;
+            object-fit: contain;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; } to { opacity: 1; }
+
+        /* [수정] 성공 시 팝! 효과 */
+        .note-pop {
+            animation: pop-out 0.2s ease-out forwards;
         }
-        .open-quads .card {
-            width: 3rem; height: 4rem; font-size: 1rem;
+        @keyframes pop-out {
+            from {
+                transform: translateY(-50%) scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-50%) scale(1.5);
+                opacity: 0;
+            }
         }
-        #discard-log-area {
-            max-height: 128px; /* 8rem */
-            overflow-y: auto;
+
+        /* [수정] 실패 시 어두워지는 효과 */
+        .note-miss {
+            filter: grayscale(100%) brightness(0.5);
+            opacity: 0.7;
         }
-        .current-round {
-            background-color: #fef9c3; /* yellow-100 */
+
+
+        /* 프롬프트 영역의 귀여운 음표 아이콘 */
+        .prompt-note {
+            width: 60px; /* 이미지 크기에 맞춰 조정 */
+            height: 60px;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify: center;
+            font-weight: bold;
+            color: white;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .prompt-note img {
+            height: 100%;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .prompt-note.active {
+            transform: scale(1.2);
+            border-color: #00ffff;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        /* 키 힌트 (KBD 태그) */
+        kbd {
+            min-width: 60px;
+            height: 60px;
+            display: inline-flex;
+            align-items: center;
+            justify: center;
+            border-radius: 0.5rem;
+            background-color: #4a5568; /* bg-gray-600 */
+            color: white;
+            border: 2px solid #718096; /* bg-gray-500 */
+            border-bottom-width: 4px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            transition: all 0.05s ease;
+        }
+
+        kbd.active {
+            transform: translateY(2px);
+            border-bottom-width: 2px;
+            background-color: #718096; /* bg-gray-500 */
+        }
+
+        /* 판정 피드백 텍스트 */
+        #feedback-area {
+            position: absolute;
+            left: 20%;
+            top: 20%;
+            transform: translateX(-50%);
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .feedback-popup {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 10px black;
+            animation: fadeUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        /* 모달 (시작/결과 화면) */
+        .modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(17, 24, 39, 0.9); /* bg-gray-900/90 */
+            z-index: 50;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-2 md:p-4">
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
 
-<div id="game-container" class="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-4 md:p-6 text-center">
+<div id="game-container" class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-2xl flex flex-col gap-4">
 
-    <!-- 게임 시작 화면 -->
-    <div id="start-screen">
-        <h1 class="text-4xl font-bold text-gray-800 mb-2">콰드 만들기</h1>
-        <p class="text-gray-500 mb-8">운을 기술로 바꾸는 카드 게임</p>
-        <div class="max-w-sm mx-auto">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">난이도 선택</h2>
-            <div class="space-y-3">
-                <button class="difficulty-btn w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition" data-difficulty="4">어려움 (36장)</button>
-                <button class="difficulty-btn w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition" data-difficulty="5">보통 (45장)</button>
-                <button class="difficulty-btn w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition" data-difficulty="6">쉬움 (54장)</button>
-            </div>
+    <!-- 상단: 헤더 -->
+    <div class="text-center">
+        <h1 class="text-2xl font-bold text-white mb-1">리듬 메모리 노트</h1>
+        <!-- [수정] 스테이지 표시기 -->
+        <h2 id="stage-display" class="text-xl font-bold text-cyan-400"></h2>
+    </div>
+
+    <!-- 프롬프트 영역 -->
+    <div id="prompt-area" class="h-20 bg-gray-700 rounded-lg p-3 flex items-center justify-center gap-2">
+        <!-- 음표 아이콘이 여기에 동적으로 생성됩니다 -->
+        <p class="text-gray-400">게임을 시작하세요!</p>
+    </div>
+
+    <!-- 플레이 트랙 -->
+    <div id="play-area">
+        <div id="judgment-line"></div>
+        <div id="feedback-area"></div>
+        <!-- 스크롤링 노트가 여기에 동적으로 생성됩니다 -->
+    </div>
+
+    <!-- 하단: 키 힌트 -->
+    <div id="key-hints" class="flex justify-center gap-4 p-4 bg-gray-700 rounded-lg">
+        <div class="text-center">
+            <kbd id="key-q" class="bg-red-500">Q</kbd>
+            <!-- [수정] 길이 설명 제거 -->
+            <span class="block text-sm mt-1">2분음표</span>
         </div>
-        <div class="mt-8 p-4 bg-gray-50 rounded-lg text-left text-sm text-gray-600 max-w-lg mx-auto">
-            <h3 class="font-bold mb-2 text-center text-base">게임 규칙 💡</h3>
-            <p><strong>목표:</strong> 같은 숫자 4장(콰드) + 아무 숫자 1장(키커)을 가장 먼저 만드세요.</p>
-            <p><strong>턴:</strong> 덱이나 버려진 카드 더미에서 1장을 가져온 후, 손에서 1장을 버립니다.</p>
-            <p><strong>가져오기(호출):</strong> 다른 사람이 버린 카드로 콰드를 완성할 수 있다면, 즉시 '가져오기'를 외쳐 획득할 수 있습니다!</p>
+        <div class="text-center">
+            <kbd id="key-w" class="bg-orange-500">W</kbd>
+            <!-- [수정] 길이 설명 제거 -->
+            <span class="block text-sm mt-1">4분음표</span>
         </div>
     </div>
 
-    <!-- 게임 진행 화면 -->
-    <div id="game-screen" class="hidden relative">
+    <!-- 점수판 -->
+    <div class="flex justify-between text-xl font-bold">
+        <div>Score: <span id="score-display">0</span></div>
+        <div>Combo: <span id="combo-display">0</span></div>
+    </div>
 
-        <!-- 스코어보드 -->
-        <div id="scoreboard" class="mb-4">
-            <table id="scoreboard-table" class="w-full text-center border-collapse border border-gray-300">
-                <thead>
-                <tr class="bg-gray-200">
-                    <th class="p-2 border border-gray-300">플레이어</th>
-                    <th class="p-2 border border-gray-300">라운드 1</th>
-                    <th class="p-2 border border-gray-300">라운드 2</th>
-                    <th class="p-2 border border-gray-300">라운드 3</th>
-                    <th class="p-2 border border-gray-300 font-bold bg-gray-300">총 점수</th>
-                </tr>
-                </thead>
-                <tbody id="scoreboard-body">
-                <!-- Player rows will be generated by JS -->
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 상대 플레이어 영역 -->
-        <div id="opponents-area" class="flex justify-around mb-4 space-x-2 md:space-x-4">
-            <!-- 봇 플레이어 UI 생성 위치 -->
-        </div>
-
-        <!-- 테이블 중앙 영역 -->
-        <div id="table-area" class="flex justify-center items-center my-4 md:my-6 h-32 space-x-4 md:space-x-8">
-            <div id="deck-pile" class="w-24 h-32 card face-down flex items-center justify-center text-white font-bold cursor-pointer relative">
-                <span>덱</span>
-                <span id="deck-count" class="absolute bottom-1 right-1 text-xs bg-black bg-opacity-50 px-1 rounded"></span>
-            </div>
-            <div id="discard-pile" class="w-24 h-32 relative">
-                <!-- 버려진 카드 표시 위치 -->
-            </div>
-            <div class="w-48 h-32 bg-gray-100 rounded-lg p-2 text-left">
-                <h4 class="font-bold text-sm border-b pb-1 mb-1">버린 패 로그</h4>
-                <div id="discard-log-area" class="text-xs space-y-1">
-                    <!-- 로그 내용 -->
-                </div>
-            </div>
-        </div>
-
-        <!-- 플레이어 영역 -->
-        <div id="player-area-human" class="player-area p-4 bg-gray-50 border-2 border-transparent rounded-lg">
-            <div class="flex justify-between items-center mb-2">
-                <div class="text-left">
-                    <h2 class="font-bold text-lg">플레이어 (나)</h2>
-                    <div id="player-d-info-human" class="text-sm text-blue-600 font-bold h-5"></div>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button id="declare-d-btn" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 transition">d 선언</button>
-                </div>
-            </div>
-            <div id="player-open-quads-human" class="open-quads flex justify-center items-center mb-2 h-16"></div>
-            <div id="player-hand-human" class="player-hand flex justify-center space-x-2">
-                <!-- 플레이어 카드 생성 위치 -->
-            </div>
-        </div>
-        <div id="game-message" class="mt-4 font-semibold text-indigo-600 h-6"></div>
+    <!-- 청음 모드 옵션 -->
+    <div class="flex items-center justify-center gap-2">
+        <input type="checkbox" id="memory-mode-check" class="form-checkbox h-5 w-5 text-cyan-400 bg-gray-800 border-gray-600 rounded focus:ring-cyan-500">
+        <label for="memory-mode-check" class="text-white">청음(기억) 모드 (노트 숨김)</label>
     </div>
 </div>
 
-<!-- 모달 창들 -->
-<div id="d-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden modal-backdrop">
-    <div class="bg-white rounded-lg p-6 w-full max-w-xs text-center">
-        <h2 class="text-xl font-bold mb-4">d 보너스 선언</h2>
-        <p class="text-sm text-gray-600 mb-4">이번 라운드에 도전할 d값(2~9)을 입력하세요. (라운드당 1회)</p>
-        <input type="number" id="d-input" min="2" max="9" class="w-full border-2 border-gray-300 p-2 rounded text-center text-lg focus:border-blue-500 focus:ring-0">
-        <div class="flex justify-center space-x-4 mt-4">
-            <button id="confirm-d-btn" class="bg-blue-500 text-white px-6 py-2 rounded-md">확인</button>
-            <button id="cancel-d-btn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-md">취소</button>
+<!-- [수정] 시작 화면 모달 (스테이지 선택 -> 시작 버튼) -->
+<div id="start-screen" class="modal flex flex-col items-center justify-center p-8 gap-4">
+    <h2 class="text-3xl font-bold text-white mb-4">리듬 메모리 노트</h2>
+    <p class="text-lg text-gray-300 mb-6 text-center">3학년 눈높이! 박자를 기억하는 게임</p>
+    <button onclick="startGame()" class="w-full max-w-xs text-lg bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+        게임 시작!
+    </button>
+    <p class="text-gray-400 mt-6 text-center">키보드 Q (2분), W (4분) 키를 사용합니다.</p>
+</div>
+
+<!-- 결과 화면 모달 -->
+<div id="results-screen" class="modal flex-col items-center justify-center p-8 gap-4 hidden">
+    <h2 class="text-3xl font-bold text-white mb-4">모든 스테이지 클리어!</h2>
+    <div class="text-xl text-gray-200">최종 점수: <span id="final-score" class="font-bold text-cyan-400">0</span></div>
+    <div class="text-lg text-gray-300">정확도: <span id="accuracy" class="font-bold">0%</span></div>
+    <div class="text-lg text-gray-300">최대 콤보: <span id="max-combo" class="font-bold">0</span></div>
+    <hr class="w-full max-w-xs my-4 border-gray-600">
+    <div class="flex gap-4">
+        <div class="text-center">
+            <div class="text-2xl font-bold text-green-400" id="perfect-count">0</div>
+            <div class="text-sm">PERFECT</div>
+        </div>
+        <div class="text-center">
+            <div class="text-2xl font-bold text-yellow-400" id="good-count">0</div>
+            <div class="text-sm">GOOD</div>
+        </div>
+        <div class="text-center">
+            <div class="text-2xl font-bold text-red-400" id="miss-count">0</div>
+            <div class="text-sm">MISS</div>
         </div>
     </div>
+    <div id="feedback-message" class="text-lg text-yellow-300 mt-4 text-center"></div>
+    <button onclick="restartGame()" class="w-full max-w-xs text-lg bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 mt-6">
+        처음부터 다시하기
+    </button>
 </div>
 
-<div id="take-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden modal-backdrop">
-    <div class="bg-white rounded-lg p-6 w-full max-w-xs text-center">
-        <h2 class="text-2xl font-bold mb-2 text-yellow-500">가져오기!</h2>
-        <p class="text-gray-700 mb-4">버려진 카드로 콰드를 완성할 수 있습니다. 가져오시겠습니까?</p>
-        <div id="take-card-display" class="flex justify-center mb-4"></div>
-        <div class="flex justify-center space-x-4 mt-4">
-            <button id="confirm-take-btn" class="bg-yellow-500 text-white px-6 py-2 rounded-md">가져오기</button>
-            <button id="cancel-take-btn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-md">패스</button>
-        </div>
-    </div>
-</div>
-
-<div id="round-end-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden modal-backdrop">
-    <div class="bg-white rounded-lg p-6 w-full max-w-md text-center">
-        <h2 id="round-end-title" class="text-3xl font-bold mb-4">라운드 종료!</h2>
-        <div id="round-winner-info" class="mb-4"></div>
-        <div id="score-details" class="text-left bg-gray-50 p-4 rounded-md space-y-2 mb-6"></div>
-        <button id="next-round-btn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg">다음 라운드</button>
-    </div>
-</div>
-
-<div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden modal-backdrop">
-    <div class="bg-white rounded-lg p-8 w-full max-w-md text-center">
-        <h2 class="text-3xl font-bold mb-4">게임 종료!</h2>
-        <div id="final-winner-info" class="mb-6 text-xl font-semibold text-yellow-500"></div>
-        <div id="final-scores" class="text-left bg-gray-50 p-4 rounded-md space-y-2 mb-6"></div>
-        <button id="restart-game-btn" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 transition">새 게임 시작</button>
-    </div>
-</div>
 
 <script>
-    // --- 게임 설정 ---
-    const PLAYER_COUNT = 3;
-    const BOT_NAMES = ["Bot Alpha", "Bot Bravo"];
-    const HAND_SIZE = 5;
-    const CARD_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const SUITS_BASE = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const TOTAL_ROUNDS = 3;
+    // --- 1. DOM 요소 ---
+    const gameContainer = document.getElementById('game-container');
+    const promptArea = document.getElementById('prompt-area');
+    const playArea = document.getElementById('play-area');
+    const judgmentLine = document.getElementById('judgment-line');
+    const feedbackArea = document.getElementById('feedback-area');
+    const stageDisplay = document.getElementById('stage-display');
 
-    // --- 게임 상태 관리 ---
-    let gameState = {};
+    const keyQ = document.getElementById('key-q');
+    const keyW = document.getElementById('key-w');
 
-    function resetGameState() {
-        gameState = {
-            players: [],
-            deck: [],
-            discardPile: [],
-            discardLog: [],
-            currentTurnIndex: 0,
-            gamePhase: 'setup',
-            takeOpportunity: null,
-            turnCounter: 0,
-            difficulty: 4,
-            currentRound: 1,
-        };
+    const scoreDisplay = document.getElementById('score-display');
+    const comboDisplay = document.getElementById('combo-display');
+
+    const memoryModeCheck = document.getElementById('memory-mode-check');
+
+    const startScreen = document.getElementById('start-screen');
+    const resultsScreen = document.getElementById('results-screen');
+
+    // --- 2. 오디오 설정 ---
+    let audioCtx;
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+        console.error('Web Audio API is not supported in this browser');
+        alert('이 브라우저에서는 오디오를 지원하지 않습니다. 게임 플레이가 불가능합니다.');
     }
 
-    // --- DOM 요소 ---
-    const getEl = (id) => document.getElementById(id);
-    const startScreen = getEl('start-screen');
-    const gameScreen = getEl('game-screen');
-    const deckPile = getEl('deck-pile');
-    const discardPileDiv = getEl('discard-pile');
-    const gameMessage = getEl('game-message');
+    function playSound(noteTypeKey, durationMs) {
+        if (!audioCtx) return;
 
-    // --- 렌더링 함수 ---
-    function renderCard(card, faceUp = true) {
-        const isFaceDown = !faceUp || !card;
-        const value = card ? card.value : '';
-        const bgColor = isFaceDown ? 'bg-gray-700' : 'bg-white';
-        const textColor = isFaceDown ? 'text-transparent' : 'text-gray-800';
-        return `
-        <div class="card w-20 h-28 ${bgColor} border-2 border-gray-300 rounded-lg flex items-center justify-center text-3xl font-bold ${textColor}" data-value="${value}">
-            ${value}
-        </div>
-    `;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        let freq = 261.63; // C4
+        if (noteTypeKey === 'q') freq = 261.63; // C4 (낮은 톤)
+        if (noteTypeKey === 'w') freq = 329.63; // E4 (중간 톤)
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (durationMs / 1000));
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + (durationMs / 1000));
     }
 
-    function renderSmallCard(value) {
-        return `<div class="card w-12 h-16 bg-white border-2 border-gray-300 rounded-md flex items-center justify-center text-lg font-bold" data-value="${value}">${value}</div>`;
-    }
+    // --- 3. 게임 상수 ---
+    const BPM = 100;
+    const BEAT_DURATION = 60000 / BPM; // 4분음표 길이 (600ms)
 
-    function renderDiscardLog() {
-        const logArea = getEl('discard-log-area');
-        logArea.innerHTML = gameState.discardLog
-            .map(entry => `<div><span class="font-semibold">${entry.playerName}</span> → <span class="font-bold text-red-600">${entry.cardValue}</span></div>`)
-            .reverse()
-            .join('');
-        logArea.scrollTop = 0;
-    }
+    const ASSET_PATH = 'https://unluckyidiot16.github.io/assets-common/RMN/';
 
-    function renderAll() {
-        // 스코어보드 현재 라운드 하이라이트
-        const table = getEl('scoreboard-table');
-        table.querySelectorAll('.current-round').forEach(el => el.classList.remove('current-round'));
+    const NOTE_TYPES = {
+        'q': { duration: BEAT_DURATION * 2, img: ASSET_PATH + 'note2.png', key: 'q', name: '2분음표' }, // 2분음표
+        'w': { duration: BEAT_DURATION, img: ASSET_PATH + 'note4.png', key: 'w', name: '4분음표' }, // 4분음표
+    };
 
-        const headerCells = table.querySelectorAll('th');
-        if (headerCells[gameState.currentRound]) {
-            headerCells[gameState.currentRound].classList.add('current-round');
+    // 판정 범위 (ms) - [수정] 길이 판정 제거
+    const JUDGMENT_WINDOWS = {
+        PERFECT: 80,
+        GOOD: 150,
+    };
+
+    // [수정] STAGES (레벨 -> 스테이지)
+    const STAGES = [
+        ['q', 'q'], // 1단계: 2분음표 2개
+        ['w', 'w', 'w', 'w'], // 2단계: 4분음표 4개
+        ['q', 'w', 'q', 'w'], // 3단계: 섞기 1
+        ['w', 'w', 'q', 'w', 'w', 'q'], // 4단계: 섞기 2
+        ['q', 'w', 'w', 'q', 'w', 'w', 'q', 'q'] // 5단계: 섞기 3
+    ];
+
+    const SCROLL_DURATION_MS = 3000;
+
+    // --- 4. 게임 상태 변수 ---
+    let gameState = 'MENU'; // MENU, PROMPT, READY, PLAY, RESULTS
+    let currentStage = 0; // [수정]
+    let currentLevelPattern = [];
+    let activeNotes = [];
+    // let playerInputs = {}; // [수정] 길이 판정 제거로 불필요
+    let gameStartTime = 0;
+    let animationFrameId = null;
+
+    // 점수
+    let score = 0;
+    let combo = 0;
+    let maxCombo = 0;
+    let perfectCount = 0;
+    let goodCount = 0;
+    let missCount = 0;
+    let totalNotes = 0;
+    let noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 }};
+
+    // --- 5. 게임 흐름 함수 ---
+
+    // [수정] 게임 시작 (버튼 클릭)
+    function startGame() {
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
         }
-        table.querySelectorAll('tbody tr').forEach(row => {
-            const roundCell = row.children[gameState.currentRound];
-            if (roundCell) {
-                roundCell.classList.add('current-round');
-            }
-        });
-
-        const opponentsArea = getEl('opponents-area');
-        opponentsArea.innerHTML = '';
-        gameState.players.forEach((player, index) => {
-            if (index === 0) return;
-
-            let openQuadsHTML = player.openQuads.map(q => renderSmallCard(q.value).repeat(4)).join('');
-
-            opponentsArea.innerHTML += `
-            <div id="player-area-${index}" class="player-area flex-1 p-3 bg-gray-50 border-2 border-transparent rounded-lg">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h2 class="font-bold">${player.name}</h2>
-                    </div>
-                    <div class="text-right">
-                        <div class="font-bold text-lg">${player.hand.length} 장</div>
-                    </div>
-                </div>
-                <div id="player-open-quads-${index}" class="open-quads flex justify-center items-center mt-2 h-16 gap-1">${openQuadsHTML}</div>
-            </div>
-        `;
-        });
-
-        getEl('deck-count').textContent = gameState.deck.length;
-        discardPileDiv.innerHTML = renderCard(gameState.discardPile[gameState.discardPile.length - 1]);
-        renderDiscardLog();
-
-        const humanPlayer = gameState.players[0];
-        const handDiv = getEl('player-hand-human');
-        handDiv.innerHTML = humanPlayer.hand.map(card => renderCard(card)).join('');
-
-        let openQuadsHTML = humanPlayer.openQuads.map(q => renderSmallCard(q.value).repeat(4)).join('');
-        getEl('player-open-quads-human').innerHTML = openQuadsHTML;
-
-        const dInfo = getEl('player-d-info-human');
-        if (humanPlayer.declaredD) {
-            dInfo.textContent = `선언한 d = ${humanPlayer.declaredD}`;
-            getEl('declare-d-btn').disabled = true;
-        } else {
-            dInfo.textContent = '';
-            getEl('declare-d-btn').disabled = false;
-        }
-
-        document.querySelectorAll('.player-area').forEach(el => el.classList.remove('active'));
-        if (gameState.gamePhase !== 'round-over') {
-            const activeArea = getEl(`player-area-${gameState.currentTurnIndex === 0 ? 'human' : gameState.currentTurnIndex}`);
-            if(activeArea) activeArea.classList.add('active');
-        }
-    }
-
-    // --- 게임 로직 ---
-    function createDeck(difficulty) {
-        const deck = [];
-        const suits = SUITS_BASE.slice(0, difficulty);
-        CARD_NUMBERS.forEach(num => {
-            suits.forEach(suit => {
-                deck.push({ value: num, id: `${num}-${suit}` });
-            });
-        });
-        return deck;
-    }
-
-    function shuffleDeck(deck) {
-        for (let i = deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[j]] = [deck[j], deck[i]];
-        }
-        return deck;
-    }
-
-    function checkWinCondition(hand, openQuads) {
-        if (hand.length === HAND_SIZE && openQuads.length === 0) {
-            const counts = {};
-            hand.forEach(card => { counts[card.value] = (counts[card.value] || 0) + 1; });
-            let quadValue = null, kickerValue = null;
-            for (const value in counts) {
-                if (counts[value] === 4) quadValue = parseInt(value);
-                else if (counts[value] === 1) kickerValue = parseInt(value);
-            }
-            if (quadValue !== null && kickerValue !== null) {
-                return { isWin: true, quadValue, kickerValue, type: 'closed' };
-            }
-        }
-
-        if (hand.length === 1 && openQuads.length === 1) {
-            return { isWin: true, quadValue: openQuads[0].value, kickerValue: hand[0].value, type: 'open' };
-        }
-
-        return { isWin: false };
-    }
-
-    function calculateScores(winnerIndex) {
-        const winner = gameState.players[winnerIndex];
-        let scoreDetailsHTML = '';
-        const winInfo = checkWinCondition(winner.hand, winner.openQuads);
-        if (!winInfo.isWin) return;
-
-        let roundScores = {};
-        gameState.players.forEach((p, i) => roundScores[i] = 0);
-
-        let winnerRoundScore = 0;
-        const baseScore = winInfo.quadValue * 2 + 5;
-        winnerRoundScore += baseScore;
-        scoreDetailsHTML += `<div class="p-2 rounded-md bg-white"><strong>${winner.name} (승자)</strong>`;
-        scoreDetailsHTML += `<p>기본 점수 (콰드 ${winInfo.quadValue} × 2 + 5): <span class="font-bold text-green-600">+${baseScore}</span></p>`;
-        if (winInfo.kickerValue <= 4) {
-            const kickerBonus = 5 - winInfo.kickerValue;
-            winnerRoundScore += kickerBonus;
-            scoreDetailsHTML += `<p>키커 보너스 (5 - ${winInfo.kickerValue}): <span class="font-bold text-green-600">+${kickerBonus}</span></p>`;
-        }
-        if (winner.declaredD && (winInfo.quadValue - winInfo.kickerValue) % winner.declaredD === 0) {
-            winnerRoundScore += 4;
-            scoreDetailsHTML += `<p>d 보너스 ((${winInfo.quadValue} - ${winInfo.kickerValue}) % ${winner.declaredD} == 0): <span class="font-bold text-green-600">+4</span></p>`;
-        }
-        if (winInfo.type === 'closed') {
-            winnerRoundScore += 2;
-            scoreDetailsHTML += `<p>클로즈드 보너스 (비공개 완성): <span class="font-bold text-green-600">+2</span></p>`;
-        }
-        if (winner.turnCount <= 3) {
-            winnerRoundScore += 2;
-            scoreDetailsHTML += `<p>스피드 보너스 (3턴 이내 완성): <span class="font-bold text-green-600">+2</span></p>`;
-        }
-        roundScores[winnerIndex] = winnerRoundScore;
-        scoreDetailsHTML += `</div>`;
-
-        gameState.players.forEach((player, index) => {
-            if (index === winnerIndex) return;
-            const counts = {};
-            player.hand.forEach(card => { counts[card.value] = (counts[card.value] || 0) + 1; });
-            let compensation = 0;
-            let reason = "보상 없음";
-            if (Object.values(counts).includes(3)) {
-                compensation = 2;
-                reason = "트리플 보유";
-            } else if (Object.values(counts).includes(2)) {
-                compensation = 1;
-                reason = "페어 보유";
-            }
-            roundScores[index] = compensation;
-            scoreDetailsHTML += `<div class="p-2 rounded-md bg-white mt-1"><strong>${player.name}</strong>`;
-            scoreDetailsHTML += `<p>${reason}: <span class="font-bold text-blue-600">+${compensation}</span></p></div>`;
-        });
-
-        // 최종 점수 업데이트 및 UI 반영
-        gameState.players.forEach((player, index) => {
-            const scoreForRound = roundScores[index];
-            player.roundScores[gameState.currentRound - 1] = scoreForRound;
-            player.score += scoreForRound;
-
-            getEl(`sb-player-${index}-round-${gameState.currentRound}`).textContent = scoreForRound;
-            getEl(`sb-player-${index}-total`).textContent = player.score;
-        });
-
-        getEl('score-details').innerHTML = scoreDetailsHTML;
-    }
-
-    function startRound() {
-        gameState.deck = shuffleDeck(createDeck(gameState.difficulty));
-        gameState.discardPile = [];
-        gameState.discardLog = [];
-        gameState.turnCounter = 0;
-        gameState.players.forEach(player => {
-            player.hand = gameState.deck.splice(0, HAND_SIZE);
-            player.openQuads = [];
-            player.declaredD = null;
-            player.turnCount = 0;
-        });
-        gameState.discardPile.push(gameState.deck.pop());
-        const firstDiscard = gameState.discardPile[0];
-        gameState.discardLog.push({ playerName: "시스템", cardValue: firstDiscard.value });
-        gameState.currentTurnIndex = 0;
-        executeTurn();
-    }
-
-    function advanceTurn() {
-        gameState.currentTurnIndex = (gameState.currentTurnIndex + 1) % PLAYER_COUNT;
-        if (gameState.currentTurnIndex === 0) {
-            gameState.turnCounter++;
-            gameState.players[0].turnCount++;
-        }
-        executeTurn();
-    }
-
-    function executeTurn() {
-        renderAll();
-        const currentPlayer = gameState.players[gameState.currentTurnIndex];
-        if (currentPlayer.isBot) {
-            gameMessage.textContent = `${currentPlayer.name}의 턴입니다...`;
-            setTimeout(executeBotTurn, 1500);
-        } else {
-            gameMessage.textContent = "카드를 드로우하세요 (덱 또는 버린 카드).";
-            gameState.gamePhase = 'player-draw';
-        }
-    }
-
-    function handleDraw(source) {
-        if (gameState.gamePhase !== 'player-draw' || gameState.currentTurnIndex !== 0) return;
-        const player = gameState.players[0];
-        if (source === 'deck') {
-            if (gameState.deck.length === 0) {
-                if (gameState.discardPile.length > 1) {
-                    const topCard = gameState.discardPile.pop();
-                    gameState.deck = shuffleDeck(gameState.discardPile);
-                    gameState.discardPile = [topCard];
-                    gameMessage.textContent = "덱을 셔플합니다.";
-                } else {
-                    gameMessage.textContent = "덱에 카드가 없습니다.";
-                    return;
-                }
-            }
-            player.hand.push(gameState.deck.pop());
-        } else if (source === 'discard') {
-            player.hand.push(gameState.discardPile.pop());
-        }
-        gameState.gamePhase = 'player-discard';
-        gameMessage.textContent = "버릴 카드를 선택하세요.";
-        renderAll();
-    }
-
-    function handleDiscard(cardValue) {
-        if (gameState.gamePhase !== 'player-discard' || gameState.currentTurnIndex !== 0) return;
-        const player = gameState.players[0];
-        const cardIndex = player.hand.findIndex(card => card.value === cardValue);
-        if (cardIndex === -1) return;
-
-        const [discardedCard] = player.hand.splice(cardIndex, 1);
-
-        if (checkWinCondition(player.hand, player.openQuads).isWin) {
-            gameState.discardPile.push(discardedCard);
-            gameState.discardLog.push({ playerName: player.name, cardValue: discardedCard.value });
-            handleRoundEnd(0);
-            return;
-        }
-
-        gameState.discardPile.push(discardedCard);
-        gameState.discardLog.push({ playerName: player.name, cardValue: discardedCard.value });
-        gameState.gamePhase = 'post-discard-check';
-        checkForTake(discardedCard);
-    }
-
-    function checkForTake(discardedCard) {
-        let takeFound = false;
-        for (let i = 0; i < PLAYER_COUNT; i++) {
-            if (i === gameState.currentTurnIndex) continue;
-            const player = gameState.players[i];
-            const counts = {};
-            player.hand.forEach(c => { counts[c.value] = (counts[c.value] || 0) + 1; });
-            if (counts[discardedCard.value] === 3) {
-                gameState.takeOpportunity = { playerIndex: i, card: discardedCard };
-                if (player.isBot) {
-                    gameMessage.textContent = `${player.name}이(가) '가져오기'를 외쳤습니다!`;
-                    setTimeout(() => handleTake(true), 1500);
-                } else {
-                    getEl('take-card-display').innerHTML = renderCard(discardedCard);
-                    getEl('take-modal').classList.remove('hidden');
-                }
-                takeFound = true;
-                break;
-            }
-        }
-        if (!takeFound) {
-            advanceTurn();
-        }
-    }
-
-    function handleTake(isConfirm) {
-        const { playerIndex, card } = gameState.takeOpportunity;
-        const player = gameState.players[playerIndex];
-        getEl('take-modal').classList.add('hidden');
-        gameState.takeOpportunity = null;
-        if (!isConfirm) {
-            if (playerIndex === 0) { advanceTurn(); }
-            return;
-        }
-        const takenCard = gameState.discardPile.pop();
-        player.hand = player.hand.filter(c => c.value !== takenCard.value);
-        player.openQuads.push({ value: takenCard.value });
-        if(checkWinCondition(player.hand, player.openQuads).isWin) {
-            handleRoundEnd(playerIndex);
-            return;
-        }
-        gameState.currentTurnIndex = playerIndex;
-        renderAll();
-        if (player.isBot) {
-            gameMessage.textContent = `${player.name}이(가) 버릴 카드를 선택 중...`;
-            setTimeout(() => {
-                const cardToDiscard = getBotDiscardChoice(player.hand);
-                const cardIndex = player.hand.findIndex(c => c.id === cardToDiscard.id);
-                const [discardedCard] = player.hand.splice(cardIndex, 1);
-                gameState.discardPile.push(discardedCard);
-                gameState.discardLog.push({ playerName: player.name, cardValue: discardedCard.value });
-                checkForTake(discardedCard);
-            }, 1500);
-        } else {
-            gameState.gamePhase = 'player-discard';
-            gameMessage.textContent = "카드를 가져왔으므로, 버릴 카드를 선택하세요.";
-        }
-    }
-
-    function handleRoundEnd(winnerIndex) {
-        gameState.gamePhase = 'round-over';
-        const winner = gameState.players[winnerIndex];
-        getEl('round-end-title').textContent = `라운드 ${gameState.currentRound} 종료!`;
-        calculateScores(winnerIndex);
-
-        if (gameState.currentRound >= TOTAL_ROUNDS) {
-            getEl('next-round-btn').textContent = "최종 결과 보기";
-        } else {
-            getEl('next-round-btn').textContent = "다음 라운드";
-        }
-
-        renderAll();
-        setTimeout(() => getEl('round-end-modal').classList.remove('hidden'), 500);
-    }
-
-    function showGameOver() {
-        const playersSorted = [...gameState.players].sort((a, b) => b.score - a.score);
-        const winner = playersSorted[0];
-
-        getEl('final-winner-info').textContent = `🏆 최종 승자: ${winner.name} 🏆`;
-
-        const finalScoresHTML = playersSorted.map(p => `
-        <div class="flex justify-between p-2 bg-white rounded my-1">
-            <span class="font-semibold">${p.name}</span>
-            <span class="font-bold text-lg">${p.score}점</span>
-        </div>
-    `).join('');
-        getEl('final-scores').innerHTML = finalScoresHTML;
-
-        getEl('game-over-modal').classList.remove('hidden');
-    }
-
-    function getBotDiscardChoice(hand) {
-        const counts = {};
-        hand.forEach(c => { counts[c.value] = (counts[c.value] || 0) + 1 });
-        let singleCards = [];
-        for (const card of hand) {
-            if (counts[card.value] === 1) { singleCards.push(card); }
-        }
-        if (singleCards.length > 0) {
-            return singleCards.sort((a, b) => b.value - a.value)[0];
-        }
-        return hand.sort((a,b) => a.value - b.value)[0];
-    }
-
-    function executeBotTurn() {
-        const bot = gameState.players[gameState.currentTurnIndex];
-        bot.turnCount++;
-        const discardTop = gameState.discardPile[gameState.discardPile.length - 1];
-        const counts = {};
-        bot.hand.forEach(c => { counts[c.value] = (counts[c.value] || 0) + 1; });
-        let drawnCard;
-        if (discardTop && counts[discardTop.value] >= 2) {
-            drawnCard = gameState.discardPile.pop();
-        } else {
-            drawnCard = gameState.deck.pop();
-        }
-        bot.hand.push(drawnCard);
-        setTimeout(() => {
-            const cardToDiscard = getBotDiscardChoice(bot.hand);
-            const cardIndex = bot.hand.findIndex(c => c.id === cardToDiscard.id);
-            const [discardedCard] = bot.hand.splice(cardIndex, 1);
-
-            if(checkWinCondition(bot.hand, bot.openQuads).isWin) {
-                gameState.discardPile.push(discardedCard);
-                gameState.discardLog.push({ playerName: bot.name, cardValue: discardedCard.value });
-                handleRoundEnd(gameState.currentTurnIndex);
-                return;
-            }
-
-            gameState.discardPile.push(discardedCard);
-            gameState.discardLog.push({ playerName: bot.name, cardValue: discardedCard.value });
-            checkForTake(discardedCard);
-        }, 1000);
-    }
-
-    function initGame(difficulty) {
-        resetGameState();
-        gameState.difficulty = difficulty;
-
-        if (gameState.players.length === 0) {
-            gameState.players.push({ name: "플레이어", isBot: false });
-            BOT_NAMES.forEach(name => {
-                gameState.players.push({ name: name, isBot: true });
-            });
-        }
-
-        gameState.players.forEach(p => {
-            p.score = 0;
-            p.roundScores = Array(TOTAL_ROUNDS).fill(null);
-        });
-
-        const scoreboardBody = getEl('scoreboard-body');
-        scoreboardBody.innerHTML = '';
-        gameState.players.forEach((player, p_index) => {
-            let row = `<tr id="sb-player-${p_index}">
-            <td class="p-2 border border-gray-300 font-semibold">${player.name}</td>`;
-            for(let i=0; i<TOTAL_ROUNDS; i++) {
-                row += `<td class="p-2 border border-gray-300" id="sb-player-${p_index}-round-${i+1}">-</td>`;
-            }
-            row += `<td class="p-2 border border-gray-300 font-bold bg-gray-100" id="sb-player-${p_index}-total">${player.score}</td>
-        </tr>`;
-            scoreboardBody.innerHTML += row;
-        });
-
         startScreen.classList.add('hidden');
-        gameScreen.classList.remove('hidden');
-        startRound();
+        resultsScreen.classList.add('hidden');
+        resetGameStats(); // 모든 점수 초기화
+        currentStage = 0;
+        loadStage(currentStage);
     }
 
-    // --- 이벤트 리스너 ---
-    document.querySelectorAll('.difficulty-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const difficulty = parseInt(button.dataset.difficulty);
-            initGame(difficulty);
+    // [수정] 스테이지 로드
+    function loadStage(stageIndex) {
+        if (stageIndex >= STAGES.length) {
+            showFinalResults(); // 모든 스테이지 클리어
+            return;
+        }
+
+        gameState = 'READY';
+        currentStage = stageIndex;
+        currentLevelPattern = STAGES[stageIndex];
+
+        stageDisplay.textContent = `Stage ${currentStage + 1}`;
+        resetStage(); // 현재 스테이지 노트 초기화
+
+        showJudgmentFeedback(`Stage ${currentStage + 1}`, 1500);
+        setTimeout(startPrompt, 1500); // 1.5초 후 프롬프트 시작
+    }
+
+    // [수정] 전체 게임 통계 리셋
+    function resetGameStats() {
+        score = 0;
+        combo = 0;
+        maxCombo = 0;
+        perfectCount = 0;
+        goodCount = 0;
+        missCount = 0;
+        totalNotes = 0;
+        noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 } };
+        scoreDisplay.textContent = '0';
+        comboDisplay.textContent = '0';
+    }
+
+    // [수정] 현재 스테이지 리셋
+    function resetStage() {
+        activeNotes = [];
+        playArea.innerHTML = '<div id="judgment-line"></div><div id="feedback-area"></div>';
+    }
+
+    // 5.3 STEP 1: 제시 (Listen)
+    async function startPrompt() {
+        gameState = 'PROMPT';
+        promptArea.innerHTML = '';
+
+        const noteIcons = currentLevelPattern.map(noteKey => {
+            const noteType = NOTE_TYPES[noteKey];
+            const icon = document.createElement('div');
+            icon.className = 'prompt-note';
+            const img = document.createElement('img');
+            img.src = noteType.img;
+            icon.appendChild(img);
+            promptArea.appendChild(icon);
+            return icon;
         });
-    });
 
-    deckPile.addEventListener('click', () => handleDraw('deck'));
-    discardPileDiv.addEventListener('click', () => handleDraw('discard'));
-    getEl('player-hand-human').addEventListener('click', (e) => {
-        const cardDiv = e.target.closest('.card');
-        if (cardDiv && cardDiv.dataset.value) {
-            handleDiscard(parseInt(cardDiv.dataset.value));
-        }
-    });
-    getEl('declare-d-btn').addEventListener('click', () => {
-        getEl('d-modal').classList.remove('hidden');
-    });
-    getEl('cancel-d-btn').addEventListener('click', () => {
-        getEl('d-modal').classList.add('hidden');
-    });
-    getEl('confirm-d-btn').addEventListener('click', () => {
-        const dValue = parseInt(getEl('d-input').value);
-        if (dValue >= 2 && dValue <= 9) {
-            gameState.players[0].declaredD = dValue;
-            getEl('d-modal').classList.add('hidden');
-            renderAll();
-        } else {
-            alert("2에서 9 사이의 숫자를 입력하세요.");
-        }
-    });
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-    getEl('next-round-btn').addEventListener('click', () => {
-        getEl('round-end-modal').classList.add('hidden');
-        if (gameState.currentRound >= TOTAL_ROUNDS) {
-            showGameOver();
-        } else {
-            gameState.currentRound++;
-            startRound();
+        for (let i = 0; i < currentLevelPattern.length; i++) {
+            const noteKey = currentLevelPattern[i];
+            const noteType = NOTE_TYPES[noteKey];
+
+            noteIcons[i].classList.add('active');
+            playSound(noteKey, noteType.duration);
+
+            await new Promise(resolve => setTimeout(resolve, noteType.duration));
+
+            noteIcons[i].classList.remove('active');
+            noteIcons[i].style.opacity = '0.6';
         }
-    });
-    getEl('restart-game-btn').addEventListener('click', () => {
-        getEl('game-over-modal').classList.add('hidden');
-        gameScreen.classList.add('hidden');
+
+        showReady();
+    }
+
+    // 5.4 STEP 2: 준비 (Ready)
+    function showReady() {
+        gameState = 'READY';
+        showJudgmentFeedback('따라해보세요!', 1500);
+
+        setTimeout(startPlay, 1500);
+    }
+
+    // 5.5 STEP 3: 재현 (Play)
+    function startPlay() {
+        gameState = 'PLAY';
+        gameStartTime = performance.now();
+        let cumulativeTime = 0;
+
+        const isMemoryMode = memoryModeCheck.checked;
+        totalNotes += currentLevelPattern.length; // [수정] 전체 노트 수 누적
+
+        currentLevelPattern.forEach((noteKey, index) => {
+            const noteType = NOTE_TYPES[noteKey];
+            const hitTime = gameStartTime + cumulativeTime + SCROLL_DURATION_MS;
+
+            // [수정] .scrolling-note 컨테이너 생성
+            const noteEl = document.createElement('div');
+            noteEl.className = `scrolling-note`;
+            noteEl.style.left = '100%';
+
+            // 이미지 추가
+            const img = document.createElement('img');
+            img.src = noteType.img;
+            noteEl.appendChild(img);
+
+            if (isMemoryMode) {
+                noteEl.style.opacity = '0';
+            }
+
+            noteEl.dataset.hitTime = hitTime;
+            noteEl.dataset.key = noteKey;
+            noteEl.dataset.duration = noteType.duration;
+            noteEl.dataset.id = index;
+            noteEl.dataset.judgedTime = 'false';
+            // [수정] judgedLength 제거
+
+            playArea.appendChild(noteEl);
+            activeNotes.push(noteEl);
+
+            cumulativeTime += noteType.duration;
+        });
+
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    // --- 6. 게임 루프 및 판정 ---
+
+    function gameLoop(now) {
+        if (gameState !== 'PLAY') return;
+
+        // 1. 노트 이동
+        activeNotes.forEach(note => {
+            // [수정] 이미 판정된(사라지는 중인) 노트는 이동시키지 않음
+            if (note.dataset.judgedTime !== 'false') return;
+
+            const hitTime = parseFloat(note.dataset.hitTime);
+            const timeToHit = hitTime - now;
+
+            const percentProgress = 1 - (timeToHit / SCROLL_DURATION_MS);
+            const currentLeftPercent = 100 - (percentProgress * 80);
+            note.style.left = `${currentLeftPercent}%`;
+
+            // 2. 자동 Miss 판정
+            if (timeToHit < -JUDGMENT_WINDOWS.GOOD && note.dataset.judgedTime === 'false') {
+                judge(note, 'MISS');
+            }
+        });
+
+        // 3. [수정] 스테이지 종료 체크
+        if (activeNotes.length === 0 && gameState === 'PLAY') {
+            gameState = 'READY'; // 루프 중복 실행 방지
+            setTimeout(advanceToNextStage, 1000); // 1초 후 다음 스테이지로
+            return;
+        }
+
+        if (gameState === 'PLAY') {
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+    }
+
+    // [수정] 다음 스테이지 진행
+    function advanceToNextStage() {
+        showJudgmentFeedback(`Stage ${currentStage + 1} Clear!`, 2000);
+        setTimeout(() => {
+            loadStage(currentStage + 1); // 다음 스테이지 로드
+        }, 2000);
+    }
+
+    // [수정] 판정 로직 (길이 판정 제거)
+    function judge(note, judgmentType) {
+        if (!note || note.dataset.judgedTime !== 'false') return; // 이미 판정된 노트 스킵
+
+        note.dataset.judgedTime = 'true'; // 판정됨
+
+        if (judgmentType.includes('TIME')) { // PERFECT 또는 GOOD
+            showJudgmentFeedback(judgmentType.split('_')[0]);
+
+            if (judgmentType === 'PERFECT_TIME') {
+                perfectCount++;
+                score += 100;
+            } else {
+                goodCount++;
+                score += 80;
+            }
+
+            combo++;
+            if (combo > maxCombo) maxCombo = combo;
+
+            note.classList.add('note-pop'); // [수정] 팝! 효과
+            removeNoteFromScreen(note, 200); // 0.2초 후 제거
+
+        } else if (judgmentType === 'MISS') {
+            showJudgmentFeedback('Miss');
+            combo = 0;
+            missCount++;
+
+            note.classList.add('note-miss'); // [수정] 어둡게
+            removeNoteFromScreen(note, 500); // 0.5초 후 제거
+        }
+
+        scoreDisplay.textContent = score;
+        comboDisplay.textContent = combo;
+    }
+
+    // 판정 피드백 텍스트 표시
+    function showJudgmentFeedback(text, duration = 600) {
+        const feedback = document.createElement('div');
+        feedback.className = 'feedback-popup';
+        feedback.textContent = text;
+
+        if (text.includes('Stage')) feedback.style.color = '#00ffff'; // Cyan
+        else if (text === 'PERFECT') feedback.style.color = '#4ade80'; // green-400
+        else if (text === 'GOOD') feedback.style.color = '#facc15'; // yellow-400
+        else if (text === 'Miss') feedback.style.color = '#f87171'; // red-400
+
+        feedbackArea.appendChild(feedback);
+        setTimeout(() => {
+            feedback.remove();
+        }, duration);
+    }
+
+    // [수정] 노트 제거 (애니메이션 시간 고려)
+    function removeNoteFromScreen(note, delay) {
+        // 즉시 activeNotes 배열에서 제거 (논리적 제거)
+        activeNotes = activeNotes.filter(n => n !== note);
+
+        // delay 밀리초 후 DOM에서 제거 (시각적 제거)
+        setTimeout(() => {
+            if (note.parentNode) {
+                note.parentNode.removeChild(note);
+            }
+        }, delay);
+    }
+
+    // 6.3 [수정] 최종 결과 표시
+    function showFinalResults() {
+        gameState = 'RESULTS';
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+        const accuracy = totalNotes > 0 ? ((perfectCount + goodCount) / totalNotes) * 100 : 0;
+
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('accuracy').textContent = `${accuracy.toFixed(1)}%`;
+        document.getElementById('max-combo').textContent = maxCombo;
+        document.getElementById('perfect-count').textContent = perfectCount;
+        document.getElementById('good-count').textContent = goodCount;
+        document.getElementById('miss-count').textContent = missCount;
+
+        let feedbackMsg = "";
+        if (accuracy > 95) feedbackMsg = "완벽한 리듬감이에요!";
+        else if (accuracy > 80) feedbackMsg = "훌륭해요! 조금만 더!";
+        else feedbackMsg = "연습이 조금 더 필요해요!";
+
+        document.getElementById('feedback-message').textContent = feedbackMsg;
+
+        resultsScreen.classList.remove('hidden');
+        resultsScreen.classList.add('flex');
+    }
+
+    // 6.4 [수정] 처음부터 다시하기
+    function restartGame() {
+        resultsScreen.classList.add('hidden');
         startScreen.classList.remove('hidden');
-        // 플레이어 정보는 유지되므로 resetGameState() 전체를 호출하지 않음
-    });
+        stageDisplay.textContent = '';
+        promptArea.innerHTML = '<p class="text-gray-400">게임을 시작하세요!</p>';
+        resetGameStats(); // 모든 점수 초기화
+    }
 
-    getEl('confirm-take-btn').addEventListener('click', () => handleTake(true));
-    getEl('cancel-take-btn').addEventListener('click', () => handleTake(false));
+
+    // --- 7. 입력 처리 (길이 판정 제거) ---
+
+    // 키 누르기 (타이밍 판정)
+    function handleKeyDown(e) {
+        if (gameState !== 'PLAY') return;
+
+        const key = e.key.toLowerCase();
+        if (!['q', 'w'].includes(key)) {
+            return;
+        }
+
+        document.getElementById(`key-${key}`).classList.add('active');
+
+        const now = performance.now();
+
+        // 가장 가까운, 판정되지 않은, 올바른 키의 노트를 찾음
+        let closestNote = null;
+        let minDiff = Infinity;
+
+        for (const note of activeNotes) {
+            if (note.dataset.key === key && note.dataset.judgedTime === 'false') {
+                // [수정] 이미 지나간 노트는 판정하지 않음 (timeToHit < 0)
+                const timeToHit = parseFloat(note.dataset.hitTime) - now;
+                const diff = Math.abs(timeToHit);
+
+                if (diff < minDiff && timeToHit < JUDGMENT_WINDOWS.GOOD) { // GOOD 창(150ms) 이내로 다가온 노트만
+                    minDiff = diff;
+                    closestNote = note;
+                }
+            }
+        }
+
+        if (closestNote && minDiff <= JUDGMENT_WINDOWS.GOOD) {
+            // 타이밍 판정
+            if (minDiff <= JUDGMENT_WINDOWS.PERFECT) {
+                judge(closestNote, 'PERFECT_TIME');
+            } else {
+                judge(closestNote, 'GOOD_TIME');
+            }
+
+            // 오차 기록
+            const error = parseFloat(closestNote.dataset.hitTime) - now;
+            if (error < 0) noteStats[key].late++; // 늦게 누름
+            else noteStats[key].early++; // 일찍 누름
+
+        } else {
+            // 허공에 누름 (Miss 아님, 그냥 무시)
+        }
+    }
+
+    // 키 떼기
+    function handleKeyUp(e) {
+        const key = e.key.toLowerCase();
+        if (!['q', 'w'].includes(key)) {
+            return;
+        }
+        document.getElementById(`key-${key}`).classList.remove('active');
+
+        // [수정] 길이 판정 로직 모두 제거
+    }
+
+    // --- 8. 이벤트 리스너 ---
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    // 모바일 터치 지원 (간단하게)
+    document.getElementById('key-q').addEventListener('touchstart', (e) => { e.preventDefault(); handleKeyDown({ key: 'q' }); });
+    document.getElementById('key-q').addEventListener('touchend', (e) => { e.preventDefault(); handleKeyUp({ key: 'q' }); });
+    document.getElementById('key-w').addEventListener('touchstart', (e) => { e.preventDefault(); handleKeyDown({ key: 'w' }); });
+    document.getElementById('key-w').addEventListener('touchend', (e) => { e.preventDefault(); handleKeyUp({ key: 'w' }); });
+
 </script>
-
 </body>
 </html>
 
