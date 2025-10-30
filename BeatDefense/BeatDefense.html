@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beat Defense - Skins</title>
+    <title>Beat Defense - New Stages</title>
     <!-- Tailwind CSS 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts (Inter) 로드 -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <!-- Tone.js (BGM) 로드 -->
+    <!-- Tone.js (BGM + SFX) 로드 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
 
     <style>
@@ -74,7 +74,7 @@
         .item-button:hover:not(:disabled) { background-color: #2d3748; }
         .item-button:disabled { opacity: 0.5; cursor: not-allowed; }
         .item-info { text-align: left; display: flex; align-items: center; }
-        .item-info img { width: 40px; height: 40px; margin-right: 1rem; border-radius: 0.25rem; background-color: #1a202c; }
+        .item-info img { width: 40px; height: 40px; margin-right: 1rem; border-radius: 0.25rem; background-color: #1a202c; object-fit: contain; }
         .item-info span { display: block; }
         .item-cost { text-align: right; font-weight: 700; color: #f6e05e; }
 
@@ -100,15 +100,14 @@
         }
         #player-zone { position: absolute; left: 0; top: 0; bottom: 0; width: 12%; background-color: rgba(0, 0, 0, 0.2); z-index: 10; }
 
-        /* [수정] 플레이어 div -> img */
         #player-character {
             position: absolute; left: 3%; top: 50%;
             transform: translateY(-50%);
             width: 6%; aspect-ratio: 1/1;
-            /* background-color, border 제거 */
             transition: transform 0.1s ease-out;
             object-fit: contain;
         }
+
         .player-hit { animation: playerHit 0.3s ease-in-out; }
         @keyframes playerHit {
             0%, 100% { transform: translateY(-50%) translateX(0); }
@@ -124,14 +123,13 @@
             z-index: 5;
         }
 
-        /* [수정] 적 div -> img */
         .enemy {
             position: absolute; top: 50%; transform: translateY(-50%);
             width: 40px; height: 40px;
-            /* background-color, border, font, color 등 텍스트/div 스타일 제거 */
             will-change: left;
             object-fit: contain;
         }
+
         .enemy-destroyed { animation: enemyDestroy 0.2s ease-out forwards; }
         @keyframes enemyDestroy { 0% { transform: translateY(-50%) scale(1); opacity: 1; } 100% { transform: translateY(-50%) scale(1.5); opacity: 0; } }
 
@@ -144,11 +142,20 @@
         .feedback-text { position: absolute; left: 18%; top: 40%; font-size: 2.25rem; font-weight: 900; animation: feedbackAnim 0.5s ease-out forwards; z-index: 30; pointer-events: none; text-shadow: 0 0 10px rgba(0,0,0,0.7); }
         @keyframes feedbackAnim { 0% { transform: translateY(0) scale(0.8); opacity: 1; } 50% { transform: translateY(-20px) scale(1.1); } 100% { transform: translateY(-40px) scale(1); opacity: 0; } }
 
-        /* [수정] 하단 인디케이터 크기/텍스트 */
         #input-guide .indicator {
             width: 3rem; /* w-12 (48px) */
             height: 3rem; /* h-12 (48px) */
             font-size: 1.5rem; /* text-2xl */
+        }
+
+        #fever-border {
+            position: absolute;
+            inset: 0;
+            border: 8px solid #f6e05e; /* text-yellow-400 */
+            z-index: 99;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 0 20px #f6e05e;
         }
     </style>
 </head>
@@ -159,10 +166,9 @@
     <h1 class="text-5xl font-black mb-8">BEAT DEFENSE</h1>
 
     <div id="player-stats-card" class="card">
-        <!-- [신규] 로비 플레이어 미리보기 -->
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">Player Stats</h2>
-            <img id="lobby-player-preview" src="" alt="Player" class="w-16 h-16 bg-gray-900 rounded-md">
+            <img id="lobby-player-preview" alt="Player" class="w-16 h-16 bg-gray-900 rounded-md object-contain">
         </div>
         <div class="stat-item">
             <span class="text-gray-400">LEVEL</span>
@@ -188,9 +194,8 @@
     </div>
 
     <div class="w-full max-w-md">
-        <button id="start-adventure-button" class="menu-button">모험 시작!</button>
+        <button id="start-adventure-button" class="menu-button">모험 시작! <span id="continue-stage-text" class="text-base block opacity-80">(Stage 1)</span></button>
         <button id="go-to-shop-button" class="menu-button secondary-button">상점</button>
-        <!-- [신규] 설정 버튼 -->
         <button id="go-to-settings-button" class="menu-button secondary-button">설정</button>
     </div>
 </div>
@@ -205,7 +210,6 @@
         </div>
     </div>
 
-    <!-- [신규] 상점 탭 -->
     <div class="tab-buttons w-full max-w-md">
         <button class="tab-button active" data-tab="upgrades">강화</button>
         <button class="tab-button" data-tab="skins">스킨</button>
@@ -261,7 +265,7 @@
     </div>
 </div>
 
-<!-- 3. [신규] 설정 화면 -->
+<!-- 3. 설정 화면 -->
 <div id="settings-screen" class="screen main-menu-container">
     <h1 class="text-4xl font-black mb-6">설정</h1>
     <div id="settings-list" class="w-full max-w-md">
@@ -291,7 +295,8 @@
 <!-- 4. 게임 화면 -->
 <div id="game-screen" class="screen">
     <div id="game-container">
-        <!-- 게임 오버레이 -->
+        <div id="fever-border"></div>
+
         <div id="game-overlay" class="absolute inset-0 bg-black bg-opacity-70 z-40 flex items-center justify-center" style="display: none;">
             <div id="result-box" class="hidden text-center">
                 <h2 id="result-title" class="text-5xl font-black text-red-500 mb-4">GAME OVER</h2>
@@ -304,14 +309,12 @@
             </div>
         </div>
 
-        <!-- 게임 UI -->
         <div id="player-ui" class="absolute left-2 top-4 w-1/5 z-20 text-white p-4 space-y-4">
             <div> <span class="text-sm font-bold uppercase text-gray-400">HP</span> <div class="w-full bg-gray-700 rounded-full h-4 border-2 border-gray-600"> <div id="hp-bar" class="bg-red-500 h-full rounded-full transition-all duration-300" style="width: 100%;"></div> </div> </div>
             <div> <span class="text-sm font-bold uppercase text-gray-400">SCORE</span> <p id="score-text" class="text-4xl font-black">0</p> </div>
             <div> <span class="text-sm font-bold uppercase text-gray-400">COMBO</span> <p id="combo-text" class="text-4xl font-black">0</p> </div>
         </div>
 
-        <!-- [수정] 하단 인디케이터 UI -->
         <div id="input-guide" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-4">
             <div class="indicator relative bg-gray-800 border-4 border-red-700 rounded-lg flex items-center justify-center">
                 <span class="text-red-400 font-black">Q</span>
@@ -328,8 +331,7 @@
         </div>
 
         <div id="player-zone"></div>
-        <!-- [수정] 플레이어 img 태그 -->
-        <img id="player-character" src="" alt="Player">
+        <img id="player-character" alt="Player">
         <div id="judgement-zone"></div>
         <div id="game-area" class="absolute inset-0"></div>
     </div>
@@ -350,14 +352,20 @@
         const JUDGEMENT_ZONE_X_END_PERCENT = 22.5;
         const JUDGEMENT_ZONE_X_CENTER_PERCENT = 20;
         const KEY_MAP = { 'q': 'q', 'w': 'w', 'e': 'e', 'ㅂ': 'q', 'ㅈ': 'w', 'ㄷ': 'e' };
-        const BASE_HITBOX_SIZES = { q: { w: 60, h: 60 }, w: { w: 90, h: 40 }, e: { w: 50, h: 80 } };
+
+        // [수정] 히트박스 x축 크기 절반으로
+        const BASE_HITBOX_SIZES = {
+            q: { w: 30, h: 60 },
+            w: { w: 45, h: 40 },
+            e: { w: 25, h: 80 }
+        };
+
         const RANGE_UPGRADE_BONUS_PX = 3;
         const RANGE_VISUAL_BONUS_PX = 6;
         const DEFENSE_UPGRADE_BONUS = 0.05;
         const UPGRADE_COSTS = { defense: [50, 100, 150, 250, 400], range: [30, 60, 100, 150, 250] };
         const MAX_UPGRADE_LEVEL = 5;
 
-        // [신규] 스킨 데이터
         const SKIN_BASE_URL = 'https://raw.githubusercontent.com/unluckyidiot16/assets-common/main/BeatDefense/';
         const SKIN_REGISTRY = {
             player: {
@@ -381,29 +389,39 @@
             }
         };
 
+        // [수정] 스테이지 정의 (3-8 스테이지)
         const STAGE_DEFINITIONS = [
-            { id: 'stage1', titlePrefix: 'Stage 1', bpm: 100, xpReward: 50, goldReward: 10, enemyDamage: 1,
-                patternGenerator: () => { const p = []; for (let i = 0; i < 20; i++) { p.push({ t: BEAT_MS * i, key: 'q' }); } return p; }
+            { id: 'stage1', titlePrefix: 'Stage 1', bpm: 100, xpReward: 50, goldReward: 20, enemyDamage: 1,
+                patternGenerator: (len = 20) => { const p = []; for (let i = 0; i < len; i++) { p.push({ t: BEAT_MS * i, key: 'q' }); } return p; }
             },
-            { id: 'stage2', titlePrefix: 'Stage 2', bpm: 100, xpReward: 70, goldReward: 15, enemyDamage: 1,
-                patternGenerator: () => { const p = []; for (let i = 0; i < 30; i++) { p.push({ t: BEAT_MS * i, key: (i % 2 === 0 ? 'q' : 'w') }); } return p; }
+            { id: 'stage2', titlePrefix: 'Stage 2', bpm: 100, xpReward: 70, goldReward: 30, enemyDamage: 1,
+                patternGenerator: (len = 30) => { const p = []; for (let i = 0; i < len; i++) { p.push({ t: BEAT_MS * i, key: (i % 2 === 0 ? 'q' : 'w') }); } return p; }
             },
-            { id: 'stage3', titlePrefix: 'Stage 3', bpm: 100, xpReward: 100, goldReward: 20, enemyDamage: 2,
-                patternGenerator: () => [
-                    { t: BEAT_MS * 0,  key: 'q' }, { t: BEAT_MS * 1,  key: 'w' }, { t: BEAT_MS * 2,  key: 'e' },
-                    { t: BEAT_MS * 3,  key: 'q' }, { t: BEAT_MS * 4,  key: 'e' }, { t: BEAT_MS * 5,  key: 'w' },
-                    { t: BEAT_MS * 6,  key: 'q' }, { t: BEAT_MS * 7,  key: 'e' }, { t: BEAT_MS * 8,  key: 'q' },
-                    { t: BEAT_MS * 8 + BEAT_MS/2, key: 'w' }, { t: BEAT_MS * 9,  key: 'e' }, { t: BEAT_MS * 10, key: 'q' },
-                    { t: BEAT_MS * 11, key: 'w' }, { t: BEAT_MS * 12, key: 'e' }, { t: BEAT_MS * 13, key: 'w' },
-                    { t: BEAT_MS * 14, key: 'q' }, { t: BEAT_MS * 14 + BEAT_MS/2, key: 'e' }, { t: BEAT_MS * 15, key: 'q' },
-                ]
+            { id: 'stage3', titlePrefix: 'Stage 3 (qqw)', bpm: 100, xpReward: 100, goldReward: 40, enemyDamage: 1,
+                patternGenerator: (len = 30) => { const p = []; const pattern = ['q', 'q', 'w']; for (let i = 0; i < len; i++) { p.push({ t: BEAT_MS * i, key: pattern[i % 3] }); } return p; }
+            },
+            { id: 'stage4', titlePrefix: 'Stage 4 (q/w)', bpm: 100, xpReward: 120, goldReward: 50, enemyDamage: 2,
+                patternGenerator: (len = 40) => { const p = []; const keys = ['q', 'w']; for (let i = 0; i < len; i++) { p.push({ t: BEAT_MS * i, key: keys[Math.floor(Math.random() * keys.length)] }); } return p; }
+            },
+            { id: 'stage5', titlePrefix: 'Stage 5 (qwe)', bpm: 100, xpReward: 150, goldReward: 60, enemyDamage: 2,
+                patternGenerator: (len = 30) => { const p = []; const pattern = ['q', 'w', 'e']; for (let i = 0; i < len; i++) { p.push({ t: BEAT_MS * i, key: pattern[i % 3] }); } return p; }
+            },
+            { id: 'stage6', titlePrefix: 'Stage 6 (qwqwe)', bpm: 100, xpReward: 180, goldReward: 70, enemyDamage: 3,
+                patternGenerator: (len = 30) => { const p = []; const pattern = ['q', 'w', 'q', 'w', 'e']; for (let i = 0; i < len; i++) { p.push({ t: BEAT_MS * i, key: pattern[i % 5] }); } return p; }
+            },
+            { id: 'stage7', titlePrefix: 'Stage 7 (qwewe)', bpm: 100, xpReward: 210, goldReward: 80, enemyDamage: 3,
+                patternGenerator: (len = 30) => { const p = []; const pattern = ['q', 'w', 'e', 'w', 'e']; for (let i = 0; i < len; i++) { p.push({ t: BEAT_MS * i, key: pattern[i % 5] }); } return p; }
+            },
+            { id: 'stage8', titlePrefix: 'Stage 8 (q/w/e)', bpm: 100, xpReward: 250, goldReward: 100, enemyDamage: 4,
+                patternGenerator: (len = 40) => { const p = []; const keys = ['q', 'w', 'e']; for (let i = 0; i < len; i++) { p.push({ t: BEAT_MS * i, key: keys[Math.floor(Math.random() * keys.length)] }); } return p; }
             }
         ];
+
 
         // --- 2. DOM 요소 ---
         const lobbyScreen = document.getElementById('lobby-screen');
         const shopScreen = document.getElementById('shop-screen');
-        const settingsScreen = document.getElementById('settings-screen'); // [신규]
+        const settingsScreen = document.getElementById('settings-screen');
         const gameScreen = document.getElementById('game-screen');
 
         const playerLevelText = document.getElementById('player-level');
@@ -411,20 +429,21 @@
         const playerGoldText = document.getElementById('player-gold');
         const playerXpText = document.getElementById('player-xp-text');
         const playerXpBar = document.getElementById('player-xp-bar');
-        const lobbyPlayerPreview = document.getElementById('lobby-player-preview'); // [신규]
+        const lobbyPlayerPreview = document.getElementById('lobby-player-preview');
 
         const startAdventureButton = document.getElementById('start-adventure-button');
+        const continueStageText = document.getElementById('continue-stage-text'); // [신규]
         const goToShopButton = document.getElementById('go-to-shop-button');
-        const goToSettingsButton = document.getElementById('go-to-settings-button'); // [신규]
+        const goToSettingsButton = document.getElementById('go-to-settings-button');
 
         const shopGold = document.getElementById('shop-gold');
         const backToLobbyButton = document.getElementById('back-to-lobby-button');
-        const shopTabButtons = document.querySelectorAll('#shop-screen .tab-button'); // [신규]
-        const shopTabContents = document.querySelectorAll('#shop-screen .tab-content'); // [신규]
-        const skinShopContainer = document.getElementById('tab-skins'); // [신규]
+        const shopTabButtons = document.querySelectorAll('#shop-screen .tab-button');
+        const shopTabContents = document.querySelectorAll('#shop-screen .tab-content');
+        const skinShopContainer = document.getElementById('tab-skins');
 
-        const settingsBackToLobbyButton = document.getElementById('settings-back-to-lobby-button'); // [신규]
-        const settingsSelects = { // [신규]
+        const settingsBackToLobbyButton = document.getElementById('settings-back-to-lobby-button');
+        const settingsSelects = {
             player: document.getElementById('setting-player'),
             enemyQ: document.getElementById('setting-enemy-q'),
             enemyW: document.getElementById('setting-enemy-w'),
@@ -440,7 +459,8 @@
 
         const gameContainer = document.getElementById('game-container');
         const gameArea = document.getElementById('game-area');
-        const playerCharacter = document.getElementById('player-character'); // 이제 <img>
+        const playerCharacter = document.getElementById('player-character');
+        const feverBorder = document.getElementById('fever-border');
         const hpBar = document.getElementById('hp-bar');
         const scoreText = document.getElementById('score-text');
         const comboText = document.getElementById('combo-text');
@@ -460,8 +480,8 @@
         let playerState = {
             level: 1, xp: 0, maxHp: 5, gold: 0, currentStageIndex: 0,
             defenseLevel: 0, rangeLevelQ: 0, rangeLevelW: 0, rangeLevelE: 0,
-            purchasedSkins: [], // [신규] e.g., ['wizard', 'slime-yellow']
-            equippedSkins: { player: 'default', enemyQ: 'default', enemyW: 'default', enemyE: 'default' } // [신규]
+            purchasedSkins: [],
+            equippedSkins: { player: 'default', enemyQ: 'default', enemyW: 'default', enemyE: 'default' }
         };
         let player = {};
         let game = {};
@@ -474,8 +494,8 @@
         let lastFrameTime = 0;
         let animationFrameId = null;
 
-        // [신규] BGM
         let bgmLoop = null;
+        let attackSounds = {};
 
         // --- 4. 화면 전환 ---
         function showScreen(screenId) {
@@ -496,7 +516,7 @@
 
         function goBackToLobby() {
             if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
-            if (bgmLoop) { Tone.Transport.stop(); } // BGM 중지
+            if (bgmLoop) { Tone.Transport.stop(); }
             game.isPlaying = false;
             updateLobbyUI();
             showScreen('lobby-screen');
@@ -507,7 +527,6 @@
             showScreen('shop-screen');
         }
 
-        // [신규]
         function goToSettings() {
             updateSettingsUI();
             showScreen('settings-screen');
@@ -522,7 +541,6 @@
                 const savedState = localStorage.getItem('beatDefensePlayer');
                 if (savedState) {
                     const loaded = JSON.parse(savedState);
-                    // [신규] 스킨 데이터가 없으면 기본값으로 초기화
                     if (!loaded.purchasedSkins) loaded.purchasedSkins = [];
                     if (!loaded.equippedSkins) loaded.equippedSkins = { player: 'default', enemyQ: 'default', enemyW: 'default', enemyE: 'default' };
 
@@ -562,20 +580,36 @@
             updateLobbyUI();
             showScreen('lobby-screen');
 
-            // [신규] BGM 초기 설정
             startAdventureButton.addEventListener('click', async () => {
                 await Tone.start();
                 console.log("Audio Context Started");
-                // BGM 루프 정의
+
+                if (!attackSounds.q) {
+                    attackSounds.q = new Tone.PluckSynth().toDestination();
+                    attackSounds.w = new Tone.PluckSynth().toDestination();
+                    attackSounds.e = new Tone.PluckSynth().toDestination();
+                    attackSounds.q.volume.value = -6;
+                    attackSounds.w.volume.value = -6;
+                    attackSounds.e.volume.value = -6;
+                }
+
                 if (!bgmLoop) {
                     const synth = new Tone.MembraneSynth().toDestination();
-                    synth.volume.value = -12; // 볼륨 줄이기
+                    synth.volume.value = -12;
                     bgmLoop = new Tone.Loop(time => {
                         synth.triggerAttackRelease("C1", "8n", time);
+
+                        if (game.isPlaying && player.combo >= FEVER_COMBO) {
+                            Tone.Draw.schedule(() => {
+                                feverBorder.style.display = 'block';
+                                setTimeout(() => {
+                                    feverBorder.style.display = 'none';
+                                }, 100);
+                            }, time);
+                        }
                     }, "4n");
                 }
 
-                // 모험 시작
                 loadStage(playerState.currentStageIndex);
                 startGame();
             });
@@ -589,9 +623,15 @@
             playerXpText.textContent = `${playerState.xp} / ${requiredXp}`;
             playerXpBar.style.width = `${(playerState.xp / requiredXp) * 100}%`;
 
-            // [신규] 로비 플레이어 스킨 미리보기 업데이트
             const playerSkinKey = playerState.equippedSkins.player;
             lobbyPlayerPreview.src = SKIN_REGISTRY.player[playerSkinKey].url;
+
+            // [신규] 현재 진행할 스테이지 표시
+            const stageIndex = playerState.currentStageIndex;
+            const stageTitle = stageIndex < STAGE_DEFINITIONS.length ?
+                `Stage ${stageIndex + 1}` :
+                `Loop ${stageIndex - STAGE_DEFINITIONS.length + 2}`;
+            continueStageText.textContent = `(${stageTitle} 도전)`;
         }
 
         // --- 7. 상점 로직 ---
@@ -601,7 +641,6 @@
             return costs[level];
         }
 
-        // [수정] 상점 UI 업데이트 (스킨 탭 포함)
         function updateShopUI() {
             shopGold.textContent = playerState.gold;
 
@@ -624,7 +663,7 @@
                 btn.querySelector('span[id$="-level"]').textContent = `Level ${level}`;
                 const costEl = btn.querySelector('span[id$="-cost"]');
                 if (cost) {
-                    costEl.textContent = `Cost: ${cost}`;
+                    costEl.textContent = `Cost: ${cost} G`;
                     btn.disabled = playerState.gold < cost;
                 } else {
                     costEl.textContent = "MAX LEVEL";
@@ -632,21 +671,15 @@
                 }
             });
 
-            // === [신규] 스킨 탭 ===
-            skinShopContainer.innerHTML = ''; // 비우기
-
-            // 스킨 카테고리 순회
+            // === 스킨 탭 ===
+            skinShopContainer.innerHTML = '';
             Object.keys(SKIN_REGISTRY).forEach(category => {
                 const skins = SKIN_REGISTRY[category];
-
-                // 카테고리 내 스킨 순회
                 Object.keys(skins).forEach(skinId => {
-                    if (skinId === 'default') return; // 기본 스킨은 판매 X
-
+                    if (skinId === 'default') return; // 'default' 스킨은 상점에 표시 안 함
                     const skin = skins[skinId];
                     const btn = document.createElement('button');
                     btn.className = 'item-button';
-
                     const isPurchased = playerState.purchasedSkins.includes(skinId);
 
                     btn.innerHTML = `
@@ -665,7 +698,6 @@
                     if (isPurchased || playerState.gold < skin.price) {
                         btn.disabled = true;
                     }
-
                     btn.addEventListener('click', () => buySkin(skinId, category, skin.price));
                     skinShopContainer.appendChild(btn);
                 });
@@ -686,18 +718,16 @@
             }
         }
 
-        // [신규] 스킨 구매
         function buySkin(skinId, category, price) {
             if (playerState.gold >= price && !playerState.purchasedSkins.includes(skinId)) {
                 playerState.gold -= price;
                 playerState.purchasedSkins.push(skinId);
                 savePlayerState();
-                updateShopUI(); // 상점 UI 갱신 (버튼 비활성화)
-                updateLobbyUI(); // 로비 UI 갱신 (골드)
+                updateShopUI();
+                updateLobbyUI();
             }
         }
 
-        // [신규] 상점 탭 전환
         shopTabButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const tabId = button.dataset.tab;
@@ -708,25 +738,19 @@
             });
         });
 
-        // --- [신규] 7.5. 설정 로직 ---
+        // --- 7.5. 설정 로직 ---
         function updateSettingsUI() {
-            // 각 드롭다운(select)을 순회
             Object.keys(settingsSelects).forEach(category => {
                 const selectEl = settingsSelects[category];
-                selectEl.innerHTML = ''; // 옵션 비우기
-
+                selectEl.innerHTML = '';
                 const skins = SKIN_REGISTRY[category];
-
-                // 해당 카테고리의 모든 스킨을 옵션으로 추가
                 Object.keys(skins).forEach(skinId => {
-                    // 기본 스킨이거나, 구매한 스킨만 옵션에 추가
+                    // 'default' 스킨이거나 구매한 스킨만 목록에 추가
                     if (skinId === 'default' || playerState.purchasedSkins.includes(skinId)) {
                         const skin = skins[skinId];
                         const option = document.createElement('option');
                         option.value = skinId;
                         option.textContent = skin.name;
-
-                        // 현재 장착된 스킨을 'selected'로 설정
                         if (playerState.equippedSkins[category] === skinId) {
                             option.selected = true;
                         }
@@ -736,14 +760,13 @@
             });
         }
 
-        // [신규] 설정 변경 이벤트 리스너
         Object.keys(settingsSelects).forEach(category => {
             const selectEl = settingsSelects[category];
             selectEl.addEventListener('change', (e) => {
                 const newSkinId = e.target.value;
                 playerState.equippedSkins[category] = newSkinId;
                 savePlayerState();
-                updateLobbyUI(); // 로비 미리보기 즉시 변경
+                updateLobbyUI();
             });
         });
 
@@ -759,6 +782,7 @@
                 stageDef = STAGE_DEFINITIONS[stageIndex];
                 stageTitle = stageDef.titlePrefix;
             } else {
+                // Stage 8 (index 7)이 마지막 정의된 스테이지. 그 이후는 루프.
                 stageDef = STAGE_DEFINITIONS[STAGE_DEFINITIONS.length - 1];
                 const loopCount = stageIndex - (STAGE_DEFINITIONS.length - 1);
                 difficultyMultiplier = 1 + (loopCount * 0.2);
@@ -781,7 +805,6 @@
             showScreen('game-screen');
         }
 
-        // [수정] initGame (스킨 적용)
         function initGame() {
             if (!currentStage) return;
             player = { hp: playerState.maxHp, maxHp: playerState.maxHp, score: 0, combo: 0, sessionXp: 0, sessionGold: 0 };
@@ -795,8 +818,8 @@
             Object.values(cooldownUI).forEach(el => el.style.height = '0%');
             gameOverlay.style.display = 'none';
             resultBox.style.display = 'none';
+            feverBorder.style.display = 'none';
 
-            // [신규] 플레이어 스킨 적용
             const playerSkinKey = playerState.equippedSkins.player;
             playerCharacter.src = SKIN_REGISTRY.player[playerSkinKey].url;
         }
@@ -811,18 +834,17 @@
             pixelsPerMs = (startX - judgeX) / currentStage.travelDuration;
             gameOverlay.style.display = 'none';
             window.focus();
-
-            if (bgmLoop) { Tone.Transport.start(); } // BGM 시작
-
+            if (bgmLoop) { Tone.Transport.start(); }
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
+        // [수정] endGame (이어하기 로직)
         function endGame(isWaveClear) {
             game.isPlaying = false;
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
-
-            if (bgmLoop) { Tone.Transport.stop(); } // BGM 중지
+            if (bgmLoop) { Tone.Transport.stop(); }
+            feverBorder.style.display = 'none';
 
             gameOverlay.style.display = 'flex';
             resultBox.style.display = 'block';
@@ -832,23 +854,31 @@
 
             if (isWaveClear) {
                 const baseXp = currentStage.xpReward;
-                const baseGold = currentStage.goldReward;
+                const baseGold = currentStage.goldReward; // [수정] 클리어 골드
                 const totalXp = baseXp + player.sessionXp;
                 const totalGold = baseGold + player.sessionGold;
-                addXp(totalXp); addGold(totalGold);
-                playerState.currentStageIndex++;
+
+                addXp(totalXp);
+                addGold(totalGold);
+
+                playerState.currentStageIndex++; // [수정] 클리어 시에만 인덱스 증가
                 savePlayerState();
+
                 resultTitle.textContent = 'STAGE CLEAR!';
                 resultTitle.style.color = '#48bb78';
                 resultXpText.textContent = `XP +${totalXp} (피버 +${player.sessionXp})`;
-                resultGoldText.textContent = `GOLD +${totalGold} (피버 +${player.sessionGold})`;
+                resultGoldText.textContent = `GOLD +${totalGold} (클리어 ${baseGold} + 피버 ${player.sessionGold})`;
                 continueButton.style.display = 'inline-block';
             } else {
+                // [수정] 게임 오버 시에는 피버 골드/XP만 저장 (currentStageIndex는 증가 안 함)
+                addXp(player.sessionXp);
+                addGold(player.sessionGold);
                 savePlayerState();
+
                 resultTitle.textContent = 'GAME OVER';
                 resultTitle.style.color = '#e53e3e';
-                resultXpText.textContent = 'XP +0';
-                resultGoldText.textContent = 'GOLD +0';
+                resultXpText.textContent = `XP +${player.sessionXp} (피버)`;
+                resultGoldText.textContent = `GOLD +${player.sessionGold} (피버)`;
                 retryButton.style.display = 'inline-block';
             }
         }
@@ -866,7 +896,6 @@
             else { animationFrameId = requestAnimationFrame(gameLoop); }
         }
 
-        // --- 10. [수정] 적 스폰 (스킨 적용) ---
         function checkEnemySpawns(now) {
             if (game.patternIndex >= game.totalEnemies) return;
             const nextSpawn = enemyPatterns[game.patternIndex];
@@ -874,17 +903,15 @@
             if (now >= spawnTime) { spawnEnemy(nextSpawn.key); game.patternIndex++; }
         }
         function spawnEnemy(key) {
-            // [수정] div -> img
             const enemyEl = document.createElement('img');
             enemyEl.className = 'enemy';
 
-            // [신규] 스킨 적용
-            let skinCategory, skinId;
+            let skinCategory;
             if (key === 'q') skinCategory = 'enemyQ';
             else if (key === 'w') skinCategory = 'enemyW';
             else skinCategory = 'enemyE';
 
-            skinId = playerState.equippedSkins[skinCategory];
+            const skinId = playerState.equippedSkins[skinCategory];
             enemyEl.src = SKIN_REGISTRY[skinCategory][skinId].url;
             enemyEl.alt = `Enemy ${key}`;
 
@@ -911,7 +938,6 @@
             }
         }
 
-        // --- 11. 입력 처리 ---
         function handlePlayerInput(e) {
             if (!game.isPlaying) return;
             const mappedKey = KEY_MAP[e.key.toLowerCase()];
@@ -919,18 +945,31 @@
             const now = performance.now();
             if (now < lastAttackAt[mappedKey] + ATTACK_COOLDOWN_MS) return;
             lastAttackAt[mappedKey] = now;
+
+            const nowAudio = Tone.now();
+            if (mappedKey === 'q') {
+                attackSounds.q.triggerAttackRelease("C4", "8n", nowAudio);
+            } else if (mappedKey === 'w') {
+                attackSounds.w.triggerAttackRelease("E4", "8n", nowAudio);
+            } else if (mappedKey === 'e') {
+                attackSounds.e.triggerAttackRelease("G4", "8n", nowAudio);
+            }
+
             spawnHitbox(mappedKey);
         }
 
-        // --- 12. 히트박스 및 판정 ---
+        // --- 12. 히트박스 ---
         function spawnHitbox(key) {
             const hitboxEl = document.createElement('div');
             hitboxEl.className = 'hitbox';
             hitboxEl.dataset.key = key;
             const level = playerState[`rangeLevel${key.toUpperCase()}`];
             const bonusSize = level * RANGE_VISUAL_BONUS_PX;
+
+            // [수정] BASE_HITBOX_SIZES가 이미 절반 크기
             hitboxEl.style.width = `${BASE_HITBOX_SIZES[key].w + bonusSize}px`;
             hitboxEl.style.height = `${BASE_HITBOX_SIZES[key].h + bonusSize}px`;
+
             const hitboxX = gameAreaWidth * (JUDGEMENT_ZONE_X_START_PERCENT / 100);
             hitboxEl.style.left = `${hitboxX}px`;
             gameArea.appendChild(hitboxEl);
@@ -965,7 +1004,11 @@
                             showFeedbackText("FEVER!", "#f6e05e");
                         }
                     } else {
-                        if (!hitSuccess) { showFeedbackText("WRONG", "#f6e05e"); }
+                        if (!hitSuccess) {
+                            showFeedbackText("WRONG", "#f6e05e");
+                            player.combo = 0;
+                            feverBorder.style.display = 'none';
+                        }
                         hitSuccess = true;
                     }
                 }
@@ -973,13 +1016,14 @@
             updateUI();
         }
 
-        // --- 13. UI 업데이트 및 피드백 ---
+        // --- 13. UI 업데이트 ---
         function damagePlayer() {
             const defenseBonus = playerState.defenseLevel * DEFENSE_UPGRADE_BONUS;
             const damageReduction = 1.0 - defenseBonus;
             const damageTaken = Math.max(1, Math.floor(currentStage.enemyDamage * damageReduction));
             player.hp = Math.max(0, player.hp - damageTaken);
             player.combo = 0;
+            feverBorder.style.display = 'none';
             playerCharacter.classList.add('player-hit');
             setTimeout(() => { playerCharacter.classList.remove('player-hit'); }, 300);
             updateUI();
@@ -1012,9 +1056,8 @@
         window.addEventListener('keydown', handlePlayerInput);
 
         // 로비
-        // startAdventureButton은 initLobby에서 BGM 처리와 함께 설정됨
         goToShopButton.addEventListener('click', goToShop);
-        goToSettingsButton.addEventListener('click', goToSettings); // [신규]
+        goToSettingsButton.addEventListener('click', goToSettings);
 
         // 상점
         backToLobbyButton.addEventListener('click', goBackToLobby);
@@ -1023,18 +1066,18 @@
         upgradeButtons.w.addEventListener('click', () => buyUpgrade('w'));
         upgradeButtons.e.addEventListener('click', () => buyUpgrade('e'));
 
-        // [신규] 설정
+        // 설정
         settingsBackToLobbyButton.addEventListener('click', goBackToLobby);
 
         // 게임 오버레이
         lobbyButton.addEventListener('click', goBackToLobby);
         retryButton.addEventListener('click', () => {
             loadStage(playerState.currentStageIndex);
-            startGame(); // 재시도
+            startGame();
         });
         continueButton.addEventListener('click', () => {
             loadStage(playerState.currentStageIndex);
-            startGame(); // 다음 스테이지
+            startGame();
         });
 
         // --- 15. 초기 실행 ---
