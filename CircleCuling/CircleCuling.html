@@ -46,6 +46,10 @@
         .btn-locked {
             @apply bg-gray-300 text-gray-500 cursor-not-allowed flex items-center justify-center;
         }
+        /* **NEW: 발사 버튼 비활성화 스타일** */
+        #fire-button:disabled {
+            @apply bg-gray-400 text-gray-200 cursor-not-allowed;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
@@ -104,11 +108,16 @@
     <!-- (C) 하단 입력 영역 -->
     <div id="control-panel">
         <p id="control-text" class="text-center text-gray-600 mb-2">
-            하단의 스톤을 클릭해 발사를 준비하세요!
+            <!-- **MODIFIED: 텍스트 변경** -->
+            발사 버튼을 길게 눌러 힘을 조절하세요!
         </p>
-        <div id="power-gauge-container" class="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+        <div id="power-gauge-container" class="w-full bg-gray-200 rounded-full h-6 overflow-hidden mb-4"> <!-- **NEW: mb-4 추가** -->
             <div id="power-gauge" class="bg-gradient-to-r from-green-400 to-red-500 h-6 rounded-full" style="width: 0%;"></div>
         </div>
+        <!-- **NEW: 발사 버튼 추가** -->
+        <button id="fire-button" class="w-full bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg font-semibold text-lg">
+            발사 (HOLD)
+        </button>
     </div>
 </div>
 
@@ -150,6 +159,8 @@
 
     const controlText = document.getElementById('control-text');
     const powerGauge = document.getElementById('power-gauge');
+    // **NEW: 발사 버튼**
+    const fireButton = document.getElementById('fire-button');
 
     // 결과 모달
     const modal = document.getElementById('modal');
@@ -201,6 +212,12 @@
     let lastPointerY = 0;
 
     // --- 3. 그리기 함수 ---
+
+    // **NEW: PX to CM 변환 함수**
+    function pxToCm(px) {
+        return (px / 100).toFixed(1);
+    }
+
     function clearCanvas() { ctx.clearRect(0, 0, canvasSize.width, canvasSize.height); }
 
     function drawBackground() {
@@ -237,15 +254,17 @@
 
     function drawFeedback() {
         if (isOOB) return;
-        // ... (이전과 동일)
+
+        // 1. 'd' (나의 거리) 선 그리기 (기존 노란선)
         ctx.beginPath();
         ctx.moveTo(center.x, center.y);
         ctx.lineTo(stone.x, stone.y);
-        ctx.strokeStyle = '#FBBF24';
+        ctx.strokeStyle = '#FBBF24'; // 노란색
         ctx.lineWidth = 4;
         ctx.stroke();
         const labelPos = { x: (center.x + stone.x) / 2, y: (center.y + stone.y) / 2 };
-        const dText = `d = ${lastDistance.toFixed(1)}px`;
+        // **MODIFIED: CM 단위 사용**
+        const dText = `d = ${pxToCm(lastDistance)}cm`;
         ctx.font = 'bold 16px sans-serif';
         ctx.fillStyle = '#000';
         ctx.save();
@@ -255,6 +274,23 @@
         ctx.rotate(angle);
         ctx.fillText(dText, 10, -5);
         ctx.restore();
+
+        // **NEW: 2. 'r' (목표 반지름) 선 그리기**
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.lineTo(center.x, center.y - currentTargetRadius); // 중심에서 원 위쪽 가장자리까지
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)'; // 'r' 원과 같은 빨간색
+        ctx.lineWidth = 4;
+        ctx.setLineDash([8, 4]); // 'r'은 점선으로 표시
+        ctx.stroke();
+
+        // 'r' 라벨 추가
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillStyle = '#D92525';
+        ctx.fillText(`r = ${pxToCm(currentTargetRadius)}cm`, center.x + 10, center.y - (currentTargetRadius / 2));
+
+
+        // 3. 'd' (나의 거리) 원 그리기 (기존 파란 점선)
         ctx.beginPath();
         ctx.arc(center.x, center.y, lastDistance, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(59, 130, 246, 0.7)';
@@ -279,7 +315,21 @@
     }
 
     function updateCamera() {
-        const targetScroll = stone.y - (scrollContainer.clientHeight / 2);
+        // **MODIFIED: Calculate scroll position based on relative canvas position**
+        // This accounts for the canvas being scaled (h-auto) inside the container.
+
+        // 1. Stone's relative position (e.g., 0.8 = 80% down the canvas)
+        const relativeStoneY = stone.y / canvasSize.height;
+
+        // 2. Total scrollable height of the scaled canvas
+        const totalScrollHeight = scrollContainer.scrollHeight;
+
+        // 3. The scroll position that would put the stone's top at the container's top
+        const stoneScrollTop = relativeStoneY * totalScrollHeight;
+
+        // 4. Adjust to center the stone in the middle of the visible container
+        const targetScroll = stoneScrollTop - (scrollContainer.clientHeight / 2);
+
         scrollContainer.scrollTop = targetScroll;
     }
 
@@ -316,15 +366,22 @@
         gameState = 'moving';
         isOOB = false;
         canvas.style.cursor = 'default'; // 발사 시 커서 기본값
+        // **NEW: 발사 시 버튼 비활성화**
+        fireButton.disabled = true;
     }
 
     function handleStop(outOfBounds) {
         velocity = { x: 0, y: 0 };
-        gameState = 'stopped';
+        gameState = 'stopped'; // <-- This is key, drawFeedback() will now run
         isOOB = outOfBounds;
+
         if (isOOB) { lastDistance = 9999; }
         else { lastDistance = Math.hypot(stone.x - center.x, stone.y - center.y); }
-        judgeRound(lastDistance);
+
+        // **MODIFIED: Add 3-second delay before showing modal**
+        setTimeout(() => {
+            judgeRound(lastDistance);
+        }, 3000); // 3-second (3000ms) delay
     }
 
     // 판정 로직
@@ -367,10 +424,11 @@
         if (isOOB) {
             modalStats.innerHTML = `결과: <span class="font-bold text-red-500">Out of Bounds</span><br>획득 점수: <span class="font-bold">${score}점</span>`;
         } else {
+            // **MODIFIED: CM 단위 사용**
             modalStats.innerHTML = `
-                    목표 반지름 (r): <span class="font-bold text-red-500">${r.toFixed(1)}px</span><br>
-                    나의 거리 (d): <span class="font-bold text-blue-500">${d.toFixed(1)}px</span><br>
-                    오차: <span class="font-bold">${Math.abs(d - r).toFixed(1)}px</span><br>
+                    목표 반지름 (r): <span class="font-bold text-red-500">${pxToCm(r)}cm</span><br>
+                    나의 거리 (d): <span class="font-bold text-blue-500">${pxToCm(d)}cm</span><br>
+                    오차: <span class="font-bold">${pxToCm(Math.abs(d - r))}cm</span><br>
                     획득 점수: <span class="font-bold">${score}점</span>`;
         }
         modalButton.textContent = '다음 턴 진행';
@@ -420,6 +478,8 @@
         modalMessage.textContent = "대전이 종료되었습니다. 수고하셨습니다!";
         modalStats.innerHTML = stats;
         modalButton.textContent = '모드 선택으로';
+        // **NEW: 게임 종료 시 버튼 비활성화**
+        fireButton.disabled = true;
     }
 
     // **NEW: 턴/라운드 관리 로직 (모드별 분기)**
@@ -490,6 +550,9 @@
     function aiTurn() {
         gameState = 'ai_turn';
         controlText.textContent = "AI가 생각 중입니다...";
+        // **NEW: AI 턴 시작 시 버튼 비활성화**
+        fireButton.disabled = true;
+
         const travelDistToCenter = stone.y - center.y;
         const targetTravelDist = travelDistToCenter - currentTargetRadius;
         const targetSpeed = targetTravelDist * (1 - FRICTION);
@@ -507,6 +570,12 @@
         isOOB = false;
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
         canvas.style.cursor = 'grab';
+
+        // **MODIFIED: 버튼 상태는 updateTurnUI()가 하도록 텍스트만 설정**
+        if (gameState === 'ready') {
+            const isPlayerTurn = (currentTurn === 'player1' || (currentTurn === 'player2' && gameMode === '2p'));
+            controlText.textContent = isPlayerTurn ? "발사 버튼을 길게 눌러 힘 조절!" : "AI가 생각 중입니다...";
+        }
     }
 
     // UI 업데이트
@@ -540,6 +609,17 @@
         currentTurnSpan.textContent = turnText;
         currentTurnSpan.className = turnColor;
         roundDisplay.textContent = `Round ${currentRound} / ${MAX_ROUNDS}`;
+
+        // **NEW: 턴에 따라 발사 버튼 활성화/비활성화**
+        const isPlayerTurn = (currentTurn === 'player1' || (currentTurn === 'player2' && gameMode === '2p'));
+        fireButton.disabled = !isPlayerTurn;
+
+        // **NEW: 턴에 따라 컨트롤 텍스트 업데이트**
+        if (isPlayerTurn && gameState === 'ready') {
+            controlText.textContent = "발사 버튼을 길게 눌러 힘 조절!";
+        } else if (currentTurn === 'ai') {
+            controlText.textContent = "AI가 생각 중입니다...";
+        }
     }
 
 
@@ -562,69 +642,64 @@
 
     // --- 6. 이벤트 핸들러 ---
 
-    // **FIX: JS 기반 수동 스크롤 + 스톤 클릭**
-    function handlePointerDown(e) {
-        // 턴이 아니거나, 이미 충전 중이거나, 움직이는 중이면 무시
+    // **REMOVED/REPLACED: Old handlers**
+    // function handlePointerDown(e) { ... }
+    // function handlePointerMove(e) { ... }
+    // function handlePointerUp(e) { ... }
+
+    // **NEW: 1. 캔버스 드래그(스크롤) 핸들러**
+    function handleCanvasDragStart(e) {
+        // 게이지 충전 중이거나 스톤이 움직일 땐 스크롤 방지
+        if (gameState === 'charging' || gameState === 'moving') return;
+
+        e.preventDefault();
+        isDragging = true;
+        lastPointerY = e.clientY;
+        canvas.style.cursor = 'grabbing';
+    }
+
+    function handleCanvasDragMove(e) {
+        if (!isDragging) return;
+
+        e.preventDefault();
+        const deltaY = e.clientY - lastPointerY;
+        scrollContainer.scrollTop -= deltaY;
+        lastPointerY = e.clientY;
+    }
+
+    function handleCanvasDragEnd(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        canvas.style.cursor = 'grab';
+    }
+
+
+    // **NEW: 2. 발사 버튼 핸들러**
+    function handleButtonPress(e) {
+        // 턴이 아니거나, 'ready' 상태가 아니면 무시
         if (gameState !== 'ready' || (currentTurn !== 'player1' && currentTurn !== 'player2')) return;
 
-        const rect = canvas.getBoundingClientRect();
-        const clickY = e.clientY - rect.top + scrollContainer.scrollTop;
-        const clickX = e.clientX - rect.left;
-        const distFromStone = Math.hypot(clickX - stone.x, clickY - stone.y);
+        e.preventDefault();
+        gameState = 'charging';
+        controlText.textContent = "타이밍을 맞춰 손을 떼세요!";
 
-        if (distFromStone <= stone.radius * 2) {
-            // 1. 스톤 클릭 -> 발사 준비
-            e.preventDefault();
-            gameState = 'charging';
-            controlText.textContent = "타이밍을 맞춰 손을 떼세요!";
-            canvas.style.cursor = 'default';
-
-            gaugePower = 0;
-            gaugeDirection = 1;
-            gaugePaused = false;
-            if (gaugeLoopId) cancelAnimationFrame(gaugeLoopId);
-            gaugeLoopId = requestAnimationFrame(updateGauge);
-        } else {
-            // 2. 배경 클릭 -> 수동 스크롤 시작
-            e.preventDefault();
-            isDragging = true;
-            lastPointerY = e.clientY;
-            canvas.style.cursor = 'grabbing';
-        }
+        gaugePower = 0;
+        gaugeDirection = 1;
+        gaugePaused = false;
+        if (gaugeLoopId) cancelAnimationFrame(gaugeLoopId);
+        gaugeLoopId = requestAnimationFrame(updateGauge);
     }
 
-    function handlePointerMove(e) {
-        if (isDragging) {
-            // 1. 드래그 중 -> 스크롤
-            e.preventDefault();
-            const deltaY = e.clientY - lastPointerY;
-            scrollContainer.scrollTop -= deltaY;
-            lastPointerY = e.clientY;
-        } else if (gameState === 'ready' && (currentTurn === 'player1' || currentTurn === 'player2')) {
-            // 2. 준비 상태 -> 스톤 호버 체크
-            const rect = canvas.getBoundingClientRect();
-            const moveY = e.clientY - rect.top + scrollContainer.scrollTop;
-            const moveX = e.clientX - rect.left;
-            const distFromStone = Math.hypot(moveX - stone.x, moveY - stone.y);
-            canvas.style.cursor = (distFromStone <= stone.radius * 2) ? 'pointer' : 'grab';
-        }
+    function handleButtonRelease(e) {
+        if (gameState !== 'charging') return;
+
+        e.preventDefault();
+        if (gaugeLoopId) cancelAnimationFrame(gaugeLoopId);
+        gaugeLoopId = null;
+        controlText.textContent = "발사!";
+        fireStone(gaugePower, currentTurn);
     }
 
-    function handlePointerUp(e) {
-        if (gameState === 'charging') {
-            // 1. 발사
-            e.preventDefault();
-            if (gaugeLoopId) cancelAnimationFrame(gaugeLoopId);
-            gaugeLoopId = null;
-            controlText.textContent = "발사!";
-            fireStone(gaugePower, currentTurn);
-        }
-        if (isDragging) {
-            // 2. 드래그 종료
-            isDragging = false;
-            canvas.style.cursor = 'grab';
-        }
-    }
 
     modalButton.addEventListener('click', () => {
         if (gameState === 'end' || gameState === 'stopped') {
@@ -636,7 +711,8 @@
 
     function setNewRadius() {
         currentTargetRadius = RADIUS_OPTIONS[Math.floor(Math.random() * RADIUS_OPTIONS.length)];
-        radiusText.textContent = `목표 반지름: ${currentTargetRadius}px`;
+        // **MODIFIED: CM 단위 사용**
+        radiusText.textContent = `목표 반지름: ${pxToCm(currentTargetRadius)}cm`;
     }
 
     // **NEW: 게임 시작 함수 (모드별 설정)**
@@ -668,7 +744,8 @@
         }
 
         updateTurnUI();
-        controlText.textContent = "하단의 스톤을 클릭해 발사를 준비하세요!";
+        // **MODIFIED: 버튼 비활성화는 updateTurnUI()가 담당**
+        // controlText.textContent = "하단의 스톤을 클릭해 발사를 준비하세요!";
 
         // 모달 숨기고 게임 보이기
         modeModal.classList.add('opacity-0');
@@ -703,10 +780,24 @@
     }
 
     // 이벤트 리스너
-    canvas.addEventListener('pointerdown', handlePointerDown);
-    canvas.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp); // window에서 떼도 인식
-    window.addEventListener('pointercancel', handlePointerUp); // 취소 시 드래그 종료
+    // **REMOVED: 기존 캔버스 발사 리스너**
+    // canvas.addEventListener('pointerdown', handlePointerDown);
+    // canvas.addEventListener('pointermove', handlePointerMove);
+    // window.addEventListener('pointerup', handlePointerUp); // window에서 떼도 인식
+    // window.addEventListener('pointercancel', handlePointerUp); // 취소 시 드래그 종료
+
+    // **NEW: 새 이벤트 리스너 등록**
+    // 캔버스 스크롤용
+    canvas.addEventListener('pointerdown', handleCanvasDragStart);
+    canvas.addEventListener('pointermove', handleCanvasDragMove);
+    canvas.addEventListener('pointerup', handleCanvasDragEnd);
+    canvas.addEventListener('pointerleave', handleCanvasDragEnd); // 캔버스 밖으로 나가면 드래그 중지
+
+    // 발사 버튼용
+    fireButton.addEventListener('pointerdown', handleButtonPress);
+    fireButton.addEventListener('pointerup', handleButtonRelease);
+    fireButton.addEventListener('pointerleave', handleButtonRelease); // 버튼 밖으로 나가도 발사 (터치 시 유용)
+
 
     modePracticeBtn.addEventListener('click', () => startGame('practice'));
     modeAiBtn.addEventListener('click', () => startGame('ai'));
@@ -719,4 +810,7 @@
 
 </body>
 </html>
+
+
+
 
