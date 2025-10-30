@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Curling 5.0 (Game Modes)</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+
+        #game-canvas {
+            background-color: #ffffff;
+            background-image:
+                    linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+                    linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+            cursor: grab;
+            /* **FIX: JS로 스크롤을 제어하므로 touch-action 제거** */
+            touch-action: none;
+        }
+
+        #power-gauge {
+            transition: width 0.05s linear;
+        }
+
+        #modal, #mode-modal {
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        /* 스크롤 컨테이너 */
+        #scroll-container {
+            height: 600px;
+            overflow-y: auto; /* JS가 제어하지만, 만약을 위해 auto M */
+            scroll-behavior: smooth;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        #scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* **NEW: 잠금/비활성 버튼 스타일** */
+        .btn-locked {
+            @apply bg-gray-300 text-gray-500 cursor-not-allowed flex items-center justify-center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+<!-- **NEW: 게임 모드 선택 모달** -->
+<div id="mode-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-20">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+        <h2 class="text-3xl font-bold mb-6">Circle Curling</h2>
+        <p class="text-lg text-gray-700 mb-8">플레이할 모드를 선택하세요.</p>
+        <div class="space-y-4">
+            <button id="mode-practice" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold text-lg">
+                1. 혼자 연습하기
+            </button>
+            <button id="mode-ai" class="w-full bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-lg font-semibold text-lg">
+                2. AI 대전
+            </button>
+            <button id="mode-2p" class="w-full bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-lg font-semibold text-lg">
+                <!-- JS가 이 버튼을 활성화/비활성화 -->
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 메인 게임 UI (초기에는 숨김) -->
+<div id="game-container" class="w-full max-w-lg bg-white rounded-lg shadow-xl p-4 md:p-6 hidden">
+
+    <!-- (A) 상단 정보 영역 -->
+    <div id="info-panel" class="mb-4 p-4 bg-blue-50 rounded-lg">
+        <div class="flex justify-between items-center mb-2">
+            <h1 id="game-title" class="text-xl md:text-2xl font-bold text-blue-800">Circle Curling</h1>
+            <div id="round-display" class="text-lg font-semibold text-blue-600">Round 1 / 5</div>
+        </div>
+
+        <div class="mt-4 p-3 bg-white rounded shadow-inner flex justify-between items-center">
+            <div>
+                <div id="turn-display" class="text-xl font-bold text-gray-800">
+                    Turn: <span id="current-turn" class="text-red-500">Player 1</span>
+                </div>
+                <div id="radius-text" class="text-base text-gray-600 mt-1">
+                    목표 반지름: <span id="target-radius" class="font-bold">...</span>px
+                </div>
+            </div>
+            <div id="score-display" class="text-right">
+                <div class="text-lg font-bold">Score</div>
+                <div id="player1-score" class="text-base text-red-500">Player 1: 0</div>
+                <div id="player2-score" class="text-base text-blue-500">AI: 0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- (B) 중앙 플레이 캔버스 (스크롤 컨테이너) -->
+    <div id="scroll-container" class="relative w-full mb-4 border rounded-lg">
+        <canvas id="game-canvas" width="600" height="2400" class="w-full h-auto"></canvas>
+    </div>
+
+    <!-- (C) 하단 입력 영역 -->
+    <div id="control-panel">
+        <p id="control-text" class="text-center text-gray-600 mb-2">
+            하단의 스톤을 클릭해 발사를 준비하세요!
+        </p>
+        <div id="power-gauge-container" class="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+            <div id="power-gauge" class="bg-gradient-to-r from-green-400 to-red-500 h-6 rounded-full" style="width: 0%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 판정/결과 모달 -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0 z-10">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+        <h2 id="modal-title" class="text-2xl font-bold mb-4">라운드 결과</h2>
+        <div id="modal-stars" class="text-4xl mb-3"></div>
+        <p id="modal-message" class="text-lg mb-4"></p>
+        <p id="modal-stats" class="text-base text-gray-700 mb-6"></p>
+        <button id="modal-button" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold">
+            다음 턴
+        </button>
+    </div>
+</div>
+
+<script>
+    // --- 1. DOM 요소 ---
+    const modeModal = document.getElementById('mode-modal');
+    const gameContainer = document.getElementById('game-container');
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const scrollContainer = document.getElementById('scroll-container');
+
+    // 모드 버튼
+    const modePracticeBtn = document.getElementById('mode-practice');
+    const modeAiBtn = document.getElementById('mode-ai');
+    const mode2pBtn = document.getElementById('mode-2p');
+
+    // 게임 UI
+    const gameTitle = document.getElementById('game-title');
+    const roundDisplay = document.getElementById('round-display');
+    const turnDisplay = document.getElementById('turn-display');
+    const currentTurnSpan = document.getElementById('current-turn');
+    const radiusText = document.getElementById('target-radius');
+    const player1ScoreDisplay = document.getElementById('player1-score');
+    const player2ScoreDisplay = document.getElementById('player2-score');
+    const scoreDisplay = document.getElementById('score-display');
+
+    const controlText = document.getElementById('control-text');
+    const powerGauge = document.getElementById('power-gauge');
+
+    // 결과 모달
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalStars = document.getElementById('modal-stars');
+    const modalMessage = document.getElementById('modal-message');
+    const modalStats = document.getElementById('modal-stats');
+    const modalButton = document.getElementById('modal-button');
+
+    // --- 2. 게임 상태 및 상수 ---
+    const canvasSize = { width: canvas.width, height: canvas.height }; // 600 x 2400
+    const center = { x: canvasSize.width / 2, y: canvasSize.height * 0.25 }; // y = 600
+
+    const FRICTION = 0.98;
+    const MIN_SPEED = 8;
+    const MAX_SPEED = 50;
+    const MAX_ROUNDS = 5;
+    const RADIUS_OPTIONS = [100, 150, 200, 250, 300, 350, 400, 450, 500];
+    let currentTargetRadius = RADIUS_OPTIONS[0];
+
+    const GAUGE_PAUSE = 200;
+    const GAUGE_SPEED = 0.02;
+
+    let gameState = 'init'; // 'init', 'ready', 'charging', 'moving', 'stopped', 'end'
+    let gameMode = 'practice'; // 'practice', 'ai', '2p'
+    let currentRound = 1;
+    let currentTurn = 'player1'; // 'player1', 'player2', 'ai'
+
+    let player1Scores = [];
+    let player2Scores = []; // 2P 모드용
+    let aiScores = [];      // AI 모드용
+
+    let lastDistance = 0;
+    let isOOB = false;
+
+    let stone = {
+        x: center.x,
+        y: canvasSize.height - 50, // 2350
+        radius: 20,
+        color: '#D92525' // Player 1 Red
+    };
+    let velocity = { x: 0, y: 0 };
+
+    let gaugePower = 0, gaugeDirection = 1, gaugePaused = false, gaugePauseTime = 0, gaugeLoopId = null;
+
+    // **NEW: 스크롤 및 해금 상태**
+    let aiWins = 0;
+    let isDragging = false;
+    let lastPointerY = 0;
+
+    // --- 3. 그리기 함수 ---
+    function clearCanvas() { ctx.clearRect(0, 0, canvasSize.width, canvasSize.height); }
+
+    function drawBackground() {
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#1D4ED8';
+        ctx.fill();
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillStyle = '#1D4ED8';
+        ctx.fillText('O', center.x - 6, center.y - 12);
+
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, currentTargetRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+
+    function drawStone() {
+        // **NEW: 턴에 따라 스톤 색 변경**
+        if (currentTurn === 'player1') stone.color = '#D92525'; // Red
+        else if (currentTurn === 'player2') stone.color = '#1D4ED8'; // Blue
+        else if (currentTurn === 'ai') stone.color = '#1D4ED8'; // Blue
+
+        ctx.beginPath();
+        ctx.arc(stone.x, stone.y, stone.radius, 0, Math.PI * 2);
+        ctx.fillStyle = stone.color;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(stone.x, stone.y, stone.radius / 2, 0, Math.PI * 2);
+        ctx.fillStyle = '#FBBF24';
+        ctx.fill();
+    }
+
+    function drawFeedback() {
+        if (isOOB) return;
+        // ... (이전과 동일)
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.lineTo(stone.x, stone.y);
+        ctx.strokeStyle = '#FBBF24';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        const labelPos = { x: (center.x + stone.x) / 2, y: (center.y + stone.y) / 2 };
+        const dText = `d = ${lastDistance.toFixed(1)}px`;
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillStyle = '#000';
+        ctx.save();
+        ctx.translate(labelPos.x, labelPos.y);
+        let angle = Math.atan2(stone.y - center.y, stone.x - center.x);
+        if (angle > Math.PI / 2 || angle < -Math.PI / 2) angle += Math.PI;
+        ctx.rotate(angle);
+        ctx.fillText(dText, 10, -5);
+        ctx.restore();
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, lastDistance, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.7)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // --- 4. 게임 로직 ---
+
+    function showDistanceScroll() {
+        // AI 턴에는 스크롤 애니메이션 생략
+        if (currentTurn === 'ai') {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            return;
+        }
+        scrollContainer.scrollTo({ top: 0, behavior: 'auto' });
+        setTimeout(() => {
+            scrollContainer.scrollTo({ top: scrollContainer.scrollHeight, behavior: 'smooth' });
+        }, 500);
+    }
+
+    function updateCamera() {
+        const targetScroll = stone.y - (scrollContainer.clientHeight / 2);
+        scrollContainer.scrollTop = targetScroll;
+    }
+
+    function gameLoop() {
+        clearCanvas();
+        drawBackground();
+        if (gameState === 'moving') {
+            updateStonePosition();
+            updateCamera();
+        }
+        drawStone();
+        if (gameState === 'stopped') {
+            drawFeedback();
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
+    function updateStonePosition() {
+        stone.x += velocity.x;
+        stone.y += velocity.y;
+        velocity.x *= FRICTION;
+        velocity.y *= FRICTION;
+        if (stone.y < 0 || stone.y > canvasSize.height) { handleStop(true); return; }
+        if (Math.hypot(velocity.x, velocity.y) < 0.1) { handleStop(false); }
+    }
+
+    function fireStone(power, playerType) {
+        const speed = MIN_SPEED + power * (MAX_SPEED - MIN_SPEED);
+        const startY = canvasSize.height - 50;
+        const dir = { x: center.x - stone.x, y: center.y - startY };
+        const dist = Math.hypot(dir.x, dir.y);
+        const normDir = { x: dir.x / dist, y: dir.y / dist };
+        velocity = { x: normDir.x * speed, y: normDir.y * speed };
+        gameState = 'moving';
+        isOOB = false;
+        canvas.style.cursor = 'default'; // 발사 시 커서 기본값
+    }
+
+    function handleStop(outOfBounds) {
+        velocity = { x: 0, y: 0 };
+        gameState = 'stopped';
+        isOOB = outOfBounds;
+        if (isOOB) { lastDistance = 9999; }
+        else { lastDistance = Math.hypot(stone.x - center.x, stone.y - center.y); }
+        judgeRound(lastDistance);
+    }
+
+    // 판정 로직
+    function judgeRound(d) {
+        const r = currentTargetRadius;
+        let error, message, stars, score;
+        if (isOOB) {
+            error = 1000; message = "아웃! 캔버스 밖으로 나갔습니다."; stars = '❌'; score = 0;
+        } else {
+            error = Math.abs(d - r);
+            score = Math.max(0, 500 - error);
+            if (error <= 50) { stars = '⭐⭐⭐'; message = "완벽해요! 딱 원 위에 멈췄어요!"; }
+            else if (error <= 150) { stars = '⭐⭐'; message = "거의 맞았어요! '반지름'에 가깝습니다."; }
+            else { stars = '⭐'; message = d < r ? "반지름보다 '안쪽'입니다." : "반지름보다 '바깥쪽'입니다."; }
+        }
+        score = Math.round(score);
+
+        // **NEW: 턴에 따라 점수 저장**
+        if (currentTurn === 'player1') player1Scores.push(score);
+        else if (currentTurn === 'player2') player2Scores.push(score);
+        else if (currentTurn === 'ai') aiScores.push(score);
+
+        updateScoreUI();
+        showModal(stars, message, d, r, score);
+    }
+
+    // 모달 표시
+    function showModal(stars, message, d, r, score) {
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+
+        // **NEW: 턴 이름 표시**
+        let turnName = "Player 1";
+        if (currentTurn === 'player2') turnName = "Player 2";
+        else if (currentTurn === 'ai') turnName = "AI";
+
+        modalTitle.textContent = `${turnName}의 결과`;
+        modalStars.textContent = stars;
+        modalMessage.textContent = message;
+        if (isOOB) {
+            modalStats.innerHTML = `결과: <span class="font-bold text-red-500">Out of Bounds</span><br>획득 점수: <span class="font-bold">${score}점</span>`;
+        } else {
+            modalStats.innerHTML = `
+                    목표 반지름 (r): <span class="font-bold text-red-500">${r.toFixed(1)}px</span><br>
+                    나의 거리 (d): <span class="font-bold text-blue-500">${d.toFixed(1)}px</span><br>
+                    오차: <span class="font-bold">${Math.abs(d - r).toFixed(1)}px</span><br>
+                    획득 점수: <span class="font-bold">${score}점</span>`;
+        }
+        modalButton.textContent = '다음 턴 진행';
+    }
+
+    // 최종 리포트
+    function showFinalReport() {
+        gameState = 'end';
+        let title = '최종 결과';
+        let stars = '';
+        let stats = '';
+
+        const p1Total = player1Scores.reduce((a, b) => a + b, 0);
+
+        if (gameMode === 'practice') {
+            stars = `총점: ${p1Total}점`;
+            stats = `5 라운드 연습을 완료했습니다.`;
+        } else if (gameMode === 'ai') {
+            const aiTotal = aiScores.reduce((a, b) => a + b, 0);
+            if (p1Total > aiTotal) {
+                stars = '<span class="text-red-500">Player 1 승리!</span>';
+                // **NEW: 승리 기록**
+                aiWins = parseInt(localStorage.getItem('circleCurlingAiWins') || '0');
+                localStorage.setItem('circleCurlingAiWins', (aiWins + 1));
+            } else if (aiTotal > p1Total) {
+                stars = '<span class="text-blue-500">AI 승리!</span>';
+            } else {
+                stars = '<span class="text-gray-800">무승부</span>';
+            }
+            stats = `Player 1 총점: <span class="font-bold text-red-500">${p1Total}점</span><br>
+                         AI 총점: <span class="font-bold text-blue-500">${aiTotal}점</span>`;
+        } else if (gameMode === '2p') {
+            const p2Total = player2Scores.reduce((a, b) => a + b, 0);
+            if (p1Total > p2Total) {
+                stars = '<span class="text-red-500">Player 1 승리!</span>';
+            } else if (p2Total > p1Total) {
+                stars = '<span class="text-blue-500">Player 2 승리!</span>';
+            } else {
+                stars = '<span class="text-gray-800">무승부</span>';
+            }
+            stats = `Player 1 총점: <span class="font-bold text-red-500">${p1Total}점</span><br>
+                         Player 2 총점: <span class="font-bold text-blue-500">${p2Total}점</span>`;
+        }
+
+        modalTitle.textContent = title;
+        modalStars.innerHTML = stars;
+        modalMessage.textContent = "대전이 종료되었습니다. 수고하셨습니다!";
+        modalStats.innerHTML = stats;
+        modalButton.textContent = '모드 선택으로';
+    }
+
+    // **NEW: 턴/라운드 관리 로직 (모드별 분기)**
+    function nextTurn() {
+        modal.classList.add('opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+        resetStone();
+
+        if (gameState === 'end') {
+            // 게임 종료 시 모드 선택 화면으로
+            gameContainer.classList.add('hidden');
+            showModeSelection();
+            return;
+        }
+
+        // --- 1. 연습 모드 ---
+        if (gameMode === 'practice') {
+            currentRound++;
+            if (currentRound > MAX_ROUNDS) {
+                showFinalReport();
+            } else {
+                setNewRadius();
+                updateTurnUI();
+                showDistanceScroll();
+                gameState = 'ready';
+            }
+        }
+        // --- 2. AI 대전 모드 ---
+        else if (gameMode === 'ai') {
+            if (currentTurn === 'player1') {
+                currentTurn = 'ai';
+                updateTurnUI();
+                aiTurn();
+            } else {
+                currentTurn = 'player1';
+                currentRound++;
+                if (currentRound > MAX_ROUNDS) {
+                    showFinalReport();
+                } else {
+                    setNewRadius();
+                    updateTurnUI();
+                    showDistanceScroll();
+                    gameState = 'ready';
+                }
+            }
+        }
+        // --- 3. 2P 대전 모드 ---
+        else if (gameMode === '2p') {
+            if (currentTurn === 'player1') {
+                currentTurn = 'player2';
+            } else {
+                currentTurn = 'player1';
+                currentRound++;
+            }
+
+            if (currentRound > MAX_ROUNDS) {
+                showFinalReport();
+            } else {
+                if (currentTurn === 'player1') setNewRadius(); // P1 턴에만 반지름 변경
+                updateTurnUI();
+                showDistanceScroll();
+                gameState = 'ready';
+            }
+        }
+    }
+
+    // AI 턴 로직
+    function aiTurn() {
+        gameState = 'ai_turn';
+        controlText.textContent = "AI가 생각 중입니다...";
+        const travelDistToCenter = stone.y - center.y;
+        const targetTravelDist = travelDistToCenter - currentTargetRadius;
+        const targetSpeed = targetTravelDist * (1 - FRICTION);
+        let targetPower = (targetSpeed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED);
+        const aiError = (Math.random() - 0.5) * 0.1; // +/- 5%
+        targetPower = Math.max(0, Math.min(1, targetPower + aiError));
+        setTimeout(() => { fireStone(targetPower, 'ai'); }, 1500);
+    }
+
+    function resetStone() {
+        stone.x = center.x;
+        stone.y = canvasSize.height - 50; // 2350
+        velocity = { x: 0, y: 0 };
+        lastDistance = 0;
+        isOOB = false;
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        canvas.style.cursor = 'grab';
+    }
+
+    // UI 업데이트
+    function updateScoreUI() {
+        const p1Total = player1Scores.reduce((a, b) => a + b, 0);
+        player1ScoreDisplay.textContent = `Player 1: ${p1Total}`;
+
+        if (gameMode === 'ai') {
+            const aiTotal = aiScores.reduce((a, b) => a + b, 0);
+            player2ScoreDisplay.textContent = `AI: ${aiTotal}`;
+        } else if (gameMode === '2p') {
+            const p2Total = player2Scores.reduce((a, b) => a + b, 0);
+            player2ScoreDisplay.textContent = `Player 2: ${p2Total}`;
+        }
+    }
+
+    function updateTurnUI() {
+        let turnText = '';
+        let turnColor = 'text-red-500';
+
+        if (gameMode === 'practice') {
+            turnText = 'Player';
+        } else if (gameMode === 'ai') {
+            turnText = (currentTurn === 'player1') ? 'Player 1' : 'AI';
+            turnColor = (currentTurn === 'player1') ? 'text-red-500' : 'text-blue-500';
+        } else if (gameMode === '2p') {
+            turnText = (currentTurn === 'player1') ? 'Player 1' : 'Player 2';
+            turnColor = (currentTurn === 'player1') ? 'text-red-500' : 'text-blue-500';
+        }
+
+        currentTurnSpan.textContent = turnText;
+        currentTurnSpan.className = turnColor;
+        roundDisplay.textContent = `Round ${currentRound} / ${MAX_ROUNDS}`;
+    }
+
+
+    // --- 5. 핑퐁 게이지 로직 ---
+    function updateGauge() {
+        const now = Date.now();
+        if (gaugePaused) {
+            if (now - gaugePauseTime > GAUGE_PAUSE) {
+                gaugePaused = false;
+                gaugeDirection *= -1;
+            }
+        } else {
+            gaugePower += gaugeDirection * GAUGE_SPEED;
+            if (gaugePower >= 1) { gaugePower = 1; gaugePaused = true; gaugePauseTime = now; }
+            else if (gaugePower <= 0) { gaugePower = 0; gaugePaused = true; gaugePauseTime = now; }
+        }
+        powerGauge.style.width = `${gaugePower * 100}%`;
+        gaugeLoopId = requestAnimationFrame(updateGauge);
+    }
+
+    // --- 6. 이벤트 핸들러 ---
+
+    // **FIX: JS 기반 수동 스크롤 + 스톤 클릭**
+    function handlePointerDown(e) {
+        // 턴이 아니거나, 이미 충전 중이거나, 움직이는 중이면 무시
+        if (gameState !== 'ready' || (currentTurn !== 'player1' && currentTurn !== 'player2')) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const clickY = e.clientY - rect.top + scrollContainer.scrollTop;
+        const clickX = e.clientX - rect.left;
+        const distFromStone = Math.hypot(clickX - stone.x, clickY - stone.y);
+
+        if (distFromStone <= stone.radius * 2) {
+            // 1. 스톤 클릭 -> 발사 준비
+            e.preventDefault();
+            gameState = 'charging';
+            controlText.textContent = "타이밍을 맞춰 손을 떼세요!";
+            canvas.style.cursor = 'default';
+
+            gaugePower = 0;
+            gaugeDirection = 1;
+            gaugePaused = false;
+            if (gaugeLoopId) cancelAnimationFrame(gaugeLoopId);
+            gaugeLoopId = requestAnimationFrame(updateGauge);
+        } else {
+            // 2. 배경 클릭 -> 수동 스크롤 시작
+            e.preventDefault();
+            isDragging = true;
+            lastPointerY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        }
+    }
+
+    function handlePointerMove(e) {
+        if (isDragging) {
+            // 1. 드래그 중 -> 스크롤
+            e.preventDefault();
+            const deltaY = e.clientY - lastPointerY;
+            scrollContainer.scrollTop -= deltaY;
+            lastPointerY = e.clientY;
+        } else if (gameState === 'ready' && (currentTurn === 'player1' || currentTurn === 'player2')) {
+            // 2. 준비 상태 -> 스톤 호버 체크
+            const rect = canvas.getBoundingClientRect();
+            const moveY = e.clientY - rect.top + scrollContainer.scrollTop;
+            const moveX = e.clientX - rect.left;
+            const distFromStone = Math.hypot(moveX - stone.x, moveY - stone.y);
+            canvas.style.cursor = (distFromStone <= stone.radius * 2) ? 'pointer' : 'grab';
+        }
+    }
+
+    function handlePointerUp(e) {
+        if (gameState === 'charging') {
+            // 1. 발사
+            e.preventDefault();
+            if (gaugeLoopId) cancelAnimationFrame(gaugeLoopId);
+            gaugeLoopId = null;
+            controlText.textContent = "발사!";
+            fireStone(gaugePower, currentTurn);
+        }
+        if (isDragging) {
+            // 2. 드래그 종료
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        }
+    }
+
+    modalButton.addEventListener('click', () => {
+        if (gameState === 'end' || gameState === 'stopped') {
+            nextTurn();
+        }
+    });
+
+    // --- 7. 게임 시작 및 모드 선택 ---
+
+    function setNewRadius() {
+        currentTargetRadius = RADIUS_OPTIONS[Math.floor(Math.random() * RADIUS_OPTIONS.length)];
+        radiusText.textContent = `목표 반지름: ${currentTargetRadius}px`;
+    }
+
+    // **NEW: 게임 시작 함수 (모드별 설정)**
+    function startGame(mode) {
+        gameMode = mode;
+        gameState = 'ready';
+        currentRound = 1;
+        currentTurn = 'player1';
+        player1Scores = [];
+        player2Scores = [];
+        aiScores = [];
+
+        setNewRadius();
+        resetStone();
+        updateScoreUI();
+
+        // 모드별 UI 설정
+        if (mode === 'practice') {
+            gameTitle.textContent = '혼자 연습하기';
+            scoreDisplay.classList.add('hidden'); // 점수판 숨기기
+        } else if (mode === 'ai') {
+            gameTitle.textContent = 'AI 대전';
+            scoreDisplay.classList.remove('hidden');
+            player2ScoreDisplay.textContent = 'AI: 0';
+        } else if (mode === '2p') {
+            gameTitle.textContent = '친구와 대결하기';
+            scoreDisplay.classList.remove('hidden');
+            player2ScoreDisplay.textContent = 'Player 2: 0';
+        }
+
+        updateTurnUI();
+        controlText.textContent = "하단의 스톤을 클릭해 발사를 준비하세요!";
+
+        // 모달 숨기고 게임 보이기
+        modeModal.classList.add('opacity-0');
+        setTimeout(() => modeModal.classList.add('hidden'), 200);
+        gameContainer.classList.remove('hidden');
+
+        setTimeout(showDistanceScroll, 100);
+    }
+
+    // **NEW: 모드 선택 화면 표시 (페이지 로드 시)**
+    function showModeSelection() {
+        aiWins = parseInt(localStorage.getItem('circleCurlingAiWins') || '0');
+
+        modeModal.classList.remove('hidden');
+        modeModal.classList.remove('opacity-0');
+
+        // 2P 모드 해금 조건
+        if (aiWins >= 3) {
+            mode2pBtn.textContent = '3. 친구와 대결하기 (2P)';
+            mode2pBtn.classList.remove('btn-locked');
+            mode2pBtn.disabled = false;
+        } else {
+            mode2pBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+                    </svg>
+                    (AI 대전 ${3 - aiWins}승 더 필요)
+                `;
+            mode2pBtn.classList.add('btn-locked');
+            mode2pBtn.disabled = true;
+        }
+    }
+
+    // 이벤트 리스너
+    canvas.addEventListener('pointerdown', handlePointerDown);
+    canvas.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp); // window에서 떼도 인식
+    window.addEventListener('pointercancel', handlePointerUp); // 취소 시 드래그 종료
+
+    modePracticeBtn.addEventListener('click', () => startGame('practice'));
+    modeAiBtn.addEventListener('click', () => startGame('ai'));
+    mode2pBtn.addEventListener('click', () => startGame('2p'));
+
+    // 게임 시작!
+    showModeSelection();
+    gameLoop();
+</script>
+
+</body>
+</html>
+
