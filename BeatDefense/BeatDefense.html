@@ -353,9 +353,9 @@
         const JUDGEMENT_ZONE_X_CENTER_PERCENT = 20;
         const KEY_MAP = { 'q': 'q', 'w': 'w', 'e': 'e', 'ㅂ': 'q', 'ㅈ': 'w', 'ㄷ': 'e' };
 
-        // [수정] 히트박스 x축 크기 절반으로
+        // [수정] Q 히트박스 x축 크기 1.5배 (30 -> 45)
         const BASE_HITBOX_SIZES = {
-            q: { w: 30, h: 60 },
+            q: { w: 45, h: 60 },
             w: { w: 45, h: 40 },
             e: { w: 25, h: 80 }
         };
@@ -389,7 +389,6 @@
             }
         };
 
-        // [수정] 스테이지 정의 (3-8 스테이지)
         const STAGE_DEFINITIONS = [
             { id: 'stage1', titlePrefix: 'Stage 1', bpm: 100, xpReward: 50, goldReward: 20, enemyDamage: 1,
                 patternGenerator: (len = 20) => { const p = []; for (let i = 0; i < len; i++) { p.push({ t: BEAT_MS * i, key: 'q' }); } return p; }
@@ -432,7 +431,7 @@
         const lobbyPlayerPreview = document.getElementById('lobby-player-preview');
 
         const startAdventureButton = document.getElementById('start-adventure-button');
-        const continueStageText = document.getElementById('continue-stage-text'); // [신규]
+        const continueStageText = document.getElementById('continue-stage-text');
         const goToShopButton = document.getElementById('go-to-shop-button');
         const goToSettingsButton = document.getElementById('go-to-settings-button');
 
@@ -558,6 +557,7 @@
             catch (e) { console.error("Failed to save player state:", e); }
         }
 
+        // [수정] addXp, addGold는 이제 세션 중에도 누적됨
         function addXp(amount) {
             if (amount <= 0) return;
             playerState.xp += amount;
@@ -626,7 +626,6 @@
             const playerSkinKey = playerState.equippedSkins.player;
             lobbyPlayerPreview.src = SKIN_REGISTRY.player[playerSkinKey].url;
 
-            // [신규] 현재 진행할 스테이지 표시
             const stageIndex = playerState.currentStageIndex;
             const stageTitle = stageIndex < STAGE_DEFINITIONS.length ?
                 `Stage ${stageIndex + 1}` :
@@ -676,7 +675,7 @@
             Object.keys(SKIN_REGISTRY).forEach(category => {
                 const skins = SKIN_REGISTRY[category];
                 Object.keys(skins).forEach(skinId => {
-                    if (skinId === 'default') return; // 'default' 스킨은 상점에 표시 안 함
+                    if (skinId === 'default') return;
                     const skin = skins[skinId];
                     const btn = document.createElement('button');
                     btn.className = 'item-button';
@@ -745,7 +744,6 @@
                 selectEl.innerHTML = '';
                 const skins = SKIN_REGISTRY[category];
                 Object.keys(skins).forEach(skinId => {
-                    // 'default' 스킨이거나 구매한 스킨만 목록에 추가
                     if (skinId === 'default' || playerState.purchasedSkins.includes(skinId)) {
                         const skin = skins[skinId];
                         const option = document.createElement('option');
@@ -782,7 +780,6 @@
                 stageDef = STAGE_DEFINITIONS[stageIndex];
                 stageTitle = stageDef.titlePrefix;
             } else {
-                // Stage 8 (index 7)이 마지막 정의된 스테이지. 그 이후는 루프.
                 stageDef = STAGE_DEFINITIONS[STAGE_DEFINITIONS.length - 1];
                 const loopCount = stageIndex - (STAGE_DEFINITIONS.length - 1);
                 difficultyMultiplier = 1 + (loopCount * 0.2);
@@ -807,7 +804,12 @@
 
         function initGame() {
             if (!currentStage) return;
-            player = { hp: playerState.maxHp, maxHp: playerState.maxHp, score: 0, combo: 0, sessionXp: 0, sessionGold: 0 };
+            // [수정] sessionXp, sessionGold는 게임 시작 시 0으로 초기화
+            player = {
+                hp: playerState.maxHp, maxHp: playerState.maxHp,
+                score: 0, combo: 0,
+                sessionXp: 0, sessionGold: 0
+            };
             game = { isPlaying: false, startTime: 0, patternIndex: 0, totalEnemies: enemyPatterns.length, destroyedEnemies: 0 };
             enemies = [];
             lastAttackAt = { q: 0, w: 0, e: 0 };
@@ -838,7 +840,7 @@
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        // [수정] endGame (이어하기 로직)
+        // [수정] endGame (보상 로직 변경)
         function endGame(isWaveClear) {
             game.isPlaying = false;
             cancelAnimationFrame(animationFrameId);
@@ -854,31 +856,31 @@
 
             if (isWaveClear) {
                 const baseXp = currentStage.xpReward;
-                const baseGold = currentStage.goldReward; // [수정] 클리어 골드
+                const baseGold = currentStage.goldReward;
                 const totalXp = baseXp + player.sessionXp;
                 const totalGold = baseGold + player.sessionGold;
 
                 addXp(totalXp);
                 addGold(totalGold);
 
-                playerState.currentStageIndex++; // [수정] 클리어 시에만 인덱스 증가
+                playerState.currentStageIndex++;
                 savePlayerState();
 
                 resultTitle.textContent = 'STAGE CLEAR!';
                 resultTitle.style.color = '#48bb78';
-                resultXpText.textContent = `XP +${totalXp} (피버 +${player.sessionXp})`;
-                resultGoldText.textContent = `GOLD +${totalGold} (클리어 ${baseGold} + 피버 ${player.sessionGold})`;
+                resultXpText.textContent = `XP +${totalXp} (클리어 ${baseXp} + 처치/피버 ${player.sessionXp})`;
+                resultGoldText.textContent = `GOLD +${totalGold} (클리어 ${baseGold} + 처치/피버 ${player.sessionGold})`;
                 continueButton.style.display = 'inline-block';
             } else {
-                // [수정] 게임 오버 시에는 피버 골드/XP만 저장 (currentStageIndex는 증가 안 함)
+                // [수정] 게임 오버: 세션 중 획득한 (처치/피버) 보상만 저장
                 addXp(player.sessionXp);
                 addGold(player.sessionGold);
                 savePlayerState();
 
                 resultTitle.textContent = 'GAME OVER';
                 resultTitle.style.color = '#e53e3e';
-                resultXpText.textContent = `XP +${player.sessionXp} (피버)`;
-                resultGoldText.textContent = `GOLD +${player.sessionGold} (피버)`;
+                resultXpText.textContent = `XP +${player.sessionXp} (처치/피버)`;
+                resultGoldText.textContent = `GOLD +${player.sessionGold} (처치/피버)`;
                 retryButton.style.display = 'inline-block';
             }
         }
@@ -966,7 +968,6 @@
             const level = playerState[`rangeLevel${key.toUpperCase()}`];
             const bonusSize = level * RANGE_VISUAL_BONUS_PX;
 
-            // [수정] BASE_HITBOX_SIZES가 이미 절반 크기
             hitboxEl.style.width = `${BASE_HITBOX_SIZES[key].w + bonusSize}px`;
             hitboxEl.style.height = `${BASE_HITBOX_SIZES[key].h + bonusSize}px`;
 
@@ -976,6 +977,8 @@
             checkHitboxCollision(key);
             setTimeout(() => { hitboxEl.remove(); }, HITBOX_DURATION_MS);
         }
+
+        // [수정] checkHitboxCollision (보상 로직 변경)
         function checkHitboxCollision(attackKey) {
             let hitSuccess = false;
             const level = playerState[`rangeLevel${attackKey.toUpperCase()}`];
@@ -997,10 +1000,14 @@
                         hitSuccess = true;
                         game.destroyedEnemies++;
 
+                        // [수정] 몬스터 처치 보상 (세션 누적)
+                        player.sessionXp += 5;
+                        player.sessionGold += 5;
+
                         if (player.combo > 0 && player.combo % FEVER_COMBO === 0) {
                             player.hp = Math.min(player.maxHp, player.hp + 1);
-                            player.sessionXp += 1;
-                            player.sessionGold += 1;
+                            player.sessionXp += 1; // 피버 보너스
+                            player.sessionGold += 1; // 피버 보너스
                             showFeedbackText("FEVER!", "#f6e05e");
                         }
                     } else {
@@ -1087,3 +1094,4 @@
 
 </body>
 </html>
+
