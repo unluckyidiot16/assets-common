@@ -88,7 +88,14 @@
     <div id="info-panel" class="mb-4 p-4 bg-blue-50 rounded-lg">
         <div class="flex justify-between items-center mb-2">
             <h1 id="game-title" class="text-xl md:text-2xl font-bold text-blue-800">Circle Curling</h1>
-            <div id="round-display" class="text-lg font-semibold text-blue-600">Round 1 / 5</div>
+            <!-- **MODIFIED: Group round display and give up button** -->
+            <div class="flex items-center space-x-2">
+                <div id="round-display" class="text-lg font-semibold text-blue-600">Round 1 / 5</div>
+                <!-- **NEW: Give Up Button** -->
+                <button id="give-up-button" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">
+                    포기하기
+                </button>
+            </div>
         </div>
 
         <div class="mt-4 p-3 bg-white rounded shadow-inner flex justify-between items-center">
@@ -176,6 +183,8 @@
     const modalMessage = document.getElementById('modal-message');
     const modalStats = document.getElementById('modal-stats');
     const modalButton = document.getElementById('modal-button');
+    // **NEW: Give Up Button**
+    const giveUpButton = document.getElementById('give-up-button');
 
     // --- 2. 게임 상태 및 상수 ---
     const canvasSize = { width: canvas.width, height: canvas.height }; // 600 x 2400
@@ -467,17 +476,22 @@
         let title = '최종 결과';
         let stars = '';
         let stats = '';
+        // **NEW: Button text variable**
+        let buttonText = '모드 선택으로'; // Default text
 
         const p1Total = player1Scores.reduce((a, b) => a + b, 0);
 
         if (gameMode === 'practice') {
             stars = `총점: ${p1Total}점`;
             stats = `5 라운드 연습을 완료했습니다.`;
+            buttonText = '연습 완료 (메뉴로)'; // Practice mode text
         } else if (gameMode === 'ai' || gameMode === 'hard-ai') {
             const aiTotal = aiScores.reduce((a, b) => a + b, 0);
             const hardSuffix = (gameMode === 'hard-ai') ? ' (Hard)' : '';
             if (p1Total > aiTotal) {
                 stars = `<span class="text-red-500">Player 1 승리!${hardSuffix}</span>`;
+                // **MODIFIED: Set button text for Win**
+                buttonText = '승리! (메뉴로)';
                 // **MODIFIED: 승리 기록 (노멀 모드만)**
                 if (gameMode === 'ai') {
                     aiWins = parseInt(localStorage.getItem('circleCurlingAiNormalWins') || '0');
@@ -485,8 +499,12 @@
                 }
             } else if (aiTotal > p1Total) {
                 stars = `<span class="text-blue-500">AI 승리!${hardSuffix}</span>`;
+                // **MODIFIED: Set button text for Lose**
+                buttonText = '패배 (메뉴로)';
             } else {
                 stars = `<span class="text-gray-800">무승부${hardSuffix}</span>`;
+                // **MODIFIED: Set button text for Draw**
+                buttonText = '무승부 (메뉴로)';
             }
             stats = `Player 1 총점: <span class="font-bold text-red-500">${p1Total}점</span><br>
                          AI 총점: <span class="font-bold text-blue-500">${aiTotal}점</span>`;
@@ -497,10 +515,16 @@
             const hardSuffix = (gameMode === '2p-hard') ? ' (Hard)' : '';
             if (p1Total > p2Total) {
                 stars = `<span class="text-red-500">Player 1 승리!${hardSuffix}</span>`;
+                // **MODIFIED: Set button text for P1 Win**
+                buttonText = 'P1 승리! (메뉴로)';
             } else if (p2Total > p1Total) {
                 stars = `<span class="text-blue-500">Player 2 승리!${hardSuffix}</span>`;
+                // **MODIFIED: Set button text for P2 Win**
+                buttonText = 'P2 승리! (메뉴로)';
             } else {
                 stars = `<span class="text-gray-800">무승부${hardSuffix}</span>`;
+                // **MODIFIED: Set button text for Draw**
+                buttonText = '무승부 (메뉴로)';
             }
             stats = `Player 1 총점: <span class="font-bold text-red-500">${p1Total}점</span><br>
                          Player 2 총점: <span class="font-bold text-blue-500">${p2Total}점</span>`;
@@ -510,7 +534,8 @@
         modalStars.innerHTML = stars;
         modalMessage.textContent = "대전이 종료되었습니다. 수고하셨습니다!";
         modalStats.innerHTML = stats;
-        modalButton.textContent = '모드 선택으로';
+        // **MODIFIED: Apply the dynamic button text**
+        modalButton.textContent = buttonText;
         fireButton.disabled = true;
     }
 
@@ -583,7 +608,17 @@
         const targetTravelDist = travelDistToCenter - currentTargetRadius;
         const targetSpeed = targetTravelDist * (1 - FRICTION);
         let targetPower = (targetSpeed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED);
-        const aiError = (Math.random() - 0.5) * 0.1; // +/- 5% 파워 에러
+
+        // **MODIFIED: AI 난이도 조절 (1라운드 실수)**
+        let aiError;
+        if (currentRound === 1 && (gameMode === 'ai' || gameMode === 'hard-ai')) {
+            // 1라운드에는 고의로 큰 실수를 함 (파워를 30%~50% 더하거나 뺌)
+            aiError = (Math.random() > 0.5 ? 1 : -1) * (0.3 + Math.random() * 0.2); // +/- 30% ~ 50%
+        } else {
+            // 2라운드부터는 원래 로직 (약간의 실수)
+            aiError = (Math.random() - 0.5) * 0.1; // +/- 5% 파워 에러
+        }
+
         targetPower = Math.max(0, Math.min(1, targetPower + aiError));
 
         let fireDir = null;
@@ -714,6 +749,22 @@
         gaugeLoopId = null;
         controlText.textContent = "발사!";
         fireStone(gaugePower, currentTurn);
+    }
+
+    // **NEW: Give Up Function**
+    function handleGiveUp() {
+        // Stop any ongoing actions
+        if (gaugeLoopId) cancelAnimationFrame(gaugeLoopId);
+        gaugeLoopId = null;
+        // Stop stone movement
+        velocity = { x: 0, y: 0 };
+
+        // Reset game state
+        gameState = 'init';
+
+        // Hide game, show menu
+        gameContainer.classList.add('hidden');
+        showModeSelection();
     }
 
     modalButton.addEventListener('click', () => {
@@ -847,6 +898,9 @@
     mode2pNormalBtn.addEventListener('click', () => startGame('2p-normal')); // **MODIFIED**
     mode2pHardBtn.addEventListener('click', () => startGame('2p-hard'));   // **NEW**
 
+    // **NEW: Give Up Listener**
+    giveUpButton.addEventListener('click', handleGiveUp);
+
     // 게임 시작!
     showModeSelection();
     gameLoop();
@@ -854,4 +908,7 @@
 
 </body>
 </html>
+
+
+
 
