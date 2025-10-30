@@ -64,7 +64,7 @@
             object-fit: contain;
         }
 
-        /* [수정] 성공 시 팝! 효과 */
+        /* 성공 시 팝! 효과 */
         .note-pop {
             animation: pop-out 0.2s ease-out forwards;
         }
@@ -79,7 +79,7 @@
             }
         }
 
-        /* [수정] 실패 시 어두워지는 효과 */
+        /* 실패 시 어두워지는 효과 */
         .note-miss {
             filter: grayscale(100%) brightness(0.5);
             opacity: 0.7;
@@ -93,7 +93,7 @@
             border-radius: 0.375rem;
             display: flex;
             align-items: center;
-            justify: center;
+            justify-content: center;
             font-weight: bold;
             color: white;
             transition: all 0.2s ease;
@@ -117,7 +117,7 @@
             height: 60px;
             display: inline-flex;
             align-items: center;
-            justify: center;
+            justify-content: center;
             border-radius: 0.5rem;
             background-color: #4a5568; /* bg-gray-600 */
             color: white;
@@ -182,7 +182,7 @@
     <!-- 상단: 헤더 -->
     <div class="text-center">
         <h1 class="text-2xl font-bold text-white mb-1">리듬 메모리 노트</h1>
-        <!-- [수정] 스테이지 표시기 -->
+        <!-- 스테이지 표시기 -->
         <h2 id="stage-display" class="text-xl font-bold text-cyan-400"></h2>
     </div>
 
@@ -199,17 +199,20 @@
         <!-- 스크롤링 노트가 여기에 동적으로 생성됩니다 -->
     </div>
 
-    <!-- 하단: 키 힌트 -->
+    <!-- 하단: 키 힌트 (E키 추가) -->
     <div id="key-hints" class="flex justify-center gap-4 p-4 bg-gray-700 rounded-lg">
         <div class="text-center">
             <kbd id="key-q" class="bg-red-500">Q</kbd>
-            <!-- [수정] 길이 설명 제거 -->
             <span class="block text-sm mt-1">2분음표</span>
         </div>
         <div class="text-center">
             <kbd id="key-w" class="bg-orange-500">W</kbd>
-            <!-- [수정] 길이 설명 제거 -->
             <span class="block text-sm mt-1">4분음표</span>
+        </div>
+        <!-- [수정] 8분음표 키 래퍼. 기본 숨김 -->
+        <div id="key-e-wrapper" class="text-center hidden">
+            <kbd id="key-e" class="bg-blue-500">E</kbd>
+            <span class="block text-sm mt-1">8분음표</span>
         </div>
     </div>
 
@@ -226,14 +229,14 @@
     </div>
 </div>
 
-<!-- [수정] 시작 화면 모달 (스테이지 선택 -> 시작 버튼) -->
+<!-- 시작 화면 모달 -->
 <div id="start-screen" class="modal flex flex-col items-center justify-center p-8 gap-4">
     <h2 class="text-3xl font-bold text-white mb-4">리듬 메모리 노트</h2>
-    <p class="text-lg text-gray-300 mb-6 text-center">3학년 눈높이! 박자를 기억하는 게임</p>
+    <p class="text-lg text-gray-300 mb-6 text-center"> 박자를 기억하는 게임</p>
     <button onclick="startGame()" class="w-full max-w-xs text-lg bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
         게임 시작!
     </button>
-    <p class="text-gray-400 mt-6 text-center">키보드 Q (2분), W (4분) 키를 사용합니다.</p>
+    <p class="text-gray-400 mt-6 text-center">키보드 Q (2분), W (4분), E (8분) 키를 사용합니다.</p>
 </div>
 
 <!-- 결과 화면 모달 -->
@@ -275,6 +278,7 @@
 
     const keyQ = document.getElementById('key-q');
     const keyW = document.getElementById('key-w');
+    const keyEWrapper = document.getElementById('key-e-wrapper'); // [수정] E키 래퍼
 
     const scoreDisplay = document.getElementById('score-display');
     const comboDisplay = document.getElementById('combo-display');
@@ -293,6 +297,7 @@
         alert('이 브라우저에서는 오디오를 지원하지 않습니다. 게임 플레이가 불가능합니다.');
     }
 
+    // 프롬프트 (제시)용 사운드
     function playSound(noteTypeKey, durationMs) {
         if (!audioCtx) return;
 
@@ -302,8 +307,9 @@
         let freq = 261.63; // C4
         if (noteTypeKey === 'q') freq = 261.63; // C4 (낮은 톤)
         if (noteTypeKey === 'w') freq = 329.63; // E4 (중간 톤)
+        if (noteTypeKey === 'e') freq = 392.00; // G4 (높은 톤) [수정]
 
-        oscillator.type = 'sine';
+        oscillator.type = 'sine'; // '뚠', '딴'
         oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
         gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
@@ -316,44 +322,72 @@
         oscillator.stop(audioCtx.currentTime + (durationMs / 1000));
     }
 
+    // [수정] 히트 (입력)용 사운드
+    function playHitSound(noteTypeKey) {
+        if (!audioCtx) return;
+
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        let freq = 261.63;
+        if (noteTypeKey === 'q') freq = 261.63;
+        if (noteTypeKey === 'w') freq = 329.63;
+        if (noteTypeKey === 'e') freq = 392.00;
+
+        oscillator.type = 'triangle'; // '뿅' 하는 느낌
+        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime); // 피드백이므로 조금 크게
+        // 짧은(150ms) 고정 길이로 재생
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.15);
+    }
+
     // --- 3. 게임 상수 ---
     const BPM = 100;
     const BEAT_DURATION = 60000 / BPM; // 4분음표 길이 (600ms)
 
     const ASSET_PATH = 'https://unluckyidiot16.github.io/assets-common/RMN/';
 
+    // [수정] 8분음표(e) 정의 복원
     const NOTE_TYPES = {
-        'q': { duration: BEAT_DURATION * 2, img: ASSET_PATH + 'note2.png', key: 'q', name: '2분음표' }, // 2분음표
-        'w': { duration: BEAT_DURATION, img: ASSET_PATH + 'note4.png', key: 'w', name: '4분음표' }, // 4분음표
+        'q': { duration: BEAT_DURATION * 2, img: ASSET_PATH + 'note2.png', key: 'q', name: '2분음표' },
+        'w': { duration: BEAT_DURATION, img: ASSET_PATH + 'note4.png', key: 'w', name: '4분음표' },
+        'e': { duration: BEAT_DURATION / 2, img: ASSET_PATH + 'note8.png', key: 'e', name: '8분음표' }
     };
 
-    // 판정 범위 (ms) - [수정] 길이 판정 제거
     const JUDGMENT_WINDOWS = {
         PERFECT: 80,
         GOOD: 150,
     };
 
-    // [수정] STAGES (레벨 -> 스테이지)
+    // [수정] 8분음표 스테이지 추가
     const STAGES = [
         ['q', 'q'], // 1단계: 2분음표 2개
         ['w', 'w', 'w', 'w'], // 2단계: 4분음표 4개
         ['q', 'w', 'q', 'w'], // 3단계: 섞기 1
         ['w', 'w', 'q', 'w', 'w', 'q'], // 4단계: 섞기 2
-        ['q', 'w', 'w', 'q', 'w', 'w', 'q', 'q'] // 5단계: 섞기 3
+        // 8분 음표 (e) 도입
+        ['e', 'e', 'e', 'e', 'w', 'w'], // 5단계: 8분음표 익히기
+        ['w', 'e', 'e', 'w', 'e', 'e'], // 6단계: 4분 + 8분 섞기
+        ['q', 'w', 'e', 'e', 'q', 'w', 'e', 'e'] // 7단계: 2, 4, 8분 섞기
     ];
 
     const SCROLL_DURATION_MS = 3000;
 
     // --- 4. 게임 상태 변수 ---
-    let gameState = 'MENU'; // MENU, PROMPT, READY, PLAY, RESULTS
-    let currentStage = 0; // [수정]
+    let gameState = 'MENU';
+    let currentStage = 0;
     let currentLevelPattern = [];
     let activeNotes = [];
-    // let playerInputs = {}; // [수정] 길이 판정 제거로 불필요
     let gameStartTime = 0;
     let animationFrameId = null;
 
-    // 점수
     let score = 0;
     let combo = 0;
     let maxCombo = 0;
@@ -361,26 +395,37 @@
     let goodCount = 0;
     let missCount = 0;
     let totalNotes = 0;
-    let noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 }};
+    let noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 }, e: { late: 0, early: 0 }}; // [수정] e 추가
+
 
     // --- 5. 게임 흐름 함수 ---
 
-    // [수정] 게임 시작 (버튼 클릭)
     function startGame() {
         if (audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
         startScreen.classList.add('hidden');
         resultsScreen.classList.add('hidden');
-        resetGameStats(); // 모든 점수 초기화
+        resetGameStats();
         currentStage = 0;
         loadStage(currentStage);
     }
 
-    // [수정] 스테이지 로드
+    // [수정] E키 UI를 업데이트하는 함수
+    function updateKeyUI(stageIndex) {
+        if (stageIndex >= STAGES.length) return;
+
+        const pattern = STAGES[stageIndex];
+        if (pattern.includes('e')) {
+            keyEWrapper.classList.remove('hidden'); // E키 보이기
+        } else {
+            keyEWrapper.classList.add('hidden'); // E키 숨기기
+        }
+    }
+
     function loadStage(stageIndex) {
         if (stageIndex >= STAGES.length) {
-            showFinalResults(); // 모든 스테이지 클리어
+            showFinalResults();
             return;
         }
 
@@ -389,13 +434,13 @@
         currentLevelPattern = STAGES[stageIndex];
 
         stageDisplay.textContent = `Stage ${currentStage + 1}`;
-        resetStage(); // 현재 스테이지 노트 초기화
+        updateKeyUI(stageIndex); // [수정] E키 UI 업데이트
+        resetStage();
 
         showJudgmentFeedback(`Stage ${currentStage + 1}`, 1500);
-        setTimeout(startPrompt, 1500); // 1.5초 후 프롬프트 시작
+        setTimeout(startPrompt, 1500);
     }
 
-    // [수정] 전체 게임 통계 리셋
     function resetGameStats() {
         score = 0;
         combo = 0;
@@ -404,18 +449,16 @@
         goodCount = 0;
         missCount = 0;
         totalNotes = 0;
-        noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 } };
+        noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 }, e: { late: 0, early: 0 }}; // [수정] e 추가
         scoreDisplay.textContent = '0';
         comboDisplay.textContent = '0';
     }
 
-    // [수정] 현재 스테이지 리셋
     function resetStage() {
         activeNotes = [];
         playArea.innerHTML = '<div id="judgment-line"></div><div id="feedback-area"></div>';
     }
 
-    // 5.3 STEP 1: 제시 (Listen)
     async function startPrompt() {
         gameState = 'PROMPT';
         promptArea.innerHTML = '';
@@ -438,7 +481,7 @@
             const noteType = NOTE_TYPES[noteKey];
 
             noteIcons[i].classList.add('active');
-            playSound(noteKey, noteType.duration);
+            playSound(noteKey, noteType.duration); // 프롬프트 사운드
 
             await new Promise(resolve => setTimeout(resolve, noteType.duration));
 
@@ -449,7 +492,6 @@
         showReady();
     }
 
-    // 5.4 STEP 2: 준비 (Ready)
     function showReady() {
         gameState = 'READY';
         showJudgmentFeedback('따라해보세요!', 1500);
@@ -457,25 +499,22 @@
         setTimeout(startPlay, 1500);
     }
 
-    // 5.5 STEP 3: 재현 (Play)
     function startPlay() {
         gameState = 'PLAY';
         gameStartTime = performance.now();
         let cumulativeTime = 0;
 
         const isMemoryMode = memoryModeCheck.checked;
-        totalNotes += currentLevelPattern.length; // [수정] 전체 노트 수 누적
+        totalNotes += currentLevelPattern.length;
 
         currentLevelPattern.forEach((noteKey, index) => {
             const noteType = NOTE_TYPES[noteKey];
             const hitTime = gameStartTime + cumulativeTime + SCROLL_DURATION_MS;
 
-            // [수정] .scrolling-note 컨테이너 생성
             const noteEl = document.createElement('div');
             noteEl.className = `scrolling-note`;
             noteEl.style.left = '100%';
 
-            // 이미지 추가
             const img = document.createElement('img');
             img.src = noteType.img;
             noteEl.appendChild(img);
@@ -489,7 +528,6 @@
             noteEl.dataset.duration = noteType.duration;
             noteEl.dataset.id = index;
             noteEl.dataset.judgedTime = 'false';
-            // [수정] judgedLength 제거
 
             playArea.appendChild(noteEl);
             activeNotes.push(noteEl);
@@ -506,9 +544,7 @@
     function gameLoop(now) {
         if (gameState !== 'PLAY') return;
 
-        // 1. 노트 이동
         activeNotes.forEach(note => {
-            // [수정] 이미 판정된(사라지는 중인) 노트는 이동시키지 않음
             if (note.dataset.judgedTime !== 'false') return;
 
             const hitTime = parseFloat(note.dataset.hitTime);
@@ -518,16 +554,14 @@
             const currentLeftPercent = 100 - (percentProgress * 80);
             note.style.left = `${currentLeftPercent}%`;
 
-            // 2. 자동 Miss 판정
             if (timeToHit < -JUDGMENT_WINDOWS.GOOD && note.dataset.judgedTime === 'false') {
                 judge(note, 'MISS');
             }
         });
 
-        // 3. [수정] 스테이지 종료 체크
         if (activeNotes.length === 0 && gameState === 'PLAY') {
-            gameState = 'READY'; // 루프 중복 실행 방지
-            setTimeout(advanceToNextStage, 1000); // 1초 후 다음 스테이지로
+            gameState = 'READY';
+            setTimeout(advanceToNextStage, 1000);
             return;
         }
 
@@ -536,21 +570,19 @@
         }
     }
 
-    // [수정] 다음 스테이지 진행
     function advanceToNextStage() {
         showJudgmentFeedback(`Stage ${currentStage + 1} Clear!`, 2000);
         setTimeout(() => {
-            loadStage(currentStage + 1); // 다음 스테이지 로드
+            loadStage(currentStage + 1);
         }, 2000);
     }
 
-    // [수정] 판정 로직 (길이 판정 제거)
     function judge(note, judgmentType) {
-        if (!note || note.dataset.judgedTime !== 'false') return; // 이미 판정된 노트 스킵
+        if (!note || note.dataset.judgedTime !== 'false') return;
 
-        note.dataset.judgedTime = 'true'; // 판정됨
+        note.dataset.judgedTime = 'true';
 
-        if (judgmentType.includes('TIME')) { // PERFECT 또는 GOOD
+        if (judgmentType.includes('TIME')) {
             showJudgmentFeedback(judgmentType.split('_')[0]);
 
             if (judgmentType === 'PERFECT_TIME') {
@@ -564,32 +596,31 @@
             combo++;
             if (combo > maxCombo) maxCombo = combo;
 
-            note.classList.add('note-pop'); // [수정] 팝! 효과
-            removeNoteFromScreen(note, 200); // 0.2초 후 제거
+            note.classList.add('note-pop');
+            removeNoteFromScreen(note, 200);
 
         } else if (judgmentType === 'MISS') {
             showJudgmentFeedback('Miss');
             combo = 0;
             missCount++;
 
-            note.classList.add('note-miss'); // [수정] 어둡게
-            removeNoteFromScreen(note, 500); // 0.5초 후 제거
+            note.classList.add('note-miss');
+            removeNoteFromScreen(note, 500);
         }
 
         scoreDisplay.textContent = score;
         comboDisplay.textContent = combo;
     }
 
-    // 판정 피드백 텍스트 표시
     function showJudgmentFeedback(text, duration = 600) {
         const feedback = document.createElement('div');
         feedback.className = 'feedback-popup';
         feedback.textContent = text;
 
-        if (text.includes('Stage')) feedback.style.color = '#00ffff'; // Cyan
-        else if (text === 'PERFECT') feedback.style.color = '#4ade80'; // green-400
-        else if (text === 'GOOD') feedback.style.color = '#facc15'; // yellow-400
-        else if (text === 'Miss') feedback.style.color = '#f87171'; // red-400
+        if (text.includes('Stage')) feedback.style.color = '#00ffff';
+        else if (text === 'PERFECT') feedback.style.color = '#4ade80';
+        else if (text === 'GOOD') feedback.style.color = '#facc15';
+        else if (text === 'Miss') feedback.style.color = '#f87171';
 
         feedbackArea.appendChild(feedback);
         setTimeout(() => {
@@ -597,12 +628,9 @@
         }, duration);
     }
 
-    // [수정] 노트 제거 (애니메이션 시간 고려)
     function removeNoteFromScreen(note, delay) {
-        // 즉시 activeNotes 배열에서 제거 (논리적 제거)
         activeNotes = activeNotes.filter(n => n !== note);
 
-        // delay 밀리초 후 DOM에서 제거 (시각적 제거)
         setTimeout(() => {
             if (note.parentNode) {
                 note.parentNode.removeChild(note);
@@ -610,7 +638,6 @@
         }, delay);
     }
 
-    // 6.3 [수정] 최종 결과 표시
     function showFinalResults() {
         gameState = 'RESULTS';
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
@@ -635,24 +662,29 @@
         resultsScreen.classList.add('flex');
     }
 
-    // 6.4 [수정] 처음부터 다시하기
     function restartGame() {
         resultsScreen.classList.add('hidden');
         startScreen.classList.remove('hidden');
         stageDisplay.textContent = '';
         promptArea.innerHTML = '<p class="text-gray-400">게임을 시작하세요!</p>';
-        resetGameStats(); // 모든 점수 초기화
+        resetGameStats();
+        updateKeyUI(0); // [수정] E키 다시 숨기기
     }
 
 
-    // --- 7. 입력 처리 (길이 판정 제거) ---
+    // --- 7. 입력 처리 ---
 
-    // 키 누르기 (타이밍 판정)
     function handleKeyDown(e) {
         if (gameState !== 'PLAY') return;
 
         const key = e.key.toLowerCase();
-        if (!['q', 'w'].includes(key)) {
+        // [수정] 'e' 키 입력 허용
+        if (!['q', 'w', 'e'].includes(key)) {
+            return;
+        }
+
+        // [수정] E키가 활성화되지 않았으면 e키 입력 무시
+        if (key === 'e' && keyEWrapper.classList.contains('hidden')) {
             return;
         }
 
@@ -660,17 +692,15 @@
 
         const now = performance.now();
 
-        // 가장 가까운, 판정되지 않은, 올바른 키의 노트를 찾음
         let closestNote = null;
         let minDiff = Infinity;
 
         for (const note of activeNotes) {
             if (note.dataset.key === key && note.dataset.judgedTime === 'false') {
-                // [수정] 이미 지나간 노트는 판정하지 않음 (timeToHit < 0)
                 const timeToHit = parseFloat(note.dataset.hitTime) - now;
                 const diff = Math.abs(timeToHit);
 
-                if (diff < minDiff && timeToHit < JUDGMENT_WINDOWS.GOOD) { // GOOD 창(150ms) 이내로 다가온 노트만
+                if (diff < minDiff && timeToHit < JUDGMENT_WINDOWS.GOOD) {
                     minDiff = diff;
                     closestNote = note;
                 }
@@ -678,43 +708,47 @@
         }
 
         if (closestNote && minDiff <= JUDGMENT_WINDOWS.GOOD) {
-            // 타이밍 판정
+
+            playHitSound(key); // [수정] 히트 사운드 재생
+
             if (minDiff <= JUDGMENT_WINDOWS.PERFECT) {
                 judge(closestNote, 'PERFECT_TIME');
             } else {
                 judge(closestNote, 'GOOD_TIME');
             }
 
-            // 오차 기록
             const error = parseFloat(closestNote.dataset.hitTime) - now;
-            if (error < 0) noteStats[key].late++; // 늦게 누름
-            else noteStats[key].early++; // 일찍 누름
+            if (error < 0) noteStats[key].late++;
+            else noteStats[key].early++;
 
         } else {
-            // 허공에 누름 (Miss 아님, 그냥 무시)
+            // 허공에 누름
         }
     }
 
-    // 키 떼기
     function handleKeyUp(e) {
         const key = e.key.toLowerCase();
-        if (!['q', 'w'].includes(key)) {
+        // [수정] 'e' 키 입력 허용
+        if (!['q', 'w', 'e'].includes(key)) {
             return;
         }
-        document.getElementById(`key-${key}`).classList.remove('active');
-
-        // [수정] 길이 판정 로직 모두 제거
+        // [수정] E키가 숨겨져있지 않을 때만 active 해제
+        if (document.getElementById(`key-${key}`)) {
+            document.getElementById(`key-${key}`).classList.remove('active');
+        }
     }
 
     // --- 8. 이벤트 리스너 ---
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // 모바일 터치 지원 (간단하게)
+    // [수정] 'e'키 터치 이벤트 추가
     document.getElementById('key-q').addEventListener('touchstart', (e) => { e.preventDefault(); handleKeyDown({ key: 'q' }); });
     document.getElementById('key-q').addEventListener('touchend', (e) => { e.preventDefault(); handleKeyUp({ key: 'q' }); });
     document.getElementById('key-w').addEventListener('touchstart', (e) => { e.preventDefault(); handleKeyDown({ key: 'w' }); });
     document.getElementById('key-w').addEventListener('touchend', (e) => { e.preventDefault(); handleKeyUp({ key: 'w' }); });
+    document.getElementById('key-e').addEventListener('touchstart', (e) => { e.preventDefault(); handleKeyDown({ key: 'e' }); });
+    document.getElementById('key-e').addEventListener('touchend', (e) => { e.preventDefault(); handleKeyUp({ key: 'e' }); });
 
 </script>
 </body>
