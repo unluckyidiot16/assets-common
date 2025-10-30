@@ -1,272 +1,3 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rhythm Memory Note - Easy Mode</title>
-
-    <!-- Tailwind CSS 로드 -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Inter 폰트 로드 -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-user-select: none; /* Safari */
-            -ms-user-select: none; /* IE 10 and IE 11 */
-            user-select: none; /* Standard syntax */
-            overflow: hidden; /* 스크롤바 숨김 */
-        }
-
-        /* 게임 컨테이너 */
-        #game-container {
-            width: 100%;
-            max-width: 600px;
-            height: 600px;
-        }
-
-        /* 플레이 트랙 */
-        #play-area {
-            position: relative;
-            height: 200px;
-            background-color: #1a202c; /* bg-gray-900 */
-            overflow: hidden;
-            border-radius: 0.5rem;
-            border: 2px solid #4a5568; /* border-gray-600 */
-        }
-
-        /* 판정선 */
-        #judgment-line {
-            position: absolute;
-            left: 20%;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background-color: #00ffff; /* Cyan */
-            box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
-            z-index: 10;
-        }
-
-        /* 스크롤되는 음표 (막대기 -> 이미지 컨테이너로 변경) */
-        .scrolling-note {
-            position: absolute;
-            left: 100%; /* 오른쪽 바깥에서 시작 */
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 5;
-            transition: filter 0.2s, opacity 0.2s, transform 0.2s;
-        }
-        .scrolling-note img {
-            width: 60px; /* 음표 이미지 크기 고정 */
-            height: 60px;
-            object-fit: contain;
-        }
-
-        /* 성공 시 팝! 효과 */
-        .note-pop {
-            animation: pop-out 0.2s ease-out forwards;
-        }
-        @keyframes pop-out {
-            from {
-                transform: translateY(-50%) scale(1);
-                opacity: 1;
-            }
-            to {
-                transform: translateY(-50%) scale(1.5);
-                opacity: 0;
-            }
-        }
-
-        /* 실패 시 어두워지는 효과 */
-        .note-miss {
-            filter: grayscale(100%) brightness(0.5);
-            opacity: 0.7;
-        }
-
-
-        /* 프롬프트 영역의 귀여운 음표 아이콘 */
-        .prompt-note {
-            width: 60px; /* 이미지 크기에 맞춰 조정 */
-            height: 60px;
-            border-radius: 0.375rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
-        }
-        .prompt-note img {
-            height: 100%;
-            width: auto;
-            object-fit: contain;
-        }
-
-        .prompt-note.active {
-            transform: scale(1.2);
-            border-color: #00ffff;
-            box-shadow: 0 0 10px #00ffff;
-        }
-
-        /* 키 힌트 (KBD 태그) */
-        kbd {
-            min-width: 60px;
-            height: 60px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.5rem;
-            background-color: #4a5568; /* bg-gray-600 */
-            color: white;
-            border: 2px solid #718096; /* bg-gray-500 */
-            border-bottom-width: 4px;
-            font-size: 1.25rem;
-            font-weight: bold;
-            transition: all 0.05s ease;
-        }
-
-        kbd.active {
-            transform: translateY(2px);
-            border-bottom-width: 2px;
-            background-color: #718096; /* bg-gray-500 */
-        }
-
-        /* 판정 피드백 텍스트 */
-        #feedback-area {
-            position: absolute;
-            left: 20%;
-            top: 20%;
-            transform: translateX(-50%);
-            z-index: 20;
-            pointer-events: none;
-        }
-
-        .feedback-popup {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: white;
-            text-shadow: 0 0 10px black;
-            animation: fadeUp 0.6s ease-out forwards;
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-        }
-
-        /* 모달 (시작/결과 화면) */
-        .modal {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(17, 24, 39, 0.9); /* bg-gray-900/90 */
-            z-index: 50;
-        }
-    </style>
-</head>
-<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
-
-<div id="game-container" class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-2xl flex flex-col gap-4">
-
-    <!-- 상단: 헤더 -->
-    <div class="text-center">
-        <h1 class="text-2xl font-bold text-white mb-1">리듬 메모리 노트</h1>
-        <!-- 스테이지 표시기 -->
-        <h2 id="stage-display" class="text-xl font-bold text-cyan-400"></h2>
-    </div>
-
-    <!-- 프롬프트 영역 -->
-    <div id="prompt-area" class="h-20 bg-gray-700 rounded-lg p-3 flex items-center justify-center gap-2">
-        <!-- 음표 아이콘이 여기에 동적으로 생성됩니다 -->
-        <p class="text-gray-400">게임을 시작하세요!</p>
-    </div>
-
-    <!-- 플레이 트랙 -->
-    <div id="play-area">
-        <div id="judgment-line"></div>
-        <div id="feedback-area"></div>
-        <!-- 스크롤링 노트가 여기에 동적으로 생성됩니다 -->
-    </div>
-
-    <!-- 하단: 키 힌트 (E키 추가) -->
-    <div id="key-hints" class="flex justify-center gap-4 p-4 bg-gray-700 rounded-lg">
-        <div class="text-center">
-            <kbd id="key-q" class="bg-red-500">Q</kbd>
-            <span class="block text-sm mt-1">2분음표</span>
-        </div>
-        <div class="text-center">
-            <kbd id="key-w" class="bg-orange-500">W</kbd>
-            <span class="block text-sm mt-1">4분음표</span>
-        </div>
-        <!-- [수정] 8분음표 키 래퍼. 기본 숨김 -->
-        <div id="key-e-wrapper" class="text-center hidden">
-            <kbd id="key-e" class="bg-blue-500">E</kbd>
-            <span class="block text-sm mt-1">8분음표</span>
-        </div>
-    </div>
-
-    <!-- 점수판 -->
-    <div class="flex justify-between text-xl font-bold">
-        <div>Score: <span id="score-display">0</span></div>
-        <div>Combo: <span id="combo-display">0</span></div>
-    </div>
-
-    <!-- 청음 모드 옵션 -->
-    <div class="flex items-center justify-center gap-2">
-        <input type="checkbox" id="memory-mode-check" class="form-checkbox h-5 w-5 text-cyan-400 bg-gray-800 border-gray-600 rounded focus:ring-cyan-500">
-        <label for="memory-mode-check" class="text-white">청음(기억) 모드 (노트 숨김)</label>
-    </div>
-</div>
-
-<!-- 시작 화면 모달 -->
-<div id="start-screen" class="modal flex flex-col items-center justify-center p-8 gap-4">
-    <h2 class="text-3xl font-bold text-white mb-4">리듬 메모리 노트</h2>
-    <p class="text-lg text-gray-300 mb-6 text-center"> 박자를 기억하는 게임</p>
-    <button onclick="startGame()" class="w-full max-w-xs text-lg bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
-        게임 시작!
-    </button>
-    <p class="text-gray-400 mt-6 text-center">키보드 Q (2분), W (4분), E (8분) 키를 사용합니다.</p>
-</div>
-
-<!-- 결과 화면 모달 -->
-<div id="results-screen" class="modal flex-col items-center justify-center p-8 gap-4 hidden">
-    <h2 class="text-3xl font-bold text-white mb-4">모든 스테이지 클리어!</h2>
-    <div class="text-xl text-gray-200">최종 점수: <span id="final-score" class="font-bold text-cyan-400">0</span></div>
-    <div class="text-lg text-gray-300">정확도: <span id="accuracy" class="font-bold">0%</span></div>
-    <div class="text-lg text-gray-300">최대 콤보: <span id="max-combo" class="font-bold">0</span></div>
-    <hr class="w-full max-w-xs my-4 border-gray-600">
-    <div class="flex gap-4">
-        <div class="text-center">
-            <div class="text-2xl font-bold text-green-400" id="perfect-count">0</div>
-            <div class="text-sm">PERFECT</div>
-        </div>
-        <div class="text-center">
-            <div class="text-2xl font-bold text-yellow-400" id="good-count">0</div>
-            <div class="text-sm">GOOD</div>
-        </div>
-        <div class="text-center">
-            <div class="text-2xl font-bold text-red-400" id="miss-count">0</div>
-            <div class="text-sm">MISS</div>
-        </div>
-    </div>
-    <div id="feedback-message" class="text-lg text-yellow-300 mt-4 text-center"></div>
-    <button onclick="restartGame()" class="w-full max-w-xs text-lg bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 mt-6">
-        처음부터 다시하기
-    </button>
-</div>
-
-
 <script>
     // --- 1. DOM 요소 ---
     const gameContainer = document.getElementById('game-container');
@@ -278,7 +9,7 @@
 
     const keyQ = document.getElementById('key-q');
     const keyW = document.getElementById('key-w');
-    const keyEWrapper = document.getElementById('key-e-wrapper'); // [수정] E키 래퍼
+    const keyEWrapper = document.getElementById('key-e-wrapper');
 
     const scoreDisplay = document.getElementById('score-display');
     const comboDisplay = document.getElementById('combo-display');
@@ -290,97 +21,86 @@
 
     // --- 2. 오디오 설정 ---
     let audioCtx;
-    try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch (e) {
-        console.error('Web Audio API is not supported in this browser');
-        alert('이 브라우저에서는 오디오를 지원하지 않습니다. 게임 플레이가 불가능합니다.');
-    }
 
-    // 프롬프트 (제시)용 사운드
     function playSound(noteTypeKey, durationMs) {
         if (!audioCtx) return;
-
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        let freq = 261.63; // C4
-        if (noteTypeKey === 'q') freq = 261.63; // C4 (낮은 톤)
-        if (noteTypeKey === 'w') freq = 329.63; // E4 (중간 톤)
-        if (noteTypeKey === 'e') freq = 392.00; // G4 (높은 톤) [수정]
-
-        oscillator.type = 'sine'; // '뚠', '딴'
-        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (durationMs / 1000));
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + (durationMs / 1000));
-    }
-
-    // [수정] 히트 (입력)용 사운드
-    function playHitSound(noteTypeKey) {
-        if (!audioCtx) return;
-
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
         let freq = 261.63;
-        if (noteTypeKey === 'q') freq = 261.63;
         if (noteTypeKey === 'w') freq = 329.63;
-        if (noteTypeKey === 'e') freq = 392.00;
+        if (noteTypeKey === 'e') freq = 392.0;
 
-        oscillator.type = 'triangle'; // '뿅' 하는 느낌
-        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-        gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime); // 피드백이므로 조금 크게
-        // 짧은(150ms) 고정 길이로 재생
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + durationMs / 1000);
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
 
-        oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + 0.15);
+        osc.start();
+        osc.stop(audioCtx.currentTime + durationMs / 1000);
+    }
+
+    // 입력 피드백용 (soft / loud)
+    function playHitSound(noteTypeKey, soft = false) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        let freq = 261.63;
+        if (noteTypeKey === 'w') freq = 329.63;
+        if (noteTypeKey === 'e') freq = 392.0;
+
+        osc.type = 'triangle';
+        const now = audioCtx.currentTime;
+        const startGain = soft ? 0.15 : 0.4;
+        const dur = 0.15;
+
+        gain.gain.setValueAtTime(startGain, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        osc.frequency.setValueAtTime(freq, now);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + dur);
     }
 
     // --- 3. 게임 상수 ---
     const BPM = 100;
-    const BEAT_DURATION = 60000 / BPM; // 4분음표 길이 (600ms)
+    const BEAT_DURATION = 60000 / BPM; // 4분음표 = 600ms
 
     const ASSET_PATH = 'https://unluckyidiot16.github.io/assets-common/RMN/';
 
-    // [수정] 8분음표(e) 정의 복원
     const NOTE_TYPES = {
-        'q': { duration: BEAT_DURATION * 2, img: ASSET_PATH + 'note2.png', key: 'q', name: '2분음표' },
-        'w': { duration: BEAT_DURATION, img: ASSET_PATH + 'note4.png', key: 'w', name: '4분음표' },
-        'e': { duration: BEAT_DURATION / 2, img: ASSET_PATH + 'note8.png', key: 'e', name: '8분음표' }
+        q: { duration: BEAT_DURATION * 2, img: ASSET_PATH + 'note2.png', key: 'q', name: '2분음표' },
+        w: { duration: BEAT_DURATION, img: ASSET_PATH + 'note4.png', key: 'w', name: '4분음표' },
+        e: { duration: BEAT_DURATION / 2, img: ASSET_PATH + 'note8.png', key: 'e', name: '8분음표' }
     };
 
+    // ★ 리듬 히어로식 비대칭 창
     const JUDGMENT_WINDOWS = {
-        PERFECT: 80,
-        GOOD: 150,
+        PERFECT_EARLY: 120,  // 0.12초 일찍
+        PERFECT_LATE: 150,   // 0.15초 늦게
+        GOOD_EARLY: 250,     // 0.25초 일찍
+        GOOD_LATE: 300       // 0.30초 늦게
     };
 
-    // [수정] 8분음표 스테이지 추가
     const STAGES = [
-        ['q', 'q'], // 1단계: 2분음표 2개
-        ['w', 'w', 'w', 'w'], // 2단계: 4분음표 4개
-        ['q', 'w', 'q', 'w'], // 3단계: 섞기 1
-        ['w', 'w', 'q', 'w', 'w', 'q'], // 4단계: 섞기 2
-        // 8분 음표 (e) 도입
-        ['e', 'e', 'e', 'e', 'w', 'w'], // 5단계: 8분음표 익히기
-        ['w', 'e', 'e', 'w', 'e', 'e'], // 6단계: 4분 + 8분 섞기
-        ['q', 'w', 'e', 'e', 'q', 'w', 'e', 'e'] // 7단계: 2, 4, 8분 섞기
+        ['q', 'q'],
+        ['w', 'w', 'w', 'w'],
+        ['q', 'w', 'q', 'w'],
+        ['w', 'w', 'q', 'w', 'w', 'q'],
+        ['e', 'e', 'e', 'e', 'w', 'w'],
+        ['w', 'e', 'e', 'w', 'e', 'e'],
+        ['q', 'w', 'e', 'e', 'q', 'w', 'e', 'e']
     ];
 
     const SCROLL_DURATION_MS = 3000;
 
-    // --- 4. 게임 상태 변수 ---
+    // --- 4. 상태 ---
     let gameState = 'MENU';
     let currentStage = 0;
     let currentLevelPattern = [];
@@ -395,32 +115,34 @@
     let goodCount = 0;
     let missCount = 0;
     let totalNotes = 0;
-    let noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 }, e: { late: 0, early: 0 }}; // [수정] e 추가
+    let noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 }, e: { late: 0, early: 0 } };
 
 
-    // --- 5. 게임 흐름 함수 ---
-
+    // --- 5. 게임 흐름 ---
     function startGame() {
-        if (audioCtx && audioCtx.state === 'suspended') {
+        if (!audioCtx) {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                alert('오디오를 지원하지 않는 브라우저입니다.');
+                return;
+            }
+        }
+        if (audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
+
         startScreen.classList.add('hidden');
         resultsScreen.classList.add('hidden');
         resetGameStats();
         currentStage = 0;
-        loadStage(currentStage);
+        loadStage(0);
     }
 
-    // [수정] E키 UI를 업데이트하는 함수
     function updateKeyUI(stageIndex) {
-        if (stageIndex >= STAGES.length) return;
-
         const pattern = STAGES[stageIndex];
-        if (pattern.includes('e')) {
-            keyEWrapper.classList.remove('hidden'); // E키 보이기
-        } else {
-            keyEWrapper.classList.add('hidden'); // E키 숨기기
-        }
+        if (pattern.includes('e')) keyEWrapper.classList.remove('hidden');
+        else keyEWrapper.classList.add('hidden');
     }
 
     function loadStage(stageIndex) {
@@ -428,13 +150,12 @@
             showFinalResults();
             return;
         }
-
         gameState = 'READY';
         currentStage = stageIndex;
         currentLevelPattern = STAGES[stageIndex];
 
         stageDisplay.textContent = `Stage ${currentStage + 1}`;
-        updateKeyUI(stageIndex); // [수정] E키 UI 업데이트
+        updateKeyUI(stageIndex);
         resetStage();
 
         showJudgmentFeedback(`Stage ${currentStage + 1}`, 1500);
@@ -449,14 +170,14 @@
         goodCount = 0;
         missCount = 0;
         totalNotes = 0;
-        noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 }, e: { late: 0, early: 0 }}; // [수정] e 추가
+        noteStats = { q: { late: 0, early: 0 }, w: { late: 0, early: 0 }, e: { late: 0, early: 0 } };
         scoreDisplay.textContent = '0';
         comboDisplay.textContent = '0';
     }
 
     function resetStage() {
         activeNotes = [];
-        playArea.innerHTML = '<div id="judgment-line"></div><div id="feedback-area"></div>';
+        playArea.querySelectorAll('.scrolling-note').forEach(n => n.remove());
     }
 
     async function startPrompt() {
@@ -465,26 +186,23 @@
 
         const noteIcons = currentLevelPattern.map(noteKey => {
             const noteType = NOTE_TYPES[noteKey];
-            const icon = document.createElement('div');
-            icon.className = 'prompt-note';
+            const el = document.createElement('div');
+            el.className = 'prompt-note';
             const img = document.createElement('img');
             img.src = noteType.img;
-            icon.appendChild(img);
-            promptArea.appendChild(icon);
-            return icon;
+            el.appendChild(img);
+            promptArea.appendChild(el);
+            return el;
         });
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(r => setTimeout(r, 1000));
 
         for (let i = 0; i < currentLevelPattern.length; i++) {
-            const noteKey = currentLevelPattern[i];
-            const noteType = NOTE_TYPES[noteKey];
-
+            const key = currentLevelPattern[i];
+            const type = NOTE_TYPES[key];
             noteIcons[i].classList.add('active');
-            playSound(noteKey, noteType.duration); // 프롬프트 사운드
-
-            await new Promise(resolve => setTimeout(resolve, noteType.duration));
-
+            playSound(key, type.duration);
+            await new Promise(r => setTimeout(r, type.duration));
             noteIcons[i].classList.remove('active');
             noteIcons[i].style.opacity = '0.6';
         }
@@ -494,67 +212,69 @@
 
     function showReady() {
         gameState = 'READY';
-        showJudgmentFeedback('따라해보세요!', 1500);
-
-        setTimeout(startPlay, 1500);
+        showJudgmentFeedback('따라해보세요!', 1200);
+        setTimeout(startPlay, 1200);
     }
 
     function startPlay() {
         gameState = 'PLAY';
         gameStartTime = performance.now();
-        let cumulativeTime = 0;
-
+        let cum = 0;
         const isMemoryMode = memoryModeCheck.checked;
+
         totalNotes += currentLevelPattern.length;
 
-        currentLevelPattern.forEach((noteKey, index) => {
-            const noteType = NOTE_TYPES[noteKey];
-            const hitTime = gameStartTime + cumulativeTime + SCROLL_DURATION_MS;
+        currentLevelPattern.forEach((noteKey, idx) => {
+            const def = NOTE_TYPES[noteKey];
+            const hitTime = gameStartTime + cum + SCROLL_DURATION_MS;
 
-            const noteEl = document.createElement('div');
-            noteEl.className = `scrolling-note`;
-            noteEl.style.left = '100%';
-
+            const el = document.createElement('div');
+            el.className = 'scrolling-note';
+            el.style.left = '100%';
             const img = document.createElement('img');
-            img.src = noteType.img;
-            noteEl.appendChild(img);
+            img.src = def.img;
+            el.appendChild(img);
 
-            if (isMemoryMode) {
-                noteEl.style.opacity = '0';
-            }
+            if (isMemoryMode) el.style.opacity = '0';
 
-            noteEl.dataset.hitTime = hitTime;
-            noteEl.dataset.key = noteKey;
-            noteEl.dataset.duration = noteType.duration;
-            noteEl.dataset.id = index;
-            noteEl.dataset.judgedTime = 'false';
+            // ★ 여기서 히어로식 입력창을 미리 박아둠
+            const windowStart = hitTime - JUDGMENT_WINDOWS.GOOD_EARLY;
+            const windowEnd = hitTime + JUDGMENT_WINDOWS.GOOD_LATE;
 
-            playArea.appendChild(noteEl);
-            activeNotes.push(noteEl);
+            el.dataset.hitTime = hitTime;
+            el.dataset.key = noteKey;
+            el.dataset.duration = def.duration;
+            el.dataset.id = idx;
+            el.dataset.judgedTime = 'false';
+            el.dataset.windowStart = windowStart;
+            el.dataset.windowEnd = windowEnd;
 
-            cumulativeTime += noteType.duration;
+            playArea.appendChild(el);
+            activeNotes.push(el);
+
+            cum += def.duration;
         });
 
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         animationFrameId = requestAnimationFrame(gameLoop);
     }
 
-    // --- 6. 게임 루프 및 판정 ---
-
+    // --- 6. 루프 & MISS ---
     function gameLoop(now) {
         if (gameState !== 'PLAY') return;
 
         activeNotes.forEach(note => {
             if (note.dataset.judgedTime !== 'false') return;
-
             const hitTime = parseFloat(note.dataset.hitTime);
             const timeToHit = hitTime - now;
 
-            const percentProgress = 1 - (timeToHit / SCROLL_DURATION_MS);
-            const currentLeftPercent = 100 - (percentProgress * 80);
+            const percent = 1 - (timeToHit / SCROLL_DURATION_MS);
+            const currentLeftPercent = 100 - percent * 80;
             note.style.left = `${currentLeftPercent}%`;
 
-            if (timeToHit < -JUDGMENT_WINDOWS.GOOD && note.dataset.judgedTime === 'false') {
+            // 창이 완전히 지나갔으면 MISS
+            const windowEnd = parseFloat(note.dataset.windowEnd);
+            if (now > windowEnd && note.dataset.judgedTime === 'false') {
                 judge(note, 'MISS');
             }
         });
@@ -565,47 +285,39 @@
             return;
         }
 
-        if (gameState === 'PLAY') {
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
 
     function advanceToNextStage() {
-        showJudgmentFeedback(`Stage ${currentStage + 1} Clear!`, 2000);
-        setTimeout(() => {
-            loadStage(currentStage + 1);
-        }, 2000);
+        showJudgmentFeedback(`Stage ${currentStage + 1} Clear!`, 1600);
+        setTimeout(() => loadStage(currentStage + 1), 1600);
     }
 
+    // --- 7. 판정 ---
     function judge(note, judgmentType) {
         if (!note || note.dataset.judgedTime !== 'false') return;
-
         note.dataset.judgedTime = 'true';
 
-        if (judgmentType.includes('TIME')) {
-            showJudgmentFeedback(judgmentType.split('_')[0]);
-
-            if (judgmentType === 'PERFECT_TIME') {
+        if (judgmentType === 'MISS') {
+            showJudgmentFeedback('Miss');
+            combo = 0;
+            missCount++;
+            note.classList.add('note-miss');
+            removeNoteFromScreen(note, 400);
+        } else {
+            const tag = judgmentType.split('_')[0]; // PERFECT or GOOD
+            showJudgmentFeedback(tag);
+            if (tag === 'PERFECT') {
                 perfectCount++;
                 score += 100;
             } else {
                 goodCount++;
                 score += 80;
             }
-
             combo++;
             if (combo > maxCombo) maxCombo = combo;
-
             note.classList.add('note-pop');
-            removeNoteFromScreen(note, 200);
-
-        } else if (judgmentType === 'MISS') {
-            showJudgmentFeedback('Miss');
-            combo = 0;
-            missCount++;
-
-            note.classList.add('note-miss');
-            removeNoteFromScreen(note, 500);
+            removeNoteFromScreen(note, 150);
         }
 
         scoreDisplay.textContent = score;
@@ -613,51 +325,43 @@
     }
 
     function showJudgmentFeedback(text, duration = 600) {
-        const feedback = document.createElement('div');
-        feedback.className = 'feedback-popup';
-        feedback.textContent = text;
+        const fb = document.createElement('div');
+        fb.className = 'feedback-popup';
+        fb.textContent = text;
 
-        if (text.includes('Stage')) feedback.style.color = '#00ffff';
-        else if (text === 'PERFECT') feedback.style.color = '#4ade80';
-        else if (text === 'GOOD') feedback.style.color = '#facc15';
-        else if (text === 'Miss') feedback.style.color = '#f87171';
+        if (text.includes('Stage')) fb.style.color = '#00ffff';
+        else if (text === 'PERFECT') fb.style.color = '#4ade80';
+        else if (text === 'GOOD') fb.style.color = '#facc15';
+        else if (text === 'Miss') fb.style.color = '#f87171';
 
-        feedbackArea.appendChild(feedback);
-        setTimeout(() => {
-            feedback.remove();
-        }, duration);
+        feedbackArea.appendChild(fb);
+        setTimeout(() => fb.remove(), duration);
     }
 
     function removeNoteFromScreen(note, delay) {
         activeNotes = activeNotes.filter(n => n !== note);
-
         setTimeout(() => {
-            if (note.parentNode) {
-                note.parentNode.removeChild(note);
-            }
+            if (note.parentNode) note.parentNode.removeChild(note);
         }, delay);
     }
 
     function showFinalResults() {
         gameState = 'RESULTS';
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
-
-        const accuracy = totalNotes > 0 ? ((perfectCount + goodCount) / totalNotes) * 100 : 0;
+        const acc = totalNotes > 0 ? ((perfectCount + goodCount) / totalNotes) * 100 : 0;
 
         document.getElementById('final-score').textContent = score;
-        document.getElementById('accuracy').textContent = `${accuracy.toFixed(1)}%`;
+        document.getElementById('accuracy').textContent = acc.toFixed(1) + '%';
         document.getElementById('max-combo').textContent = maxCombo;
         document.getElementById('perfect-count').textContent = perfectCount;
         document.getElementById('good-count').textContent = goodCount;
         document.getElementById('miss-count').textContent = missCount;
 
-        let feedbackMsg = "";
-        if (accuracy > 95) feedbackMsg = "완벽한 리듬감이에요!";
-        else if (accuracy > 80) feedbackMsg = "훌륭해요! 조금만 더!";
-        else feedbackMsg = "연습이 조금 더 필요해요!";
+        let msg = '연습이 조금 더 필요해요!';
+        if (acc > 95) msg = '완벽한 리듬감이에요!';
+        else if (acc > 80) msg = '훌륭해요! 조금만 더!';
 
-        document.getElementById('feedback-message').textContent = feedbackMsg;
-
+        document.getElementById('feedback-message').textContent = msg;
         resultsScreen.classList.remove('hidden');
         resultsScreen.classList.add('flex');
     }
@@ -668,89 +372,81 @@
         stageDisplay.textContent = '';
         promptArea.innerHTML = '<p class="text-gray-400">게임을 시작하세요!</p>';
         resetGameStats();
-        updateKeyUI(0); // [수정] E키 다시 숨기기
+        updateKeyUI(0);
     }
 
-
-    // --- 7. 입력 처리 ---
-
+    // --- 8. 입력 처리 (여기에 히어로식 핵심 있음) ---
     function handleKeyDown(e) {
+        // 오디오 깨우기
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+        const key = e.key ? e.key.toLowerCase() : null;
+        if (!['q', 'w', 'e'].includes(key)) return;
+        if (key === 'e' && keyEWrapper.classList.contains('hidden')) return;
+
+        // UI 눌림
+        const kbd = document.getElementById(`key-${key}`);
+        if (kbd) kbd.classList.add('active');
+
+        // 아무 때나 누르면 작은 소리
+        playHitSound(key, true);
+
         if (gameState !== 'PLAY') return;
-
-        const key = e.key.toLowerCase();
-        // [수정] 'e' 키 입력 허용
-        if (!['q', 'w', 'e'].includes(key)) {
-            return;
-        }
-
-        // [수정] E키가 활성화되지 않았으면 e키 입력 무시
-        if (key === 'e' && keyEWrapper.classList.contains('hidden')) {
-            return;
-        }
-
-        document.getElementById(`key-${key}`).classList.add('active');
 
         const now = performance.now();
 
-        let closestNote = null;
-        let minDiff = Infinity;
+        // ★ 1) 이 키이고
+        // ★ 2) 아직 판정 안됐고
+        // ★ 3) 지금 시간이 그 노트의 windowStart~windowEnd 안인 노트만 본다
+        const candidates = activeNotes.filter(n => {
+            return (
+                n.dataset.key === key &&
+                n.dataset.judgedTime === 'false' &&
+                now >= parseFloat(n.dataset.windowStart) &&
+                now <= parseFloat(n.dataset.windowEnd)
+            );
+        });
 
-        for (const note of activeNotes) {
-            if (note.dataset.key === key && note.dataset.judgedTime === 'false') {
-                const timeToHit = parseFloat(note.dataset.hitTime) - now;
-                const diff = Math.abs(timeToHit);
-
-                if (diff < minDiff && timeToHit < JUDGMENT_WINDOWS.GOOD) {
-                    minDiff = diff;
-                    closestNote = note;
-                }
-            }
+        if (candidates.length === 0) {
+            // 창 밖이면 그냥 무시 (미스는 루프에서)
+            return;
         }
 
-        if (closestNote && minDiff <= JUDGMENT_WINDOWS.GOOD) {
+        // 가장 먼저 온 노트(=가장 왼쪽/가장 앞 타이밍)만 처리
+        const note = candidates[0];
+        const hitTime = parseFloat(note.dataset.hitTime);
+        const diff = now - hitTime; // +면 늦음, -면 빠름
 
-            playHitSound(key); // [수정] 히트 사운드 재생
-
-            if (minDiff <= JUDGMENT_WINDOWS.PERFECT) {
-                judge(closestNote, 'PERFECT_TIME');
-            } else {
-                judge(closestNote, 'GOOD_TIME');
-            }
-
-            const error = parseFloat(closestNote.dataset.hitTime) - now;
-            if (error < 0) noteStats[key].late++;
-            else noteStats[key].early++;
-
+        // ★ 히어로식 세분화
+        if (diff >= -JUDGMENT_WINDOWS.PERFECT_EARLY && diff <= JUDGMENT_WINDOWS.PERFECT_LATE) {
+            playHitSound(key, false);
+            judge(note, 'PERFECT_TIME');
         } else {
-            // 허공에 누름
+            playHitSound(key, false);
+            judge(note, 'GOOD_TIME');
         }
+
+        // 오차 기록
+        if (diff < 0) noteStats[key].early++;
+        else noteStats[key].late++;
     }
 
     function handleKeyUp(e) {
-        const key = e.key.toLowerCase();
-        // [수정] 'e' 키 입력 허용
-        if (!['q', 'w', 'e'].includes(key)) {
-            return;
-        }
-        // [수정] E키가 숨겨져있지 않을 때만 active 해제
-        if (document.getElementById(`key-${key}`)) {
-            document.getElementById(`key-${key}`).classList.remove('active');
-        }
+        const key = e.key ? e.key.toLowerCase() : null;
+        if (!['q', 'w', 'e'].includes(key)) return;
+        const kbd = document.getElementById(`key-${key}`);
+        if (kbd) kbd.classList.remove('active');
     }
 
-    // --- 8. 이벤트 리스너 ---
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // [수정] 'e'키 터치 이벤트 추가
-    document.getElementById('key-q').addEventListener('touchstart', (e) => { e.preventDefault(); handleKeyDown({ key: 'q' }); });
-    document.getElementById('key-q').addEventListener('touchend', (e) => { e.preventDefault(); handleKeyUp({ key: 'q' }); });
-    document.getElementById('key-w').addEventListener('touchstart', (e) => { e.preventDefault(); handleKeyDown({ key: 'w' }); });
-    document.getElementById('key-w').addEventListener('touchend', (e) => { e.preventDefault(); handleKeyUp({ key: 'w' }); });
-    document.getElementById('key-e').addEventListener('touchstart', (e) => { e.preventDefault(); handleKeyDown({ key: 'e' }); });
-    document.getElementById('key-e').addEventListener('touchend', (e) => { e.preventDefault(); handleKeyUp({ key: 'e' }); });
+    // 터치
+    document.getElementById('key-q').addEventListener('touchstart', e => { e.preventDefault(); handleKeyDown({ key: 'q' }); });
+    document.getElementById('key-q').addEventListener('touchend', e => { e.preventDefault(); handleKeyUp({ key: 'q' }); });
+    document.getElementById('key-w').addEventListener('touchstart', e => { e.preventDefault(); handleKeyDown({ key: 'w' }); });
+    document.getElementById('key-w').addEventListener('touchend', e => { e.preventDefault(); handleKeyUp({ key: 'w' }); });
+    document.getElementById('key-e').addEventListener('touchstart', e => { e.preventDefault(); handleKeyDown({ key: 'e' }); });
+    document.getElementById('key-e').addEventListener('touchend', e => { e.preventDefault(); handleKeyUp({ key: 'e' }); });
 
 </script>
-</body>
-</html>
-
