@@ -212,6 +212,8 @@
     let player1Scores = [];
     let player2Scores = []; // 2P 모드용
     let aiScores = [];      // AI 모드용
+    // **NEW: AI가 실수할 라운드를 저장할 배열**
+    let aiMissRounds = [];
 
     let lastDistance = 0;
     let isOOB = false;
@@ -609,13 +611,14 @@
         const targetSpeed = targetTravelDist * (1 - FRICTION);
         let targetPower = (targetSpeed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED);
 
-        // **MODIFIED: AI 난이도 조절 (1라운드 실수)**
+        // **MODIFIED: AI 난이도 조절 (랜덤 2개 라운드 실수)**
         let aiError;
-        if (currentRound === 1 && (gameMode === 'ai' || gameMode === 'hard-ai')) {
-            // 1라운드에는 고의로 큰 실수를 함 (파워를 30%~50% 더하거나 뺌)
+        // 현재 라운드가 "실수 라운드" 목록에 포함되어 있는지 확인
+        if (aiMissRounds.includes(currentRound) && (gameMode === 'ai' || gameMode === 'hard-ai')) {
+            // 이 라운드는 고의로 큰 실수를 함 (파워를 30%~50% 더하거나 뺌)
             aiError = (Math.random() > 0.5 ? 1 : -1) * (0.3 + Math.random() * 0.2); // +/- 30% ~ 50%
         } else {
-            // 2라운드부터는 원래 로직 (약간의 실수)
+            // 이 라운드는 원래 로직 (약간의 실수)
             aiError = (Math.random() - 0.5) * 0.1; // +/- 5% 파워 에러
         }
 
@@ -788,6 +791,8 @@
         player1Scores = [];
         player2Scores = [];
         aiScores = [];
+        // **NEW: AI 모드일 경우 실수 라운드 재설정**
+        aiMissRounds = [];
 
         setNewRadius();
         updateScoreUI();
@@ -804,10 +809,14 @@
             gameTitle.textContent = 'AI 대전 (Normal)';
             scoreDisplay.classList.remove('hidden');
             player2ScoreDisplay.textContent = 'AI: 0';
+            // **NEW: AI 실수 라운드 2개 뽑기**
+            generateAiMissRounds();
         } else if (mode === 'hard-ai') {
             gameTitle.textContent = 'AI 대전 (Hard)';
             scoreDisplay.classList.remove('hidden');
             player2ScoreDisplay.textContent = 'AI: 0';
+            // **NEW: AI 실수 라운드 2개 뽑기**
+            generateAiMissRounds();
         } else if (mode === '2p-normal') {
             gameTitle.textContent = '친구와 대결 (Normal)';
             scoreDisplay.classList.remove('hidden');
@@ -825,6 +834,19 @@
         gameContainer.classList.remove('hidden');
 
         setTimeout(showDistanceScroll, 100);
+    }
+
+    // **NEW: AI가 실수할 랜덤 라운드 2개를 뽑는 함수**
+    function generateAiMissRounds() {
+        const rounds = [1, 2, 3, 4, 5];
+        // Fisher-Yates shuffle
+        for (let i = rounds.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [rounds[i], rounds[j]] = [rounds[j], rounds[i]];
+        }
+        // 섞인 배열에서 2개 선택
+        aiMissRounds = rounds.slice(0, 2);
+        // console.log("AI 실수 라운드:", aiMissRounds); // 디버깅용
     }
 
     function showModeSelection() {
@@ -908,6 +930,7 @@
 
 </body>
 </html>
+
 
 
 
