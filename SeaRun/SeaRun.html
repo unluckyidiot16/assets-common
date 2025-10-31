@@ -369,8 +369,6 @@
 
     function closeShop() {
         characterShop.classList.add('hidden');
-        // optional: 혹시 인라인으로 열어둔 게 있으면 끕니다.
-        characterShop.style.display = '';
     }
 
     function populateShop() {
@@ -547,18 +545,17 @@
     }
 
     function startGame() {
-        gameClams = 0; // 'score' -> 'gameClams'
+        gameClams = 0;
         gameSpeed = 5;
         isGameOver = false;
         isJumping = false;
         isSliding = false;
         scoreElement.textContent = gameClams;
 
-        // ★ 선택된 캐릭터로 설정 (랜덤X)
-        loadGameData(); // 혹시 모르니 최신 데이터 로드
+        // 저장된 선택 캐릭터만 써도 됨 (이미 처음에 loadGameData()로 불러옴)
         player.src = IMG_ROOT + selectedCharacter;
 
-        // ★ 스타일 초기화 (버그 방지)
+        // ★ 스타일 초기화
         player.classList.remove('slide', 'jump');
         player.style.width = '';
         player.style.height = '';
@@ -593,7 +590,7 @@
 
         scheduleObstacle();
     }
-
+    
     function endGame() {
         isGameOver = true;
         cancelAnimationFrame(gameLoopId);
