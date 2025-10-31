@@ -64,7 +64,10 @@
             width: 80%;
             height: auto;
             margin: 0 auto 5px;
-            image-rendering: pixelated; /* 픽셀 아트 이미지에 유용 */
+            /* 이미지 픽셀이 깨끗하게 보이도록 설정 (선택 사항) */
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
         }
         .car-stats {
             margin-top: 5px;
@@ -82,60 +85,67 @@
 <div class="w-full max-w-lg mx-auto p-4 bg-white rounded-xl shadow-lg relative">
     <h1 class="text-4xl retro-font text-center text-blue-700 mb-6">질주 본능!</h1>
 
-    <!-- 점수 및 UI --><div class="flex justify-between items-center mb-4 p-3 bg-blue-50 rounded-lg shadow-sm">
-    <div>
-        <span class="font-semibold text-gray-700">최고 점수:</span>
-        <span id="highScore" class="font-bold text-xl text-indigo-700 ml-1">0</span>
+    <!-- 점수 및 생명력 UI -->
+    <div class="flex justify-between items-center mb-4 p-3 bg-blue-50 rounded-lg shadow-sm">
+        <div>
+            <span class="font-semibold text-gray-700">최고 점수:</span>
+            <span id="highScore" class="font-bold text-xl text-indigo-700 ml-1">0</span>
+        </div>
+        <div>
+            <span class="font-semibold text-gray-700">점수:</span>
+            <span id="score" class="font-bold text-xl text-gray-800 ml-1">0</span>
+        </div>
+        <div>
+            <span class="font-semibold text-gray-700">생명:</span>
+            <span id="lives" class="font-bold text-xl text-red-600 ml-1">❤️</span>
+        </div>
     </div>
-    <div>
-        <span class="font-semibold text-gray-700">점수:</span>
-        <span id="score" class="font-bold text-xl text-gray-800 ml-1">0</span>
+
+    <!-- 게임 영역 -->
+    <div class="relative w-full aspect-[9/16] bg-gray-700 rounded-lg shadow-inner overflow-hidden mx-auto" style="max-height: 75vh;">
+        <canvas id="gameCanvas" class="w-full h-full"></canvas>
+
+        <!-- 시작 화면 -->
+        <div id="startScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-80 text-white p-4">
+            <h2 class="text-4xl retro-font text-yellow-400 mb-6">START GAME</h2>
+
+            <h3 class="text-xl font-bold mb-4">내 차 선택하기</h3>
+            <div id="carSelectionGrid" class="car-select-grid w-full max-w-sm mb-6">
+                <!-- 자동차 선택 카드가 여기에 동적으로 생성됩니다 -->
+            </div>
+
+            <button id="startButton" class="px-8 py-4 bg-green-500 text-white retro-font rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-400 focus:ring-opacity-75 transition duration-200 text-xl">
+                게임 시작
+            </button>
+            <p class="text-sm text-gray-300 mt-4">최고 점수: <span id="startScreenHighScore">0</span></p>
+        </div>
+
+        <!-- 게임 오버 메시지 -->
+        <div id="gameOverMessage" class="absolute inset-0 flex-col items-center justify-center bg-black bg-opacity-70 text-white text-center p-4 hidden">
+            <h2 class="text-5xl retro-font text-red-500 mb-4">GAME OVER!</h2>
+            <p class="text-2xl mt-2">최종 점수: <span id="finalScore" class="font-bold">0</span></p>
+            <p class="text-xl">최고 점수: <span id="finalHighScore" class="font-bold">0</span></p>
+            <p class="mt-6 text-lg">다시 시작하려면 '게임 시작' 버튼을 누르세요.</p>
+        </div>
+
+        <!-- 일시정지 메시지 -->
+        <div id="pauseOverlay" class="absolute inset-0 flex-col items-center justify-center bg-black bg-opacity-70 text-white text-center hidden">
+            <h2 class="text-5xl retro-font text-purple-400 mb-4">PAUSED</h2>
+            <p class="text-xl">계속하려면 Esc 키 또는 화면을 다시 탭하세요.</p>
+        </div>
     </div>
-    <div>
-        <span class="font-semibold text-gray-700">생명:</span>
-        <span id="lives" class="font-bold text-xl text-red-600 ml-1">❤️</span>
+
+    <!-- 조작 안내 -->
+    <div class="text-center text-gray-600 mt-4 p-3 bg-blue-50 rounded-lg shadow-sm">
+        <p class="font-semibold text-lg mb-1">조작 방법</p>
+        <p class="text-md">
+            <span class="font-mono font-bold text-gray-800">←</span> /
+            <span class="font-mono font-bold text-gray-800">→</span> 또는 화면 터치 (좌/우)
+        </p>
+        <p class="text-md">
+            <span class="font-mono font-bold text-gray-800">Esc</span> 키로 일시정지 / 재개
+        </p>
     </div>
-</div>
-
-    <!-- 게임 캔버스 --><div class="relative w-full aspect-[9/16] bg-gray-700 rounded-lg shadow-inner overflow-hidden mx-auto" style="max-height: 75vh;">
-    <canvas id="gameCanvas" class="w-full h-full"></canvas>
-
-    <!-- 시작/선택 화면 --><div id="startScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-80 text-white p-4">
-    <h2 class="text-4xl retro-font text-yellow-400 mb-6">START GAME</h2>
-
-    <h3 class="text-xl font-bold mb-4">내 차 선택하기</h3>
-    <div id="carSelectionGrid" class="car-select-grid w-full max-w-sm mb-6">
-        <!-- 자동차 카드들이 여기에 동적으로 생성됩니다 --></div>
-
-    <button id="startButton" class="px-8 py-4 bg-green-500 text-white retro-font rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-400 focus:ring-opacity-75 transition duration-200 text-xl">
-        게임 시작
-    </button>
-    <p class="text-sm text-gray-300 mt-4">최고 점수: <span id="startScreenHighScore">0</span></p>
-</div>
-
-    <!-- 게임 오버 메시지 --><div id="gameOverMessage" class="absolute inset-0 flex-col items-center justify-center bg-black bg-opacity-70 text-white text-center p-4 hidden">
-    <h2 class="text-5xl retro-font text-red-500 mb-4">GAME OVER!</h2>
-    <p class="text-2xl mt-2">최종 점수: <span id="finalScore" class="font-bold">0</span></p>
-    <p class="text-xl">최고 점수: <span id="finalHighScore" class="font-bold">0</span></p>
-    <p class="mt-6 text-lg">다시 시작하려면 '게임 시작' 버튼을 누르세요.</p>
-</div>
-
-    <!-- 일시정지 오버레이 --><div id="pauseOverlay" class="absolute inset-0 flex-col items-center justify-center bg-black bg-opacity-70 text-white text-center hidden">
-    <h2 class="text-5xl retro-font text-purple-400 mb-4">PAUSED</h2>
-    <p class="text-xl">계속하려면 Esc 키 또는 화면을 다시 탭하세요.</p>
-</div>
-</div>
-
-    <!-- 조작 안내 --><div class="text-center text-gray-600 mt-4 p-3 bg-blue-50 rounded-lg shadow-sm">
-    <p class="font-semibold text-lg mb-1">조작 방법</p>
-    <p class="text-md">
-        <span class="font-mono font-bold text-gray-800">←</span> /
-        <span class="font-mono font-bold text-gray-800">→</span> 또는 화면 터치 (좌/우)
-    </p>
-    <p class="text-md">
-        <span class="font-mono font-bold text-gray-800">Esc</span> 키로 일시정지 / 재개
-    </p>
-</div>
 </div>
 
 <script>
@@ -155,13 +165,18 @@
     const pauseOverlay = document.getElementById('pauseOverlay');
 
     // --- 이미지 로드 ---
-    const IMAGE_ROOT = 'https://raw.githubusercontent.com/s-yadav/Classic-Car-Racing-Game/master/assets/';
+    // 사용자가 명시한 정확한 경로
+    const IMAGE_ROOT = 'https://unluckyidiot16.github.io/assets-common/CarCarCar/';
     const images = {};
+
+    // 사용자가 업로드한 파일 목록
     const imageFiles = [
-        'playerCar_red.png', 'playerCar_blue.png', 'playerCar_green.png', 'playerCar_yellow.png',
-        'enemyCar1.png', 'enemyCar2.png', 'enemyCar3.png', 'enemyCar4.png',
-        'stopwatch.png', 'road_marker.png'
+        'car.png', 'taxi.png', 'jeep.png', 'van_1.png', // 플레이어용
+        'van_0.png', 'hurdle.png', 'road-barrier.png', // 장애물/적
+        'construction.png', 'roadblock.png', // 장애물/적
+        'stopwatch.png' // 아이템
     ];
+
     let imagesLoadedCount = 0;
     let totalImagesToLoad = imageFiles.length;
 
@@ -170,13 +185,14 @@
         img.src = src;
         img.onload = () => {
             imagesLoadedCount++;
+            console.log(`Loaded image: ${name}`); // 로드 성공 로그
             if (imagesLoadedCount === totalImagesToLoad) {
                 console.log('All images loaded!');
                 initializeGame(); // 모든 이미지가 로드된 후 게임 초기화
             }
         };
         img.onerror = () => {
-            console.error(`Failed to load image: ${src}`);
+            console.error(`Failed to load image: ${src}`); // 로드 실패 로그
             imagesLoadedCount++; // 로드 실패해도 카운트는 증가
             if (imagesLoadedCount === totalImagesToLoad) {
                 console.log('All images (attempted) loaded!');
@@ -192,37 +208,46 @@
 
     // --- 게임 설정 ---
     const GAME_CONFIG = {
-        PLAYER_CAR_RATIO: 0.15, // 캔버스 너비 대비 플레이어 자동차 너비 비율
-        ENEMY_CAR_RATIO: 0.15, // 캔버스 너비 대비 적 자동차 너비 비율
-        LANE_COUNT: 3, // 차선 수
-        ROAD_SHOULDER_RATIO: 0.08, // 갓길 비율 (한쪽)
+        PLAYER_CAR_RATIO: 0.15,
+        ENEMY_CAR_RATIO: 0.15,
+        LANE_COUNT: 3,
+        ROAD_SHOULDER_RATIO: 0.08,
         LANE_MARKER_WIDTH_RATIO: 0.01,
         LANE_MARKER_HEIGHT_RATIO: 0.04,
         ITEM_RATIO: 0.08,
         SCORE_PER_FRAME: 1,
-        SPEED_INCREMENT_INTERVAL: 500, // 이 점수마다 게임 속도 증가
+        SPEED_INCREMENT_INTERVAL: 500,
         SPEED_INCREMENT_AMOUNT: 0.5,
-        INITIAL_ENEMY_SPAWN_INTERVAL: 100, // 프레임
+        INITIAL_ENEMY_SPAWN_INTERVAL: 100,
         MIN_ENEMY_SPAWN_INTERVAL: 30,
         ENEMY_SPAWN_DECREASE_RATE: 0.5,
-        INITIAL_ITEM_SPAWN_CHANCE: 0.005, // 0.5%
-        MAX_ITEM_SPAWN_CHANCE: 0.02, // 2%
+        INITIAL_ITEM_SPAWN_CHANCE: 0.005,
+        MAX_ITEM_SPAWN_CHANCE: 0.02,
         ITEM_SPAWN_CHANCE_INCREMENT: 0.0001,
     };
 
-    // --- 자동차 데이터 ---
+    // --- 자동차 데이터 (업로드된 파일명 기준) ---
     const CAR_DATA = [
-        { id: 'redCar', name: '레드 스톰', file: 'playerCar_red.png', unlockedAt: 0,
+        { id: 'car', name: '블루 세단', file: 'car.png', unlockedAt: 0,
             initialSpeed: 4, maxSpeed: 10, acceleration: 0.01, lives: 3 },
-        { id: 'blueCar', name: '블루 라이트닝', file: 'playerCar_blue.png', unlockedAt: 1000,
+        { id: 'taxi', name: '스피드 택시', file: 'taxi.png', unlockedAt: 1000,
             initialSpeed: 5, maxSpeed: 12, acceleration: 0.008, lives: 2 },
-        { id: 'greenCar', name: '그린 미라지', file: 'playerCar_green.png', unlockedAt: 3000,
+        { id: 'jeep', name: '터프 지프', file: 'jeep.png', unlockedAt: 3000,
             initialSpeed: 6, maxSpeed: 14, acceleration: 0.007, lives: 1 },
-        { id: 'yellowCar', name: '골든 썬더', file: 'playerCar_yellow.png', unlockedAt: 5000,
+        { id: 'van_1', name: '캠핑 밴', file: 'van_1.png', unlockedAt: 5000,
             initialSpeed: 7, maxSpeed: 15, acceleration: 0.006, lives: 1 }
     ];
 
-    const ENEMY_CAR_FILES = ['enemyCar1.png', 'enemyCar2.png', 'enemyCar3.png', 'enemyCar4.png'];
+    // 장애물/적 차량 파일 목록 (업로드된 파일명 기준)
+    const ENEMY_OBSTACLE_FILES = [
+        'van_0.png',
+        'hurdle.png',
+        'road-barrier.png',
+        'construction.png',
+        'roadblock.png'
+    ];
+
+    // 아이템 파일 목록 (업로드된 파일명 기준)
     const ITEM_FILES = [{ id: 'stopwatch', file: 'stopwatch.png', duration: 3000 }]; // 3초
 
     // --- 게임 변수 ---
@@ -233,11 +258,11 @@
     let score = 0;
     let highScore = localStorage.getItem('racingHighScore') ? parseInt(localStorage.getItem('racingHighScore')) : 0;
     let lives = 0;
-    let currentCarData; // 현재 선택된 자동차의 데이터
+    let currentCarData;
     let isPlaying = false;
     let isPaused = false;
-    let gameSpeed = 0; // 현재 게임 속도 (플레이어의 시작속도 + 가속도)
-    let playerSpeed = 0; // 플레이어의 현재 실제 속도 (게임 속도 + 알파)
+    let gameSpeed = 0;
+    let playerSpeed = 0;
     let enemySpawnTimer = 0;
     let currentEnemySpawnInterval = GAME_CONFIG.INITIAL_ENEMY_SPAWN_INTERVAL;
     let laneMarkerSpawnTimer = 0;
@@ -245,20 +270,17 @@
     let currentItemSpawnChance = GAME_CONFIG.INITIAL_ITEM_SPAWN_CHANCE;
     let gameLoopId;
 
-    // 무적 상태 변수
     let isInvincible = false;
     let invincibleTimer = 0;
     const INVINCIBLE_DURATION = 3000; // 3초
 
-    // 키보드 입력 상태
     const keys = {
         ArrowLeft: false,
         ArrowRight: false,
-        Escape: false, // 일시정지
+        Escape: false,
     };
 
-    // 터치 입력 상태
-    let touchSide = 'none'; // 'left', 'right', 'none'
+    let touchSide = 'none';
 
     // --- 유틸리티 ---
     function resizeCanvas() {
@@ -266,18 +288,23 @@
         canvas.width = container.clientWidth;
         canvas.height = container.clientHeight;
 
-        // 플레이어가 있을 경우 위치 재조정 (비율 유지)
         if (player) {
             const oldX = player.x / player.originalCanvasWidth;
             const oldY = player.y / player.originalCanvasHeight;
             player.width = canvas.width * GAME_CONFIG.PLAYER_CAR_RATIO;
-            player.height = player.width * (player.originalImageHeight / player.originalImageWidth);
+            // 이미지 비율에 맞게 높이 재계산
+            const img = images[player.imageName];
+            if (img && img.complete && img.width > 0) {
+                player.height = player.width * (img.height / img.width);
+            } else {
+                player.height = player.width * 1.6; // 기본 비율
+            }
+
             player.x = oldX * canvas.width;
             player.y = oldY * canvas.height;
             player.originalCanvasWidth = canvas.width;
             player.originalCanvasHeight = canvas.height;
         }
-        // 모든 객체들이 캔버스 크기에 맞춰 비율을 유지하도록 재조정 필요 (복잡하므로 게임 시작 시 초기화)
     }
 
     function randomInt(min, max) {
@@ -285,20 +312,31 @@
     }
 
     function drawLives() {
-        livesEl.textContent = '❤️'.repeat(lives);
+        livesEl.textContent = '❤️'.repeat(Math.max(0, lives)); // 생명력이 0 미만이 되지 않도록
     }
 
     // --- 게임 객체 클래스 ---
     class GameObject {
         constructor(imageName, widthRatio, x, y, speedY = 0) {
+            this.imageName = imageName; // 이미지 이름을 저장 (리사이즈 시 필요)
             this.image = images[imageName];
-            this.originalImageWidth = this.image ? this.image.width : 1;
-            this.originalImageHeight = this.image ? this.image.height : 1;
+
             this.width = canvas.width * widthRatio;
-            this.height = this.width * (this.originalImageHeight / this.originalImageWidth);
+
+            if (this.image && this.image.complete && this.image.width > 0) {
+                this.originalImageWidth = this.image.width;
+                this.originalImageHeight = this.image.height;
+                this.height = this.width * (this.originalImageHeight / this.originalImageWidth);
+            } else {
+                // 이미지가 아직 로드되지 않았거나 실패한 경우, 기본 비율 사용
+                this.originalImageWidth = 1;
+                this.originalImageHeight = 1.6; // 임의의 비율
+                this.height = this.width * this.originalImageHeight;
+            }
+
             this.x = x;
             this.y = y;
-            this.speedY = speedY; // Y축 이동 속도
+            this.speedY = speedY;
         }
 
         draw() {
@@ -316,26 +354,28 @@
         }
 
         getBounds() {
+            // 충돌 범위를 약간 줄여서 더 관대하게 판정
+            const paddingX = this.width * 0.1;
+            const paddingY = this.height * 0.1;
             return {
-                x: this.x,
-                y: this.y,
-                width: this.width,
-                height: this.height
+                x: this.x + paddingX,
+                y: this.y + paddingY,
+                width: this.width - paddingX * 2,
+                height: this.height - paddingY * 2
             };
         }
     }
 
     class Player extends GameObject {
         constructor(carData) {
-            super(carData.file.split('.')[0], GAME_CONFIG.PLAYER_CAR_RATIO, 0, 0); // 초기 x, y는 나중에 설정
+            super(carData.file.split('.')[0], GAME_CONFIG.PLAYER_CAR_RATIO, 0, 0);
             this.x = canvas.width / 2 - this.width / 2;
             this.y = canvas.height - this.height - 20;
-            this.moveSpeed = 7; // 좌우 이동 속도
+            this.moveSpeed = 7;
             this.maxGameSpeed = carData.maxSpeed;
             this.initialGameSpeed = carData.initialSpeed;
             this.acceleration = carData.acceleration;
 
-            // 리사이즈 시 비율 유지를 위한 값 저장
             this.originalCanvasWidth = canvas.width;
             this.originalCanvasHeight = canvas.height;
         }
@@ -348,7 +388,6 @@
                 this.x += this.moveSpeed;
             }
 
-            // 캔버스 경계 체크 (갓길 포함)
             const shoulderWidth = canvas.width * GAME_CONFIG.ROAD_SHOULDER_RATIO;
             if (this.x < shoulderWidth) this.x = shoulderWidth;
             if (this.x + this.width > canvas.width - shoulderWidth) {
@@ -359,10 +398,10 @@
 
     class Enemy extends GameObject {
         constructor() {
-            const enemyImageName = ENEMY_CAR_FILES[randomInt(0, ENEMY_CAR_FILES.length - 1)].split('.')[0];
+            // 업로드된 파일명 목록에서 랜덤 선택
+            const enemyImageName = ENEMY_OBSTACLE_FILES[randomInt(0, ENEMY_OBSTACLE_FILES.length - 1)].split('.')[0];
             super(enemyImageName, GAME_CONFIG.ENEMY_CAR_RATIO, 0, 0);
 
-            // 차선 계산
             const roadWidth = canvas.width * (1 - GAME_CONFIG.ROAD_SHOULDER_RATIO * 2);
             const roadStartX = canvas.width * GAME_CONFIG.ROAD_SHOULDER_RATIO;
             const laneWidth = roadWidth / GAME_CONFIG.LANE_COUNT;
@@ -370,27 +409,37 @@
             const lane = randomInt(0, GAME_CONFIG.LANE_COUNT - 1);
             this.x = roadStartX + lane * laneWidth + (laneWidth / 2) - (this.width / 2);
 
-            this.y = -this.height; // 화면 위에서 시작
-            this.speedY = gameSpeed + Math.random() * 2 - 1; // 기본 속도 + 약간의 랜덤성
+            this.y = -this.height;
+            this.speedY = gameSpeed + Math.random() * 2 - 1;
+            this.originalSpeedY = this.speedY; // 무적 상태 해제 시 복구용
         }
     }
 
-    class LaneMarker extends GameObject {
+    // --- 차선 마커 클래스 (이미지 대신 그리기) ---
+    class LaneMarker {
         constructor() {
-            super('road_marker', GAME_CONFIG.LANE_MARKER_WIDTH_RATIO, 0, 0);
-            this.height = canvas.width * GAME_CONFIG.LANE_MARKER_HEIGHT_RATIO; // 너비 비율로 높이 설정
+            this.width = canvas.width * GAME_CONFIG.LANE_MARKER_WIDTH_RATIO;
+            this.height = canvas.width * GAME_CONFIG.LANE_MARKER_HEIGHT_RATIO;
 
             const roadWidth = canvas.width * (1 - GAME_CONFIG.ROAD_SHOULDER_RATIO * 2);
             const roadStartX = canvas.width * GAME_CONFIG.ROAD_SHOULDER_RATIO;
             const laneWidth = roadWidth / GAME_CONFIG.LANE_COUNT;
 
-            // 2개의 차선 분리 마커
             const markerLane = randomInt(1, GAME_CONFIG.LANE_COUNT - 1); // 1 또는 2
             this.x = roadStartX + laneWidth * markerLane - (this.width / 2);
             this.y = -this.height;
             this.speedY = gameSpeed;
         }
-        // LaneMarker는 이미 GameObject의 update를 사용
+
+        draw() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+
+        update() {
+            this.speedY = gameSpeed; // 항상 현재 게임 속도 반영
+            this.y += this.speedY;
+        }
     }
 
     class Item extends GameObject {
@@ -409,6 +458,11 @@
             this.speedY = gameSpeed;
             this.id = itemId;
         }
+
+        update() {
+            this.speedY = gameSpeed; // 아이템도 게임 속도에 맞춰 내려옴
+            super.update();
+        }
     }
 
     // --- 게임 로직 함수 ---
@@ -416,21 +470,20 @@
         resizeCanvas();
         highScoreEl.textContent = highScore;
         startScreenHighScoreEl.textContent = highScore;
-        renderCarSelection(); // 자동차 선택 UI 렌더링
+        renderCarSelection();
 
-        // 처음에는 시작 화면 보여주기
         startScreen.classList.remove('hidden');
         gameOverMessage.classList.add('hidden');
         pauseOverlay.classList.add('hidden');
-        canvas.style.display = 'none'; // 게임 캔버스 숨기기
-        startButton.textContent = '게임 시작'; // 시작 버튼 텍스트 초기화
+        canvas.style.display = 'none';
+        startButton.textContent = '게임 시작';
     }
 
     function startGame() {
-        if (isPlaying) return; // 이미 시작된 경우 무시
+        if (isPlaying) return;
 
-        // 선택된 자동차가 없으면 시작 불가
         if (!currentCarData) {
+            // 임시 알림. 더 나은 UI로 대체 가능.
             alert('플레이할 자동차를 선택해주세요!');
             return;
         }
@@ -438,11 +491,10 @@
         isPlaying = true;
         isPaused = false;
 
-        // 게임 상태 초기화
         score = 0;
-        lives = currentCarData.lives; // 선택된 차의 생명력으로 초기화
-        gameSpeed = currentCarData.initialSpeed; // 선택된 차의 시작 속도로 초기화
-        playerSpeed = currentCarData.initialSpeed; // 플레이어의 초기 속도
+        lives = currentCarData.lives;
+        gameSpeed = currentCarData.initialSpeed;
+        playerSpeed = currentCarData.initialSpeed;
         enemies = [];
         laneMarkers = [];
         items = [];
@@ -454,29 +506,27 @@
         isInvincible = false;
         invincibleTimer = 0;
 
-        // 플레이어 (재)생성
         player = new Player(currentCarData);
 
-        // UI 업데이트
         scoreEl.textContent = score;
         drawLives();
         startButton.textContent = '재시작';
-        startButton.blur(); // 버튼 포커스 해제
+        startButton.blur();
         gameOverMessage.classList.add('hidden');
-        startScreen.classList.add('hidden'); // 시작 화면 숨기기
+        startScreen.classList.add('hidden');
         pauseOverlay.classList.add('hidden');
-        canvas.style.display = 'block'; // 게임 캔버스 보이기
+        canvas.style.display = 'block';
 
-        // 기존 루프 중지 (있을 경우)
         if (gameLoopId) {
             cancelAnimationFrame(gameLoopId);
         }
 
-        // 새 게임 루프 시작
         gameLoop();
     }
 
     function togglePause() {
+        if (!isPlaying) return; // 게임 중이 아니면 무시
+
         isPaused = !isPaused;
         if (isPaused) {
             cancelAnimationFrame(gameLoopId);
@@ -491,15 +541,13 @@
         isPlaying = false;
         cancelAnimationFrame(gameLoopId);
 
-        // 최고 점수 업데이트
         if (score > highScore) {
             highScore = score;
             localStorage.setItem('racingHighScore', highScore);
         }
         highScoreEl.textContent = highScore;
-        startScreenHighScoreEl.textContent = highScore; // 시작 화면에도 업데이트
+        startScreenHighScoreEl.textContent = highScore;
 
-        // 게임 오버 메시지 표시
         finalScoreEl.textContent = score;
         finalHighScoreEl.textContent = highScore;
         gameOverMessage.classList.remove('hidden');
@@ -507,6 +555,15 @@
 
         // 시작 화면에서 자동차 잠금 해제 여부 업데이트
         renderCarSelection();
+
+        // 게임 오버 시 캔버스를 숨기고 시작 화면을 다시 보여줌
+        setTimeout(() => {
+            if (!isPlaying) { // 혹시 그새 재시작하지 않았다면
+                canvas.style.display = 'none';
+                startScreen.classList.remove('hidden');
+                gameOverMessage.classList.add('hidden');
+            }
+        }, 2000); // 2초 후 시작 화면으로
     }
 
     function checkCollision(obj1, obj2) {
@@ -527,7 +584,6 @@
             enemies.push(new Enemy());
             enemySpawnTimer = 0;
 
-            // 난이도 조절: 스폰 간격 점차 줄임
             if (currentEnemySpawnInterval > GAME_CONFIG.MIN_ENEMY_SPAWN_INTERVAL) {
                 currentEnemySpawnInterval -= GAME_CONFIG.ENEMY_SPAWN_DECREASE_RATE;
             }
@@ -536,7 +592,6 @@
 
     function spawnLaneMarkers() {
         laneMarkerSpawnTimer++;
-        // 속도가 빠를수록 차선이 자주 그려지는 듯한 효과
         const markerSpawnRate = Math.max(10, 50 - gameSpeed * 2);
         if (laneMarkerSpawnTimer > markerSpawnRate) {
             laneMarkers.push(new LaneMarker());
@@ -546,12 +601,15 @@
 
     function spawnItem() {
         itemSpawnTimer++;
-        if (Math.random() < currentItemSpawnChance && itemSpawnTimer > 300) { // 일정 시간 후 확률 체크
-            items.push(new Item('stopwatch')); // 현재는 스톱워치만
-            itemSpawnTimer = 0;
-            currentItemSpawnChance += GAME_CONFIG.ITEM_SPAWN_CHANCE_INCREMENT;
-            if (currentItemSpawnChance > GAME_CONFIG.MAX_ITEM_SPAWN_CHANCE) {
-                currentItemSpawnChance = GAME_CONFIG.MAX_ITEM_SPAWN_CHANCE;
+        // 300 프레임(약 5초)마다 한 번씩 아이템 생성 시도
+        if (itemSpawnTimer > 300) {
+            if (Math.random() < currentItemSpawnChance) {
+                items.push(new Item('stopwatch'));
+                itemSpawnTimer = 0;
+                currentItemSpawnChance += GAME_CONFIG.ITEM_SPAWN_CHANCE_INCREMENT;
+                if (currentItemSpawnChance > GAME_CONFIG.MAX_ITEM_SPAWN_CHANCE) {
+                    currentItemSpawnChance = GAME_CONFIG.MAX_ITEM_SPAWN_CHANCE;
+                }
             }
         }
     }
@@ -559,139 +617,123 @@
     function activateStopwatch() {
         isInvincible = true;
         invincibleTimer = INVINCIBLE_DURATION;
-        playerSpeed = currentCarData.maxSpeed * 1.5; // 최대 속도보다 더 빠르게
-        // 충돌하는 적 차들을 날려버리는 효과는 충돌 감지 로직에서 처리
+        playerSpeed = currentCarData.maxSpeed * 1.5;
         console.log('스톱워치 발동! 무적 및 슈퍼 스피드!');
     }
 
     function updateGameObjects() {
         if (!isPlaying || isPaused) return;
 
-        // 플레이어 속도 증가
-        gameSpeed = Math.min(currentCarData.maxSpeed, gameSpeed + currentCarData.acceleration);
-        playerSpeed = gameSpeed; // 기본적으로 게임 스피드와 동일
+        // 플레이어 속도 (게임 속도)
+        if (!isInvincible) {
+            gameSpeed = Math.min(currentCarData.maxSpeed, gameSpeed + currentCarData.acceleration);
+            playerSpeed = gameSpeed;
+        } else {
+            playerSpeed = currentCarData.maxSpeed * 1.5; // 무적 시 고정된 최고 속도
+            gameSpeed = playerSpeed; // 다른 객체들도 이 속도에 영향받음
+        }
 
         // 무적 상태 타이머 업데이트
         if (isInvincible) {
             invincibleTimer -= (1000 / 60); // 1초 = 1000ms, 60fps 기준
             if (invincibleTimer <= 0) {
                 isInvincible = false;
-                playerSpeed = gameSpeed; // 원래 속도로 돌아옴
+                gameSpeed = currentCarData.maxSpeed; // 무적 해제 시 최대 속도로 복귀
                 console.log('무적 해제!');
             }
         }
 
-        // 플레이어 업데이트
         player.update();
 
-        // 차선 업데이트
         spawnLaneMarkers();
         laneMarkers.forEach((marker, index) => {
-            marker.speedY = gameSpeed; // 차선 속도는 항상 게임 속도와 동일
             marker.update();
             if (marker.y > canvas.height) {
                 laneMarkers.splice(index, 1);
             }
         });
 
-        // 적군 업데이트
         spawnEnemy();
         enemies.forEach((enemy, index) => {
-            enemy.speedY = enemy.originalSpeedY || gameSpeed + Math.random() * 2 - 1; // 스톱워치 중엔 고정
+            enemy.speedY = enemy.originalSpeedY - (gameSpeed - player.initialGameSpeed); // 적 속도 조절 (플레이어 속도만큼 빨라짐)
             enemy.update();
 
-            // 충돌 감지
             if (checkCollision(player, enemy)) {
                 if (isInvincible) {
-                    // 무적 상태일 때 적을 화면 밖으로 날려버림
+                    // 무적 상태: 적을 날려버림
                     enemy.y = canvas.height + 100;
-                    enemy.speedY = 0; // 더 이상 움직이지 않도록
-                    score += 50; // 날려버린 적에 대한 추가 점수
+                    enemy.speedY = 0;
+                    score += 50;
                 } else {
+                    // 무적 아님: 생명력 감소
                     lives--;
                     drawLives();
-                    // 충돌 후 잠깐의 무적 시간 (깜빡임 효과)을 줄 수도 있음
-                    // 여기서는 간단히 한 번의 충돌에 한 생명 소모
+
                     enemies.splice(index, 1); // 충돌한 적은 사라짐
+
                     if (lives <= 0) {
                         gameOver();
+                    } else {
+                        // 잠깐의 무적 시간 (예: 1초)
+                        isInvincible = true;
+                        invincibleTimer = 1000; // 1초간 충돌 무적
+                        console.log('충돌! 1초간 무적');
                     }
                 }
             }
 
-            // 화면 밖으로 나간 적 제거
             if (enemy.y > canvas.height) {
                 enemies.splice(index, 1);
-                // 적을 피하면 점수 획득 (생존 시간 점수와 별개)
-                score += 10;
+                if (isPlaying) { // 게임 오버 상태에서 점수 오르는 것 방지
+                    score += 10;
+                }
             }
         });
 
-        // 아이템 업데이트
         spawnItem();
         items.forEach((item, index) => {
-            item.speedY = gameSpeed;
             item.update();
 
-            // 아이템 획득 감지
             if (checkCollision(player, item)) {
                 if (item.id === 'stopwatch') {
                     activateStopwatch();
                 }
-                items.splice(index, 1); // 획득한 아이템은 사라짐
+                items.splice(index, 1);
             }
 
-            // 화면 밖으로 나간 아이템 제거
             if (item.y > canvas.height) {
                 items.splice(index, 1);
             }
         });
 
-        // 점수 업데이트
         score += GAME_CONFIG.SCORE_PER_FRAME;
         scoreEl.textContent = score;
 
-        // 최고 점수 업데이트 (실시간)
         if (score > highScore) {
             highScore = score;
             highScoreEl.textContent = highScore;
         }
-
-        // 난이도 업데이트 (게임 속도 증가)
-        // if (score % GAME_CONFIG.SPEED_INCREMENT_INTERVAL === 0 && score > 0) {
-        //     gameSpeed += GAME_CONFIG.SPEED_INCREMENT_AMOUNT;
-        //     if (gameSpeed > currentCarData.maxSpeed) {
-        //         gameSpeed = currentCarData.maxSpeed;
-        //     }
-        // }
-        // 가속도 로직으로 변경되어 위 코드는 주석 처리
     }
 
     function drawGameObjects() {
-        // 캔버스 클리어 (도로색으로)
-        ctx.fillStyle = '#6c757d'; // 어두운 회색 (도로)
+        ctx.fillStyle = '#6c757d';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 갓길 (잔디)
-        ctx.fillStyle = '#28A745'; // 초록색
+        ctx.fillStyle = '#28A745';
         const shoulderWidth = canvas.width * GAME_CONFIG.ROAD_SHOULDER_RATIO;
         ctx.fillRect(0, 0, shoulderWidth, canvas.height);
         ctx.fillRect(canvas.width - shoulderWidth, 0, shoulderWidth, canvas.height);
 
-        // 차선 그리기
         laneMarkers.forEach(marker => marker.draw());
 
-        // 적군 그리기
         enemies.forEach(enemy => enemy.draw());
 
-        // 아이템 그리기
         items.forEach(item => item.draw());
 
-        // 플레이어 그리기
         if (player) {
             if (isInvincible) {
                 // 무적 상태일 때 플레이어 깜빡임 효과
-                if (Math.floor(invincibleTimer / 100) % 2 === 0) { // 0.1초마다 깜빡
+                if (Math.floor(Date.now() / 100) % 2 === 0) { // 0.1초마다 깜빡
                     player.draw();
                 }
             } else {
@@ -725,10 +767,16 @@
                 card.addEventListener('click', () => selectCar(car.id));
             }
 
-            const img = document.createElement('img');
-            img.src = IMAGE_ROOT + car.file;
-            img.alt = car.name;
-            card.appendChild(img);
+            // 이미지 로드 (이미 images 객체에 있어야 함)
+            const imgEl = new Image();
+            imgEl.src = IMAGE_ROOT + car.file;
+            imgEl.alt = car.name;
+            imgEl.style.width = '80%';
+            imgEl.style.height = 'auto';
+            imgEl.style.margin = '0 auto 5px';
+            imgEl.style.imageRendering = 'pixelated';
+
+            card.appendChild(imgEl);
 
             const name = document.createElement('p');
             name.classList.add('font-bold', 'text-sm', 'text-gray-800');
@@ -747,79 +795,77 @@
 
             carSelectionGrid.appendChild(card);
         });
-        // 이전에 선택된 차가 있다면 다시 선택 표시
-        if (currentCarData) {
-            const selected = document.querySelector(`.car-card[data-car-id="${currentCarData.id}"]`);
-            if (selected) {
-                selected.classList.add('selected');
-            }
-        } else {
-            // 기본으로 첫 번째 차 선택
-            selectCar(CAR_DATA[0].id);
-        }
+
+        // 기본 선택 또는 이전에 선택한 차 선택
+        let defaultCarId = (currentCarData && highScore >= currentCarData.unlockedAt) ? currentCarData.id : CAR_DATA[0].id;
+        selectCar(defaultCarId);
     }
 
     function selectCar(carId) {
         const selectedCar = CAR_DATA.find(car => car.id === carId);
         if (!selectedCar || highScore < selectedCar.unlockedAt) {
-            return; // 잠긴 차는 선택 불가
+            console.log('잠긴 차량은 선택할 수 없습니다.');
+            return;
         }
 
         currentCarData = selectedCar;
 
-        // 모든 카드에서 selected 클래스 제거
         document.querySelectorAll('.car-card').forEach(card => {
             card.classList.remove('selected');
         });
-        // 선택된 카드에 selected 클래스 추가
-        document.querySelector(`.car-card[data-car-id="${carId}"]`).classList.add('selected');
-        console.log(`차량 선택: ${currentCarData.name}`);
+
+        const cardElement = document.querySelector(`.car-card[data-car-id="${carId}"]`);
+        if (cardElement) {
+            cardElement.classList.add('selected');
+            console.log(`차량 선택: ${currentCarData.name}`);
+        }
     }
 
     // --- 이벤트 리스너 ---
 
-    // 1. 캔버스 크기 조절
     window.addEventListener('resize', resizeCanvas);
 
-    // 2. 키보드 입력
     window.addEventListener('keydown', (e) => {
         if (keys.hasOwnProperty(e.key)) {
+            e.preventDefault(); // 화살표 키 스크롤 방지
             keys[e.key] = true;
         }
         if (e.key === 'Escape') {
-            if (isPlaying && !gameOverMessage.classList.contains('hidden')) return; // 게임 오버 상태에서는 일시정지 불가
-            if (isPlaying) { // 게임 중일 때만 일시정지
+            if (isPlaying) { // 게임 중에만 일시정지
                 togglePause();
-            } else if (!startScreen.classList.contains('hidden')) { // 시작 화면에서 Esc 누르면 아무것도 안함
-                e.preventDefault();
             }
         }
     });
 
     window.addEventListener('keyup', (e) => {
         if (keys.hasOwnProperty(e.key)) {
+            e.preventDefault();
             keys[e.key] = false;
         }
     });
 
-    // 3. 터치 입력
     canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (isPlaying && isPaused) { // 일시정지 상태에서 터치 시 재개
+        if (isPlaying && isPaused) {
             togglePause();
             return;
         }
-        handleTouch(e.touches[0]);
+        if(isPlaying) {
+            handleTouch(e.touches[0]);
+        }
     }, { passive: false });
 
     canvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
-        handleTouch(e.touches[0]);
+        if(isPlaying && !isPaused) {
+            handleTouch(e.touches[0]);
+        }
     }, { passive: false });
 
-    canvas.addEventListener('touchend', () => {
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
         touchSide = 'none';
-    });
+    }, { passive: false });
 
     function handleTouch(touch) {
         const touchX = touch.clientX - canvas.getBoundingClientRect().left;
@@ -830,17 +876,18 @@
         }
     }
 
-    // 4. 시작 버튼
     startButton.addEventListener('click', startGame);
 
-    // --- 게임 시작 시 초기화 ---
-    // 모든 이미지가 로드된 후 initializeGame이 호출됩니다.
-    // 현재는 이미지 로드 없이도 실행 가능하도록 수정.
-
-    // 이미지 로드가 완료된 후 초기화
-    if (imagesLoadedCount === totalImagesToLoad) {
+    // --- 초기화 ---
+    // 이미지 로드가 완료된 후 initializeGame이 호출됩니다.
+    if (imagesLoadedCount === totalImagesToLoad && totalImagesToLoad > 0) {
+        initializeGame();
+    } else if (totalImagesToLoad === 0) {
+        console.log("No images to load, initializing immediately.");
         initializeGame();
     }
+    // else: 로드 완료 콜백에서 initializeGame()을 기다립니다.
+
 </script>
 </body>
 </html>
