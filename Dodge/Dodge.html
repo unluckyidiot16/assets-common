@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Bullet Dodge</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: rgba(15,23,42,.85);
+            --accent: #38bdf8;
+            --danger: #f43f5e;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top, #1f2937 0%, #020617 65%);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+        }
+        canvas {
+            background: radial-gradient(circle, #0f172a 0%, #020617 100%);
+            border: 3px solid rgba(148,163,184,.4);
+            border-radius: 16px;
+            box-shadow: 0 10px 50px rgba(0,0,0,.35);
+            touch-action: none;
+        }
+        .hud {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            background: rgba(15,23,42,.33);
+            padding: .35rem 1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,.4);
+            backdrop-filter: blur(6px);
+            pointer-events: none;
+            font-size: .9rem;
+        }
+        .hud span.label { opacity: .55; margin-right: .15rem; }
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            pointer-events: none;
+        }
+        .panel {
+            background: var(--panel);
+            padding: 1.2rem 1.7rem 1.1rem;
+            border-radius: 1.2rem;
+            border: 1px solid rgba(148,163,184,.4);
+            text-align: center;
+            min-width: 280px;
+        }
+        .title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: .4rem;
+        }
+        .subtitle {
+            font-size: .8rem;
+            opacity: .7;
+            margin-bottom: .8rem;
+        }
+        .btn {
+            background: #38bdf8;
+            color: #020617;
+            border: none;
+            padding: .5rem 1.2rem;
+            border-radius: .6rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform .1s;
+        }
+        .btn:active { transform: translateY(1px); }
+        .controls {
+            font-size: .7rem;
+            opacity: .7;
+            margin-top: .5rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+<div class="hud" id="hud">
+    <div><span class="label">TIME</span><span id="time">0.0</span>s</div>
+    <div><span class="label">BEST</span><span id="best">0.0</span>s</div>
+    <div><span class="label">BULLETS</span><span id="bulletCount">0</span></div>
+</div>
+<canvas id="game" width="640" height="360"></canvas>
+<div class="overlay" id="overlay"></div>
+
+<script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const hudTime = document.getElementById("time");
+    const hudBest = document.getElementById("best");
+    const hudBulletCount = document.getElementById("bulletCount");
+    const overlay = document.getElementById("overlay");
+
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const state = {
+        playing: false,
+        player: { x: W/2, y: H/2, r: 10, speed: 220 },
+        keys: {},
+        bullets: [],
+        elapsed: 0,
+        best: +(localStorage.getItem("bullet-dodge-best") || 0)
+    };
+
+    hudBest.textContent = state.best.toFixed(1);
+
+    function showStart() {
+        overlay.innerHTML = `
+        <div class="panel">
+          <div class="title">Bullet Dodge</div>
+          <div class="subtitle">사방에서 오는 탄을 최대한 오래 피해보세요!</div>
+          <button class="btn" id="startBtn">게임 시작</button>
+          <div class="controls">
+            이동: WASD / ←↑→↓<br/>
+            TIP: 탄이 발사될 때 살짝 쉰 다음 움직이면 살아남기 쉬워요.
+          </div>
+        </div>
+      `;
+        const btn = document.getElementById("startBtn");
+        btn.onclick = startGame;
+        overlay.style.pointerEvents = "auto";
+    }
+
+    function showGameOver() {
+        overlay.innerHTML = `
+        <div class="panel">
+          <div class="title" style="color: var(--danger)">게임 오버</div>
+          <div class="subtitle">생존 시간: ${state.elapsed.toFixed(1)}초</div>
+          <button class="btn" id="retryBtn">다시 하기</button>
+          <div class="controls">
+            다시 도전해서 최고 기록을 갱신해보세요!
+          </div>
+        </div>
+      `;
+        const btn = document.getElementById("retryBtn");
+        btn.onclick = startGame;
+        overlay.style.pointerEvents = "auto";
+    }
+
+    function startGame() {
+        // reset
+        state.playing = true;
+        state.player.x = W / 2;
+        state.player.y = H / 2;
+        state.bullets = [];
+        state.elapsed = 0;
+        overlay.innerHTML = "";
+        overlay.style.pointerEvents = "none";
+        lastSpawn = 0;
+        lastTime = performance.now();
+    }
+
+    // 입력
+    window.addEventListener("keydown", (e) => {
+        state.keys[e.key.toLowerCase()] = true;
+        if (e.key === " " && !state.playing) startGame();
+    });
+    window.addEventListener("keyup", (e) => {
+        state.keys[e.key.toLowerCase()] = false;
+    });
+
+    // 탄환 만들기
+    function spawnBullet() {
+        // 4면 중 하나
+        const side = Math.floor(Math.random() * 4);
+        let x, y;
+        if (side === 0) { // top
+            x = Math.random() * W;
+            y = -10;
+        } else if (side === 1) { // right
+            x = W + 10;
+            y = Math.random() * H;
+        } else if (side === 2) { // bottom
+            x = Math.random() * W;
+            y = H + 10;
+        } else { // left
+            x = -10;
+            y = Math.random() * H;
+        }
+        // 플레이어 쪽으로 향하게
+        const dx = state.player.x - x;
+        const dy = state.player.y - y;
+        const len = Math.hypot(dx, dy) || 1;
+        const speed = 120 + Math.random() * 140 + state.elapsed * 3; // 시간 지나면 점점 빨라짐
+        const vx = (dx / len) * speed;
+        const vy = (dy / len) * speed;
+        state.bullets.push({ x, y, vx, vy, r: 6 });
+    }
+
+    // 충돌 체크
+    function circleHit(a, b) {
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const dist = dx*dx + dy*dy;
+        const rr = (a.r + b.r) * (a.r + b.r);
+        return dist < rr;
+    }
+
+    // 메인 루프
+    let lastTime = performance.now();
+    let lastSpawn = 0;
+
+    function loop(now) {
+        const dt = Math.min((now - lastTime) / 1000, 0.033); // 30fps 이상 보정
+        lastTime = now;
+
+        if (state.playing) {
+            state.elapsed += dt;
+            // 난이도: 0.5초~1.2초 사이에서 점점 촘촘하게
+            const spawnInterval = Math.max(0.28, 1.1 - state.elapsed * 0.015);
+            lastSpawn += dt;
+            if (lastSpawn >= spawnInterval) {
+                spawnBullet();
+                lastSpawn = 0;
+            }
+            // 플레이어 이동
+            let mx = 0, my = 0;
+            if (state.keys["arrowup"] || state.keys["w"]) my -= 1;
+            if (state.keys["arrowdown"] || state.keys["s"]) my += 1;
+            if (state.keys["arrowleft"] || state.keys["a"]) mx -= 1;
+            if (state.keys["arrowright"] || state.keys["d"]) mx += 1;
+            if (mx !== 0 || my !== 0) {
+                const len = Math.hypot(mx, my) || 1;
+                mx /= len; my /= len;
+                state.player.x += mx * state.player.speed * dt;
+                state.player.y += my * state.player.speed * dt;
+            }
+            // 화면 밖으로 못 나가게
+            state.player.x = Math.max(state.player.r, Math.min(W - state.player.r, state.player.x));
+            state.player.y = Math.max(state.player.r, Math.min(H - state.player.r, state.player.y));
+
+            // 탄환 이동
+            for (const b of state.bullets) {
+                b.x += b.vx * dt;
+                b.y += b.vy * dt;
+            }
+            // 맞았는지
+            for (const b of state.bullets) {
+                if (circleHit(state.player, b)) {
+                    state.playing = false;
+                    // 최고 기록 저장
+                    if (state.elapsed > state.best) {
+                        state.best = state.elapsed;
+                        localStorage.setItem("bullet-dodge-best", state.best);
+                    }
+                    showGameOver();
+                    break;
+                }
+            }
+            // 화면 너무 밖으로 나간 탄환 정리
+            state.bullets = state.bullets.filter(b => b.x > -40 && b.x < W+40 && b.y > -40 && b.y < H+40);
+
+            // HUD 업데이트
+            hudTime.textContent = state.elapsed.toFixed(1);
+            hudBest.textContent = state.best.toFixed(1);
+            hudBulletCount.textContent = state.bullets.length;
+        }
+
+        // 그리기
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경 그리드
+        ctx.save();
+        ctx.globalAlpha = 0.15;
+        ctx.strokeStyle = "#38bdf8";
+        const gridSize = 32;
+        for (let x = (now/40)%gridSize * -1; x < W; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, H);
+            ctx.stroke();
+        }
+        for (let y = (now/60)%gridSize * -1; y < H; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(W, y);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // 플레이어
+        ctx.beginPath();
+        ctx.fillStyle = "#e2e8f0";
+        ctx.arc(state.player.x, state.player.y, state.player.r, 0, Math.PI*2);
+        ctx.fill();
+        // 플레이어 외곽
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 탄환
+        for (const b of state.bullets) {
+            ctx.beginPath();
+            ctx.fillStyle = "rgba(244,63,94,1)";
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+            ctx.fill();
+            ctx.strokeStyle = "rgba(248,250,252,.5)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // 처음 화면
+    showStart();
+
+    // 모바일/터치 간단 이동 (화면 터치한 쪽으로 이동)
+    canvas.addEventListener("pointerdown", (e) => {
+        if (!state.playing) return;
+        const rect = canvas.getBoundingClientRect();
+        const cx = e.clientX - rect.left;
+        const cy = e.clientY - rect.top;
+        // 플레이어를 터치 쪽으로 순간이동 대신 살짝
+        state.player.x = cx;
+        state.player.y = cy;
+    });
+</script>
+</body>
+</html>
