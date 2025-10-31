@@ -453,14 +453,16 @@
     }
 
     function slide() {
-        if (isSliding || isJumping || isGameOver) return;
+        // 여기서는 "모션만" 한다
         isSliding = true;
         player.classList.add('slide');
+
         setTimeout(() => {
             player.classList.remove('slide');
             isSliding = false;
         }, SLIDE_DURATION);
     }
+
 
     function createObstacle() {
         const obstacle = document.createElement('div');
@@ -619,15 +621,33 @@
         if (e.code === 'Space' || e.code === 'ArrowUp') {
             jump();
         } else if (e.code === 'ArrowDown') {
-            slide();
+            // ↓ 는 여기서만 막는다
+            if (!isSliding && !isJumping) {
+                slide();
+            }
         }
     });
 
     // 컨트롤 버튼
     jumpButton.addEventListener('mousedown', (e) => { e.preventDefault(); if (!isGameOver) jump(); });
     jumpButton.addEventListener('touchstart', (e) => { e.preventDefault(); if (!isGameOver) jump(); });
-    slideButton.addEventListener('mousedown', (e) => { e.preventDefault(); if (!isGameOver) slide(); });
-    slideButton.addEventListener('touchstart', (e) => { e.preventDefault(); if (!isGameOver) slide(); });
+    slideButton.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        if (isGameOver) return;
+        if (!characterShop.classList.contains('hidden')) return; // 선택
+        if (!isSliding && !isJumping) {
+            slide();
+        }
+    });
+    slideButton.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (isGameOver) return;
+        if (!characterShop.classList.contains('hidden')) return; // 선택
+        if (!isSliding && !isJumping) {
+            slide();
+        }
+    });
+
 
     // 로비/게임오버 버튼
     startButton.addEventListener('click', (e) => { e.stopPropagation(); startGame(); });

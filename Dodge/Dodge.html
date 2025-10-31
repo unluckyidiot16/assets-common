@@ -336,7 +336,7 @@
                 const bullet = state.bulletPool.pop() || {};
 
                 Object.assign(bullet, {
-                    x, y, vx, vy, r: 12,
+                    x, y, vx, vy, r: 8, // <--- MODIFIED: 12 -> 8
                     img: img,
                     imgKey: imgKey,
                     behavior: 'normal',
@@ -454,20 +454,36 @@
                                     break;
                                 }
                                 case 'homing': {
-                                    const dx = state.player.x - b.x;
-                                    const dy = state.player.y - b.y;
-                                    const len = Math.hypot(dx, dy) || 1;
-                                    const speed = Math.hypot(b.vx, b.vy);
-                                    const targetVx = (dx / len) * speed;
-                                    const targetVy = (dy / len) * speed;
+                                    // --- MODIFIED: Homing logic with timeout ---
+                                    const age = state.elapsed - b.spawnTime;
+                                    const homingDuration = 2.0; // 2초 동안만 플레이어를 추적
 
-                                    const turnFactor = 0.6 * dt;
-                                    b.vx = b.vx * (1 - turnFactor) + targetVx * turnFactor;
-                                    b.vy = b.vy * (1 - turnFactor) + targetVy * turnFactor;
+                                    if (age < homingDuration) {
+                                        // 추적 로직 (활성)
+                                        const dx = state.player.x - b.x;
+                                        const dy = state.player.y - b.y;
+                                        const len = Math.hypot(dx, dy) || 1;
 
+                                        // 플레이어와 거의 겹쳤을 때(len < 1) 방향을 0으로 계산해 멈추는 현상 방지
+                                        if (len > 1.0) {
+                                            const speed = Math.hypot(b.vx, b.vy); // 현재 속도 유지
+                                            const targetVx = (dx / len) * speed;
+                                            const targetVy = (dy / len) * speed;
+
+                                            const turnFactor = 0.6 * dt; // 선회율
+                                            b.vx = b.vx * (1 - turnFactor) + targetVx * turnFactor;
+                                            b.vy = b.vy * (1 - turnFactor) + targetVy * turnFactor;
+                                        }
+                                        // len <= 1.0 이면 방향을 갱신하지 않고, 이전 vx/vy 값을 사용해 직진 (멈춤 방지)
+                                    }
+                                    // age >= homingDuration 이 되면, 'if' 블록을 건너뛰어
+                                    // b.vx와 b.vy가 마지막 값으로 고정되어 직진하게 됨.
+
+                                    // 이동 로직 (추적 여부와 관계없이 항상 적용)
                                     b.x += b.vx * dt;
                                     b.y += b.vy * dt;
                                     break;
+                                    // --- END MODIFIED ---
                                 }
                                 case 'accelerate': {
                                     b.vx *= (1 + 1.2 * dt);
@@ -477,28 +493,40 @@
                                     break;
                                 }
                                 case 'dash': {
-                                    b.dashTimer -= dt;
-                                    if (b.dashTimer <= 0) {
-                                        b.isDashing = !b.isDashing;
+                                    // --- MODIFIED: Dash logic with 5-second timeout ---
+                                    const age = state.elapsed - b.spawnTime;
+                                    const dashDuration = 5.0; // 5초 동안만 추적
 
-                                        const dx = state.player.x - b.x;
-                                        const dy = state.player.y - b.y;
-                                        const len = Math.hypot(dx, dy) || 1;
-                                        const baseSpeed = (120 + state.elapsed * 3);
+                                    if (age < dashDuration) {
+                                        // 5초 이내일 때: 대시/대기 패턴 반복 및 플레이어 재조준
+                                        b.dashTimer -= dt;
+                                        if (b.dashTimer <= 0) {
+                                            b.isDashing = !b.isDashing;
 
-                                        if (b.isDashing) {
-                                            b.dashTimer = 0.3;
-                                            b.vx = (dx / len) * baseSpeed * 2.5;
-                                            b.vy = (dy / len) * baseSpeed * 2.5;
-                                        } else {
-                                            b.dashTimer = 0.6;
-                                            b.vx = (dx / len) * baseSpeed * 0.2;
-                                            b.vy = (dy / len) * baseSpeed * 0.2;
+                                            // 플레이어 재조준
+                                            const dx = state.player.x - b.x;
+                                            const dy = state.player.y - b.y;
+                                            const len = Math.hypot(dx, dy) || 1;
+                                            const baseSpeed = (120 + state.elapsed * 3);
+
+                                            if (b.isDashing) {
+                                                b.dashTimer = 0.3; // 0.3초 돌진
+                                                b.vx = (dx / len) * baseSpeed * 2.5; // 돌진 속도
+                                                b.vy = (dy / len) * baseSpeed * 2.5;
+                                            } else {
+                                                b.dashTimer = 0.6; // 0.6초 저속 이동
+                                                b.vx = (dx / len) * baseSpeed * 0.2; // 저속 속도
+                                                b.vy = (dy / len) * baseSpeed * 0.2;
+                                            }
                                         }
                                     }
+                                    // 5초가 지나면 'if' 블록을 건너뛰고, 마지막 b.vx/b.vy 값으로 직진함.
+
+                                    // 이동 로직 (항상 적용)
                                     b.x += b.vx * dt;
                                     b.y += b.vy * dt;
                                     break;
+                                    // --- END MODIFIED ---
                                 }
                                 case 'normal':
                                 default:
@@ -573,7 +601,12 @@
                         }
 
                         if (imgToDraw) {
-                            ctx.drawImage(imgToDraw, b.x - imgToDraw.width / 2, b.y - imgToDraw.height / 2);
+                            // --- MODIFIED: Scale image to 70% ---
+                            const scale = 0.7;
+                            const w = imgToDraw.width * scale;
+                            const h = imgToDraw.height * scale;
+                            ctx.drawImage(imgToDraw, b.x - w / 2, b.y - h / 2, w, h);
+                            // --- END MODIFIED ---
                         } else {
                             ctx.beginPath();
                             ctx.fillStyle = "rgba(244,63,94,1)";
@@ -609,4 +642,7 @@
 </script>
 </body>
 </html>
+
+
+
 
