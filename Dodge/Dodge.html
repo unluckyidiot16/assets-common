@@ -23,13 +23,14 @@
             align-items: center;
             justify-content: center;
             gap: .5rem;
+            overflow: hidden; /* 스크롤 방지 */
         }
         canvas {
             background: radial-gradient(circle, #0f172a 0%, #020617 100%);
             border: 3px solid rgba(148,163,184,.4);
             border-radius: 16px;
             box-shadow: 0 10px 50px rgba(0,0,0,.35);
-            touch-action: none;
+            touch-action: none; /* 터치 이벤트가 스크롤 등을 유발하지 않게 함 */
         }
         .hud {
             position: absolute;
@@ -111,10 +112,52 @@
     const W = canvas.width;
     const H = canvas.height;
 
+    // --- 이미지 로딩 ---
+    const bulletRoot = "http://unluckyidiot16.github.io/assets-common/Dodge/";
+    const bulletImageSrcs = [
+        "bat-1.png", "flameSkull-blue.png", "ghost.png", "bat-2.png",
+        "flameSkull-red.png", "spider.png", "rat.png"
+    ];
+    const images = {};
+    let imagesLoaded = 0;
+
+    function preloadImages(callback) {
+        let loadedCount = 0;
+        const totalImages = bulletImageSrcs.length;
+
+        if (totalImages === 0) {
+            callback();
+            return;
+        }
+
+        bulletImageSrcs.forEach(src => {
+            const img = new Image();
+            img.onload = () => {
+                loadedCount++;
+                images[src] = img;
+                if (loadedCount === totalImages) {
+                    callback();
+                }
+            };
+            img.onerror = () => {
+                console.error(`Failed to load image: ${src}`);
+                loadedCount++;
+                images[src] = null; // 실패 처리
+                if (loadedCount === totalImages) {
+                    callback();
+                }
+            };
+            img.src = bulletRoot + src;
+        });
+    }
+    // --- /이미지 로딩 ---
+
+
     const state = {
         playing: false,
         player: { x: W/2, y: H/2, r: 10, speed: 220 },
         keys: {},
+        touch: { active: false, x: 0, y: 0 },
         bullets: [],
         elapsed: 0,
         best: +(localStorage.getItem("bullet-dodge-best") || 0)
@@ -129,7 +172,7 @@
           <div class="subtitle">사방에서 오는 탄을 최대한 오래 피해보세요!</div>
           <button class="btn" id="startBtn">게임 시작</button>
           <div class="controls">
-            이동: WASD / ←↑→↓<br/>
+            이동: WASD / ←↑→↓ / 터치 & 드래그<br/>
             TIP: 탄이 발사될 때 살짝 쉰 다음 움직이면 살아남기 쉬워요.
           </div>
         </div>
@@ -168,7 +211,7 @@
         lastTime = performance.now();
     }
 
-    // 입력
+    // --- 입력 ---
     window.addEventListener("keydown", (e) => {
         state.keys[e.key.toLowerCase()] = true;
         if (e.key === " " && !state.playing) startGame();
@@ -177,6 +220,47 @@
         state.keys[e.key.toLowerCase()] = false;
     });
 
+    // 터치/마우스 입력 처리
+    function getPointerPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        // 터치 또는 마우스 이벤트 처리
+        const pointer = e.changedTouches ? e.changedTouches[0] : e;
+        // 캔버스 크기와 실제 표시 크기 사이의 비율 계산
+        const scaleX = W / rect.width;
+        const scaleY = H / rect.height;
+        return {
+            x: (pointer.clientX - rect.left) * scaleX,
+            y: (pointer.clientY - rect.top) * scaleY
+        };
+    }
+
+    canvas.addEventListener("pointerdown", (e) => {
+        if (!state.playing) return;
+        e.preventDefault();
+        state.touch.active = true;
+        const pos = getPointerPos(e);
+        state.touch.x = pos.x;
+        state.touch.y = pos.y;
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+        if (!state.playing || !state.touch.active) return;
+        e.preventDefault();
+        const pos = getPointerPos(e);
+        state.touch.x = pos.x;
+        state.touch.y = pos.y;
+    });
+
+    const onPointerEnd = (e) => {
+        e.preventDefault();
+        state.touch.active = false;
+    };
+    canvas.addEventListener("pointerup", onPointerEnd);
+    canvas.addEventListener("pointercancel", onPointerEnd);
+    canvas.addEventListener("pointerleave", onPointerEnd); // 캔버스 밖으로 나가도 중지
+    // --- /입력 ---
+
+
     // 탄환 만들기
     function spawnBullet() {
         // 4면 중 하나
@@ -184,25 +268,76 @@
         let x, y;
         if (side === 0) { // top
             x = Math.random() * W;
-            y = -10;
+            y = -20;
         } else if (side === 1) { // right
-            x = W + 10;
+            x = W + 20;
             y = Math.random() * H;
         } else if (side === 2) { // bottom
             x = Math.random() * W;
-            y = H + 10;
+            y = H + 20;
         } else { // left
-            x = -10;
+            x = -20;
             y = Math.random() * H;
         }
-        // 플레이어 쪽으로 향하게
+        // 플레이어 쪽으로 향하게 (스폰 시점 기준)
         const dx = state.player.x - x;
         const dy = state.player.y - y;
         const len = Math.hypot(dx, dy) || 1;
         const speed = 120 + Math.random() * 140 + state.elapsed * 3; // 시간 지나면 점점 빨라짐
-        const vx = (dx / len) * speed;
-        const vy = (dy / len) * speed;
-        state.bullets.push({ x, y, vx, vy, r: 6 });
+
+        let vx = (dx / len) * speed;
+        let vy = (dy / len) * speed;
+
+        // 이미지 랜덤 선택
+        let imgKey = bulletImageSrcs[Math.floor(Math.random() * bulletImageSrcs.length)];
+        // bat-2.png가 뽑히면 bat-1.png로 변경 (애니메이션 시작 프레임)
+        if (imgKey === "bat-2.png") imgKey = "bat-1.png";
+
+        const img = images[imgKey];
+
+        const bullet = {
+            x, y, vx, vy, r: 12, // 히트박스 반지름 (이미지에 맞게 6 -> 12)
+            img: img,
+            imgKey: imgKey,
+            behavior: 'normal',
+            spawnTime: state.elapsed
+        };
+
+        // --- 행동 패턴 적용 ---
+        switch (imgKey) {
+            case 'bat-1.png':
+                bullet.behavior = 'wave';
+                bullet.vx *= 0.8; // 웨이브는 기본 속도 살짝 느리게
+                bullet.vy *= 0.8;
+                bullet.waveOffset = Math.random() * Math.PI * 2; // 웨이브 시작 위치 랜덤
+                break;
+            case 'flameSkull-red.png':
+                bullet.behavior = 'homing';
+                bullet.vx *= 1.2; // 빨간색은 빠름
+                bullet.vy *= 1.2;
+                break;
+            case 'flameSkull-blue.png':
+                bullet.behavior = 'homing';
+                bullet.vx *= 0.7; // 파란색은 느림
+                bullet.vy *= 0.7;
+                break;
+            case 'ghost.png':
+                bullet.behavior = 'accelerate';
+                bullet.vx *= 0.3; // 처음엔 매우 느림
+                bullet.vy *= 0.3;
+                break;
+            case 'spider.png':
+                bullet.behavior = 'dash';
+                bullet.dashTimer = 0.5 + Math.random() * 0.5; // 첫 대기 시간
+                bullet.isDashing = false;
+                break;
+            case 'rat.png':
+            default:
+                bullet.behavior = 'normal';
+                break;
+        }
+
+        state.bullets.push(bullet);
     }
 
     // 충돌 체크
@@ -231,27 +366,115 @@
                 spawnBullet();
                 lastSpawn = 0;
             }
-            // 플레이어 이동
+
+            // --- 플레이어 이동 (터치 우선) ---
             let mx = 0, my = 0;
-            if (state.keys["arrowup"] || state.keys["w"]) my -= 1;
-            if (state.keys["arrowdown"] || state.keys["s"]) my += 1;
-            if (state.keys["arrowleft"] || state.keys["a"]) mx -= 1;
-            if (state.keys["arrowright"] || state.keys["d"]) mx += 1;
+
+            if (state.touch.active) {
+                // 터치 위치로 이동
+                const dx = state.touch.x - state.player.x;
+                const dy = state.touch.y - state.player.y;
+                const len = Math.hypot(dx, dy) || 1;
+                if (len > 1) { // 거리가 1픽셀보다 클 때만 이동 (떨림 방지)
+                    mx = dx / len;
+                    my = dy / len;
+                }
+            } else {
+                // 키보드 이동
+                if (state.keys["arrowup"] || state.keys["w"]) my -= 1;
+                if (state.keys["arrowdown"] || state.keys["s"]) my += 1;
+                if (state.keys["arrowleft"] || state.keys["a"]) mx -= 1;
+                if (state.keys["arrowright"] || state.keys["d"]) mx += 1;
+
+                if (mx !== 0 || my !== 0) {
+                    const len = Math.hypot(mx, my) || 1;
+                    mx /= len; my /= len;
+                }
+            }
+
             if (mx !== 0 || my !== 0) {
-                const len = Math.hypot(mx, my) || 1;
-                mx /= len; my /= len;
                 state.player.x += mx * state.player.speed * dt;
                 state.player.y += my * state.player.speed * dt;
             }
+            // --- /플레이어 이동 ---
+
             // 화면 밖으로 못 나가게
             state.player.x = Math.max(state.player.r, Math.min(W - state.player.r, state.player.x));
             state.player.y = Math.max(state.player.r, Math.min(H - state.player.r, state.player.y));
 
-            // 탄환 이동
+            // --- 탄환 이동 (행동 패턴 적용) ---
             for (const b of state.bullets) {
-                b.x += b.vx * dt;
-                b.y += b.vy * dt;
+                switch (b.behavior) {
+                    case 'wave': {
+                        // 진행 방향에 수직으로 S자 이동
+                        const age = state.elapsed - b.spawnTime;
+                        const angle = Math.atan2(b.vy, b.vx);
+                        const perpAngle = angle + Math.PI / 2; // 수직 각도
+                        const waveMag = Math.sin(age * 6 + b.waveOffset) * 45 * dt; // 초당 6회, 45px 진폭
+                        b.x += b.vx * dt + Math.cos(perpAngle) * waveMag;
+                        b.y += b.vy * dt + Math.sin(perpAngle) * waveMag;
+                        break;
+                    }
+                    case 'homing': {
+                        // 플레이어 방향으로 천천히 방향 전환
+                        const dx = state.player.x - b.x;
+                        const dy = state.player.y - b.y;
+                        const len = Math.hypot(dx, dy) || 1;
+                        const speed = Math.hypot(b.vx, b.vy); // 현재 속도 유지
+                        const targetVx = (dx / len) * speed;
+                        const targetVy = (dy / len) * speed;
+
+                        // 선회율 (초당 60%씩 목표 방향으로)
+                        const turnFactor = 0.6 * dt;
+                        b.vx = b.vx * (1 - turnFactor) + targetVx * turnFactor;
+                        b.vy = b.vy * (1 - turnFactor) + targetVy * turnFactor;
+
+                        b.x += b.vx * dt;
+                        b.y += b.vy * dt;
+                        break;
+                    }
+                    case 'accelerate': {
+                        // 매 프레임 가속
+                        b.vx *= (1 + 1.2 * dt); // 초당 120% 빨라짐
+                        b.vy *= (1 + 1.2 * dt);
+                        b.x += b.vx * dt;
+                        b.y += b.vy * dt;
+                        break;
+                    }
+                    case 'dash': {
+                        b.dashTimer -= dt;
+                        if (b.dashTimer <= 0) {
+                            b.isDashing = !b.isDashing;
+                            b.dashTimer = b.isDashing ? 0.3 : 0.6; // 0.3초 돌진, 0.6초 대기
+
+                            // 대기할 때 플레이어 방향으로 재조준
+                            if (!b.isDashing) {
+                                const dx = state.player.x - b.x;
+                                const dy = state.player.y - b.y;
+                                const len = Math.hypot(dx, dy) || 1;
+                                // 속도 계산 (기본 속도 * 2.5배로 돌진)
+                                const dashSpeed = (120 + state.elapsed * 3) * 2.5;
+                                b.vx = (dx / len) * dashSpeed;
+                                b.vy = (dy / len) * dashSpeed;
+                            }
+                        }
+
+                        if (b.isDashing) {
+                            b.x += b.vx * dt;
+                            b.y += b.vy * dt;
+                        }
+                        // isDashing이 false면 (대기 중) 이동 안 함
+                        break;
+                    }
+                    case 'normal':
+                    default:
+                        b.x += b.vx * dt;
+                        b.y += b.vy * dt;
+                        break;
+                }
             }
+            // --- /탄환 이동 ---
+
             // 맞았는지
             for (const b of state.bullets) {
                 if (circleHit(state.player, b)) {
@@ -266,7 +489,7 @@
                 }
             }
             // 화면 너무 밖으로 나간 탄환 정리
-            state.bullets = state.bullets.filter(b => b.x > -40 && b.x < W+40 && b.y > -40 && b.y < H+40);
+            state.bullets = state.bullets.filter(b => b.x > -50 && b.x < W+50 && b.y > -50 && b.y < H+50);
 
             // HUD 업데이트
             hudTime.textContent = state.elapsed.toFixed(1);
@@ -274,7 +497,7 @@
             hudBulletCount.textContent = state.bullets.length;
         }
 
-        // 그리기
+        // --- 그리기 ---
         ctx.clearRect(0, 0, W, H);
 
         // 배경 그리드
@@ -306,34 +529,46 @@
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // 탄환
+        // 탄환 (이미지로 그리기)
         for (const b of state.bullets) {
-            ctx.beginPath();
-            ctx.fillStyle = "rgba(244,63,94,1)";
-            ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
-            ctx.fill();
-            ctx.strokeStyle = "rgba(248,250,252,.5)";
-            ctx.lineWidth = 1;
-            ctx.stroke();
+            let imgToDraw = b.img;
+
+            // 박쥐 애니메이션 처리
+            if (b.imgKey === 'bat-1.png') {
+                const frame = Math.floor(state.elapsed * 8) % 2; // 초당 8회 깜빡임
+                const key = frame === 0 ? "bat-1.png" : "bat-2.png";
+                imgToDraw = images[key];
+            }
+
+            if (imgToDraw) {
+                // 이미지를 중앙에 맞춤
+                ctx.drawImage(imgToDraw, b.x - imgToDraw.width / 2, b.y - imgToDraw.height / 2);
+            } else {
+                // 이미지 로드 실패 시 대체용 (기존 코드)
+                ctx.beginPath();
+                ctx.fillStyle = "rgba(244,63,94,1)";
+                ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // // (디버그용) 히트박스 그리기
+            // ctx.beginPath();
+            // ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
+            // ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            // ctx.stroke();
         }
+        // --- /그리기 ---
 
         requestAnimationFrame(loop);
     }
-    requestAnimationFrame(loop);
 
-    // 처음 화면
-    showStart();
-
-    // 모바일/터치 간단 이동 (화면 터치한 쪽으로 이동)
-    canvas.addEventListener("pointerdown", (e) => {
-        if (!state.playing) return;
-        const rect = canvas.getBoundingClientRect();
-        const cx = e.clientX - rect.left;
-        const cy = e.clientY - rect.top;
-        // 플레이어를 터치 쪽으로 순간이동 대신 살짝
-        state.player.x = cx;
-        state.player.y = cy;
+    // 이미지 미리 로드 후 게임 시작
+    preloadImages(() => {
+        console.log("모든 이미지가 로드되었습니다.");
+        showStart(); // 이미지 로딩 완료 후 시작 화면 표시
+        requestAnimationFrame(loop); // 루프 시작
     });
+
 </script>
 </body>
 </html>

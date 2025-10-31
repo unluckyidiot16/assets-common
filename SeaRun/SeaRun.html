@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바다동물 런! v6 - 버그 수정</title>
+    <title>바다동물 런! v7 - 상점 시스템</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,24 +45,25 @@
             bottom: 20px;
             left: 50px;
             z-index: 10;
-            transition: transform 0.2s ease-in,
-            width 0.2s ease-out,
-            height 0.2s ease-out,
-            bottom 0.2s ease-out;
+            /* ★ 점프(0.18s), 슬라이드(0.3s) 시간 반영 */
+            transition: transform 0.18s ease-in,
+            width 0.3s ease-out,
+            height 0.3s ease-out,
+            bottom 0.3s ease-out;
         }
-        /* ★ 점프 살짝 낮게 + 짧게 */
+        /* ★ 점프 살짝 낮게 + 짧게 (0.18s) */
         .jump {
-            transform: translateY(-115px);
-            transition: transform 0.2s ease-out,
-            width 0.2s ease-out,
-            height 0.2s ease-out,
-            bottom 0.2s ease-out;
+            transform: translateY(-110px);
+            transition: transform 0.18s ease-out,
+            width 0.3s ease-out,
+            height 0.3s ease-out,
+            bottom 0.3s ease-out;
         }
-        /* ★ 인라인 스타일 이기게 !important */
+        /* ★ 슬라이드 (0.3s) */
         .slide {
-            width: 90px !important;
-            height: 50px !important;
-            bottom: 10px !important;
+            width: 90px;
+            height: 50px;
+            bottom: 10px;
         }
         .obstacle {
             width: 45px;
@@ -118,6 +119,94 @@
         }
         .control-button:hover { background-color: #fef08a; }
         .control-button:active { transform: scale(0.95); }
+
+        /* --- ★ 신규: 상점 모달 --- */
+        /* 기본 모달 스타일 (열렸을 때) */
+        #character-shop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            padding: 1.5rem;
+            flex-direction: column;
+            border: 4px solid #fde047;
+            border-radius: 1rem;
+            display: flex;
+        }
+
+        /* hidden 클래스를 달면 진짜로 안 보이게 */
+        #character-shop.hidden {
+            display: none !important;
+        }
+
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #fde047;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        .char-card {
+            background-color: #1f2937;
+            border-radius: 0.5rem;
+            border: 2px solid #374151;
+            padding: 1rem;
+            text-align: center;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+        .char-card.unlocked {
+            opacity: 1;
+            border-color: #fde047;
+        }
+        .char-card.selected {
+            border-color: #34d399; /* green */
+            box-shadow: 0 0 15px #34d399;
+        }
+        .char-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin: 0 auto 0.5rem;
+            background: #374151;
+            border-radius: 50%;
+        }
+        .char-button {
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            transition: all 0.2s;
+        }
+        .char-button.select {
+            background-color: #3b82f6; /* blue */
+        }
+        .char-button.selected {
+            background-color: #34d399; /* green */
+            color: #1f2937;
+        }
+        .char-button.unlock {
+            background-color: #fde047; /* yellow */
+            color: #1f2937;
+        }
+        .char-button.locked {
+            background-color: #4b5563; /* gray */
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -129,18 +218,26 @@
 
     <div class="flex justify-between items-center mb-2 px-2">
         <span class="text-3xl font-bold">SCORE: <span id="score">0</span></span>
-        <img src="https://unluckyidiot16.github.io/assets-common/SeaRun/honghap.png" alt="홍합" class="w-10 h-10">
+        <!-- ★ 총 홍합 표시 (이미지 경로 수정) -->
+        <span class="text-2xl font-bold flex items-center">
+            총 홍합: <span id="total-clams-display">0</span>
+            <img src="https://unluckyidiot16.github.io/assets-common/SeaRun/honghap.png" alt="홍합" class="w-8 h-8 ml-1">
+        </span>
     </div>
 
     <div id="game-container">
         <div id="ground"></div>
         <img id="player" src="" alt="플레이어 캐릭터">
 
-        <div id="start-message" class="message-box">
+        <!-- ★ '로비'로 이름 변경, 버튼 추가 -->
+        <div id="lobby-message" class="message-box">
             <h2 class="text-2xl font-bold mb-4">↑ 점프로 바닥 쓰레기 피하기!</h2>
             <h2 class="text-2xl font-bold mb-4">↓ 슬라이드로 공중 쓰레기 피하기!</h2>
-            <button id="start-button" class="px-6 py-2 bg-yellow-400 text-gray-900 font-bold rounded-lg shadow-lg text-xl hover:bg-yellow-300 transition-colors">
+            <button id="start-button" class="px-6 py-2 bg-yellow-400 text-gray-900 font-bold rounded-lg shadow-lg text-xl hover:bg-yellow-300 transition-colors w-full mb-3">
                 게임 시작
+            </button>
+            <button id="shop-open-button" class="px-6 py-2 bg-blue-500 text-white font-bold rounded-lg shadow-lg text-xl hover:bg-blue-400 transition-colors w-full">
+                캐릭터 선택
             </button>
         </div>
 
@@ -148,11 +245,28 @@
             <h2 class="text-2xl font-bold mb-2">게임 오버!</h2>
             <p class="text-xl mb-4">최종 점수: <span id="final-score">0</span></p>
             <button id="restart-button" class="px-6 py-2 bg-yellow-400 text-gray-900 font-bold rounded-lg shadow-lg text-xl hover:bg-yellow-300 transition-colors">
-                다시하기
+                다시하기 (로비로)
             </button>
+        </div>
+
+        <!-- ★ 신규: 캐릭터 상점 모달 -->
+        <div id="character-shop" class="hidden">
+            <div class="shop-header">
+                <h2 class="text-3xl font-bold">캐릭터 상점</h2>
+                <span class="text-2xl font-bold flex items-center">
+                    보유: <span id="total-clams-shop">0</span>
+                    <!-- ★ 이미지 경로 수정 -->
+                    <img src="https://unluckyidiot16.github.io/assets-common/SeaRun/honghap.png" alt="홍합" class="w-8 h-8 ml-1">
+                </span>
+                <button id="shop-close-button" class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg text-xl hover:bg-red-400">X</button>
+            </div>
+            <div id="shop-grid" class="shop-grid">
+                <!-- 캐릭터 카드는 JS로 생성 -->
+            </div>
         </div>
     </div>
 
+    <!-- 컨트롤 버튼 -->
     <div id="controls-container">
         <button id="jump-button" class="control-button">JUMP (↑)</button>
         <button id="slide-button" class="control-button">SLIDE (↓)</button>
@@ -160,24 +274,46 @@
 </div>
 
 <script>
+    // DOM 요소
     const gameContainer = document.getElementById('game-container');
     const player = document.getElementById('player');
     const scoreElement = document.getElementById('score');
-    const startMessage = document.getElementById('start-message');
+    const lobbyMessage = document.getElementById('lobby-message'); // 이름 변경
     const gameOverMessage = document.getElementById('game-over-message');
     const startButton = document.getElementById('start-button');
     const restartButton = document.getElementById('restart-button');
     const finalScoreElement = document.getElementById('final-score');
     const jumpButton = document.getElementById('jump-button');
     const slideButton = document.getElementById('slide-button');
+    const totalClamsDisplay = document.getElementById('total-clams-display');
 
+    // ★ 상점 요소
+    const shopOpenButton = document.getElementById('shop-open-button');
+    const shopCloseButton = document.getElementById('shop-close-button');
+    const characterShop = document.getElementById('character-shop');
+    const totalClamsShop = document.getElementById('total-clams-shop');
+    const shopGrid = document.getElementById('shop-grid');
+
+    // 이미지 및 경로
     const IMG_ROOT = 'https://unluckyidiot16.github.io/assets-common/SeaRun/';
-    const PLAYER_IMGS = ['narwhal.png', 'sea-cow.png', 'sea-lion.png'];
     const GROUND_OBSTACLES = ['plastic.png', 'recyclingbag.png'];
     const HIGH_OBSTACLES = ['pollution.png'];
     const COLLECTIBLE_IMG = 'honghap.png';
 
-    let score = 0;
+    // ★ 캐릭터 데이터
+    const CHARACTERS = [
+        { id: 'sea-lion.png', name: '바다사자', cost: 0 },
+        { id: 'sea-cow.png', name: '매너티', cost: 500 },
+        { id: 'narwhal.png', name: '일각고래', cost: 1000 }
+    ];
+
+    // ★ 게임 저장 데이터
+    let totalClams = 0;
+    let unlockedCharacters = [];
+    let selectedCharacter = '';
+
+    // 게임 상태 변수
+    let gameClams = 0; // 'score'에서 이름 변경
     let isJumping = false;
     let isSliding = false;
     let isGameOver = true;
@@ -188,13 +324,117 @@
 
     const playerInitialBottom = 20;
 
-    // ★ 애니메이션 시간 줄임
-    const ANIMATION_DURATION_MS = 200;
-    const JUMP_DURATION = ANIMATION_DURATION_MS * 2;   // 400ms
-    const SLIDE_DURATION = ANIMATION_DURATION_MS * 2;  // 400ms
+    // ★ 애니메이션 시간 (요청대로 수정)
+    const JUMP_ANIMATION_MS = 180;  // 점프 시간 (짧게)
+    const SLIDE_ANIMATION_MS = 300; // 슬라이드 시간 (길게)
+    const JUMP_DURATION = JUMP_ANIMATION_MS * 2;   // 360ms
+    const SLIDE_DURATION = SLIDE_ANIMATION_MS * 2; // 600ms
 
     let lastObstacleType = 'ground';
 
+    // --- ★ 데이터 저장/로드 함수 ---
+    function loadGameData() {
+        totalClams = parseInt(localStorage.getItem('seaRunTotalClams') || '0');
+        unlockedCharacters = JSON.parse(localStorage.getItem('seaRunUnlocked') || JSON.stringify(['sea-lion.png'])); // 기본 캐릭터
+        selectedCharacter = localStorage.getItem('seaRunSelected') || 'sea-lion.png';
+
+        // ★ 버그 수정: 로드 시 화면 상태를 강제로 초기화
+        characterShop.classList.add('hidden'); // 상점 숨기기
+        gameOverMessage.classList.add('hidden'); // 겜오버 숨기기
+        lobbyMessage.classList.remove('hidden'); // 로비 표시
+
+        updateUI();
+    }
+
+    function saveGameData() {
+        localStorage.setItem('seaRunTotalClams', totalClams);
+        localStorage.setItem('seaRunUnlocked', JSON.stringify(unlockedCharacters));
+        localStorage.setItem('seaRunSelected', selectedCharacter);
+        updateUI();
+    }
+
+    function updateUI() {
+        // 메인 UI 업데이트
+        totalClamsDisplay.textContent = totalClams;
+        player.src = IMG_ROOT + selectedCharacter;
+        // 상점 UI 업데이트
+        totalClamsShop.textContent = totalClams;
+    }
+
+    // --- ★ 상점 관련 함수 ---
+    function openShop() {
+        characterShop.classList.remove('hidden');
+        populateShop();
+    }
+
+    function closeShop() {
+        characterShop.classList.add('hidden');
+        // optional: 혹시 인라인으로 열어둔 게 있으면 끕니다.
+        characterShop.style.display = '';
+    }
+
+    function populateShop() {
+        shopGrid.innerHTML = ''; // 그리드 비우기
+        for (const char of CHARACTERS) {
+            const isUnlocked = unlockedCharacters.includes(char.id);
+            const isSelected = char.id === selectedCharacter;
+
+            const card = document.createElement('div');
+            card.className = 'char-card';
+            if (isUnlocked) card.classList.add('unlocked');
+            if (isSelected) card.classList.add('selected');
+
+            card.innerHTML = `
+                <img src="${IMG_ROOT + char.id}" alt="${char.name}">
+                <div class="text-lg font-bold">${char.name}</div>
+                <div class="text-sm text-gray-400" id="cost-${char.id}">
+                    ${isUnlocked ? '보유중' : `가격: ${char.cost} 🐚`}
+                </div>
+            `;
+
+            const button = document.createElement('button');
+            button.className = 'char-button';
+
+            if (isSelected) {
+                button.textContent = '선택됨';
+                button.classList.add('selected');
+                button.disabled = true;
+            } else if (isUnlocked) {
+                button.textContent = '선택하기';
+                button.classList.add('select');
+                button.onclick = () => handleSelect(char.id);
+            } else if (totalClams >= char.cost) {
+                button.textContent = '해금하기';
+                button.classList.add('unlock');
+                button.onclick = () => handleUnlock(char);
+            } else {
+                button.textContent = '잠김';
+                button.classList.add('locked');
+                button.disabled = true;
+            }
+
+            card.appendChild(button);
+            shopGrid.appendChild(card);
+        }
+    }
+
+    function handleSelect(charId) {
+        selectedCharacter = charId;
+        saveGameData();
+        populateShop(); // UI 새로고침
+        player.src = IMG_ROOT + selectedCharacter; // 로비 캐릭터 이미지 즉시 변경
+    }
+
+    function handleUnlock(char) {
+        if (totalClams >= char.cost && !unlockedCharacters.includes(char.id)) {
+            totalClams -= char.cost;
+            unlockedCharacters.push(char.id);
+            saveGameData();
+            populateShop(); // UI 새로고침
+        }
+    }
+
+    // --- 기존 게임 로직 ---
     function checkCollision(rect1, rect2) {
         return (
             rect1.x < rect2.x + rect2.width &&
@@ -297,8 +537,8 @@
             const collectibleRect = collectible.getBoundingClientRect();
             if (checkCollision(playerRect, collectibleRect)) {
                 collectible.remove();
-                score += 10;
-                scoreElement.textContent = score;
+                gameClams += 10; // 'score' -> 'gameClams'
+                scoreElement.textContent = gameClams;
             }
         });
 
@@ -307,21 +547,24 @@
     }
 
     function startGame() {
-        score = 0;
+        gameClams = 0; // 'score' -> 'gameClams'
         gameSpeed = 5;
         isGameOver = false;
         isJumping = false;
         isSliding = false;
-        scoreElement.textContent = score;
+        scoreElement.textContent = gameClams;
 
-        player.src = IMG_ROOT + PLAYER_IMGS[Math.floor(Math.random() * PLAYER_IMGS.length)];
+        // ★ 선택된 캐릭터로 설정 (랜덤X)
+        loadGameData(); // 혹시 모르니 최신 데이터 로드
+        player.src = IMG_ROOT + selectedCharacter;
+
+        // ★ 스타일 초기화 (버그 방지)
         player.classList.remove('slide', 'jump');
-        // ★ 여기서 굳이 width/height 다시 안 박음 → 슬라이드가 잘 먹음
-        // player.style.width = '70px';
-        // player.style.height = '70px';
-        // player.style.bottom = playerInitialBottom + 'px';
+        player.style.width = '';
+        player.style.height = '';
+        player.style.bottom = '';
 
-        startMessage.classList.add('hidden');
+        lobbyMessage.classList.add('hidden');
         gameOverMessage.classList.add('hidden');
 
         document.querySelectorAll('.obstacle, .collectible').forEach(el => el.remove());
@@ -357,13 +600,23 @@
         clearTimeout(obstacleTimeoutId);
         clearInterval(collectibleIntervalId);
 
-        finalScoreElement.textContent = score;
+        finalScoreElement.textContent = gameClams;
+
+        // ★ 총 홍합에 이번 게임 점수 추가
+        totalClams += gameClams;
+        saveGameData();
+
         gameOverMessage.classList.remove('hidden');
     }
 
+    // --- 이벤트 리스너 ---
     document.addEventListener('keydown', (e) => {
         if (isGameOver) {
-            if (e.code === 'Enter') startGame();
+            // 로비 또는 겜오버 화면에서 Enter 누르면 로비로 감
+            if (e.code === 'Enter') {
+                gameOverMessage.classList.add('hidden');
+                lobbyMessage.classList.remove('hidden');
+            }
             return;
         }
         if (e.code === 'Space' || e.code === 'ArrowUp') {
@@ -373,34 +626,47 @@
         }
     });
 
-    jumpButton.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        if (!isGameOver) jump();
-    });
-    jumpButton.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (!isGameOver) jump();
-    });
+    // 컨트롤 버튼
+    jumpButton.addEventListener('mousedown', (e) => { e.preventDefault(); if (!isGameOver) jump(); });
+    jumpButton.addEventListener('touchstart', (e) => { e.preventDefault(); if (!isGameOver) jump(); });
+    slideButton.addEventListener('mousedown', (e) => { e.preventDefault(); if (!isGameOver) slide(); });
+    slideButton.addEventListener('touchstart', (e) => { e.preventDefault(); if (!isGameOver) slide(); });
 
-    slideButton.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        if (!isGameOver) slide();
-    });
-    slideButton.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (!isGameOver) slide();
-    });
-
-    startButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        startGame();
-    });
+    // 로비/게임오버 버튼
+    startButton.addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
     restartButton.addEventListener('click', (e) => {
         e.stopPropagation();
-        startGame();
+        // ★ 게임오버 시 로비로 돌아가기
+        gameOverMessage.classList.add('hidden');
+        lobbyMessage.classList.remove('hidden');
     });
 
-    player.src = IMG_ROOT + PLAYER_IMGS[Math.floor(Math.random() * PLAYER_IMGS.length)];
+    // ★ 상점 버튼
+    shopOpenButton.addEventListener('click', (e) => { e.stopPropagation(); openShop(); });
+    // shopCloseButton.addEventListener('click', (e) => { e.stopPropagation(); closeShop(); }); // <-- 원본
+
+    // ★ 닫기 버튼 리스너 수정 (click으로 변경)
+    shopCloseButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeShop();
+    });
+    /* (기존 mousedown, touchstart 리스너 제거)
+    shopCloseButton.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation(); 
+        closeShop(); 
+    });
+    shopCloseButton.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation(); 
+        closeShop(); 
+    });
+    */
+
+    // --- ★ 초기화 ---
+    loadGameData();
 </script>
 </body>
 </html>
+
