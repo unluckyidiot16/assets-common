@@ -41,9 +41,6 @@
             pointer-events: none;
         }
 
-        /* --- 제거됨: 스킨 선택 모달 --- */
-        /* #skin-modal { ... } */
-
         .skin-item {
             cursor: pointer;
             transition: all 0.2s ease-in-out;
@@ -125,12 +122,7 @@
         <button id="start-button" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-8 rounded-lg text-xl shadow-md transition-transform transform hover:scale-105 mb-4">
             게임 시작
         </button>
-        <!-- --- 제거됨: 스킨 버튼 --- -->
-        <!-- <button id="skin-button" ...>스킨 선택</button> -->
     </div>
-
-    <!-- --- 제거됨: 스킨 선택 모달 --- -->
-    <!-- <div id="skin-modal" ...> ... </div> -->
 
 </main>
 
@@ -146,13 +138,6 @@
     const overlayTitle = document.getElementById('overlay-title');
     const overlayScore = document.getElementById('overlay-score');
     const startButton = document.getElementById('start-button');
-    // --- 제거됨 ---
-    // const skinButton = document.getElementById('skin-button');
-    // const skinModal = document.getElementById('skin-modal');
-    // const skinGrid = document.getElementById('skin-grid');
-    // const closeSkinModal = document.getElementById('close-skin-modal');
-    // const currentSkinDisplay = document.getElementById('current-skin-display');
-    // --- 추가됨 ---
     const menuSkinGrid = document.getElementById('menu-skin-grid');
     const highestScoreDisplay = document.getElementById('highest-score-display');
 
@@ -167,7 +152,6 @@
     const player = {
         width: 40, // 이미지가 잘 보이도록 크기 조절
         height: 40,
-        // color: '#a8907a', // --- 제거됨 ---
         imageElement: null, // --- 추가됨: 플레이어 이미지 ---
         stairIndex: 0, // 현재 밟고 있는 계단 인덱스
         x: 0, // 플레이어의 '화면' X 좌표
@@ -195,7 +179,7 @@
     let timeRemaining = maxTime;
     let lastTime = 0;
 
-    // --- *** 수정됨: 운송수단 마일스톤 (200년/20점 간격 + 이미지) *** ---
+    // --- 운송수단 마일스톤 (200년/20점 간격 + 이미지) ---
     const imageRoot = "https://unluckyidiot16.github.io/assets-common/HistoryStair/";
     const milestones = [
         { score: 0, year: 1000, name: "걷기", image: `${imageRoot}walk.png` },
@@ -213,7 +197,7 @@
     let selectedSkin = milestones[0];
     let preloadedImages = {}; // --- 추가됨: 이미지 프리로딩 ---
 
-    // --- *** 추가됨: 이미지 프리로드 함수 *** ---
+    // --- 추가됨: 이미지 프리로드 함수 ---
     function preloadImages() {
         milestones.forEach(m => {
             const img = new Image();
@@ -228,8 +212,6 @@
         const mainRect = gameContainer.getBoundingClientRect();
         // --- 수정: 오버레이 크기에 맞게 조절
         const overlayRect = overlay.getBoundingClientRect();
-        // canvas.width = mainRect.width;
-        // canvas.height = mainRect.height;
         // 오버레이가 캔버스를 덮으므로 오버레이 기준으로 크기 설정
         canvas.width = overlayRect.width;
         canvas.height = overlayRect.height;
@@ -324,7 +306,7 @@
         targetWorldY = 0;
 
         timeRemaining = maxTime;
-        lastTime = 0;
+        lastTime = 0; // *** 중요: 타이머 루프를 위해 0으로 리셋 ***
 
         generateInitialStairs();
 
@@ -356,20 +338,19 @@
             const nextMilestone = milestones[currentMilestoneIndex + 1];
             if (score >= nextMilestone.score) {
                 currentMilestoneIndex++;
-                // --- 수정됨: 스킨 선택 기능을 위해 이 줄을 주석 처리 ---
-                // player.color = milestones[currentMilestoneIndex].color;
                 updateSidebar();
             }
         }
     }
 
-    // --- 게임 시작 ---
+    // --- *** 수정됨: 게임 시작 (타이머 버그 수정) *** ---
     function startGame() {
-        initGame();
+        initGame(); // This sets lastTime = 0 and timeRemaining = maxTime
         gameStatus = 'playing';
         overlay.classList.add('hidden');
-        lastTime = performance.now();
-        gameLoop();
+        // lastTime = performance.now(); // REMOVED: This was a bug
+        // gameLoop(); // REMOVED: This was a bug
+        requestAnimationFrame(gameLoop); // ADDED: This starts the loop correctly
     }
 
     // --- 게임 오버 ---
@@ -388,8 +369,6 @@
         overlayScore.textContent = `최종 년도: ${currentYear}년 (점수: ${score})`;
         overlayScore.classList.remove('hidden'); // 점수 표시
         startButton.textContent = "다시 시작";
-        // --- 제거됨: 스킨 버튼 표시 로직 ---
-        // skinButton.classList.remove('hidden'); 
         overlay.classList.remove('hidden');
     }
 
@@ -423,7 +402,7 @@
                 player.height
             );
         } else {
-            // 이미지가 로드되지 않았을 경우, 이전처럼 사각형
+            // 이미지가 로드되지 않았을 경우, 사각형 (fallback)
             ctx.fillStyle = '#a8907a';
             ctx.fillRect(player.x - player.width / 2, player.y - player.height, player.width, player.height);
         }
@@ -448,7 +427,7 @@
     function gameLoop(now) {
         if (gameStatus !== 'playing') return;
 
-        if (!lastTime) {
+        if (!lastTime) { //
             lastTime = now;
         }
         const deltaTime = now - lastTime;
@@ -510,7 +489,7 @@
     // PC 클릭 (터치와 동일하게 작동)
     gameContainer.addEventListener('click', (e) => {
         if (gameStatus !== 'playing') return;
-        // --- 수정: 모달 클릭 무시 -> 메뉴 그리드 클릭 무시 ---
+        // --- 수정: 메뉴 그리드 클릭 무시 ---
         if (e.target.closest('#menu-skin-grid')) return;
 
         const clickX = e.clientX - gameContainer.getBoundingClientRect().left;
@@ -521,7 +500,7 @@
     // 모바일 터치
     gameContainer.addEventListener('touchstart', (e) => {
         if (gameStatus !== 'playing') return;
-        // --- 수정: 모달 클릭 무시 -> 메뉴 그리드 클릭 무시 ---
+        // --- 수정: 메뉴 그리드 클릭 무시 ---
         if (e.target.closest('#menu-skin-grid')) return;
         e.preventDefault();
 
@@ -539,6 +518,7 @@
                 handleInput('right');
             }
         } else if (gameStatus !== 'playing' && (e.key === 'Enter' || e.key === ' ')) {
+            // 스페이스바나 엔터로 게임 시작/재시작
             startGame();
         }
     });
@@ -550,12 +530,6 @@
     });
 
     // --- *** 스킨 모달 관련 로직 (수정됨) *** ---
-
-    // --- 제거됨: 스킨 버튼 클릭 ---
-    // skinButton.addEventListener('click', ...);
-
-    // --- 제거됨: 스킨 모달 닫기 버튼 ---
-    // closeSkinModal.addEventListener('click', ...);
 
     // 스킨 선택 함수
     function selectSkin(milestone, selectedElement) {
@@ -670,8 +644,6 @@
     overlayTitle.textContent = "대각선 역사 계단";
     overlayScore.classList.add('hidden');
     startButton.textContent = "게임 시작";
-    // --- 제거됨: 스킨 버튼 표시 ---
-    // skinButton.classList.remove('hidden');
     overlay.classList.remove('hidden');
 
     // --- 추가됨: 기본 스킨 선택 및 하이라이트 (해금된 스킨 중 첫 번째) ---
