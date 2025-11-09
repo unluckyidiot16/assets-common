@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>다이스 랜덤 퀴즈 디펜스 (v2.1)</title>
+    <style>
+        :root {
+            --canvas-bg: #dbe4ee;
+            --grid-bg: #ffffff;
+            --grid-border: #b0c4de;
+            --path-color: #c5d3e0;
+            --text-dark: #333;
+            --qp-color: #2a9d8f;
+            --hp-color: #e76f51;
+            --wave-color: #f3a261;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+            Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #f0f4f8;
+            padding: 20px 10px;
+            color: var(--text-dark);
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        #game-container {
+            display: flex;
+            flex-wrap: nowrap; /* 기본은 옆으로 */
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1050px; /* 최대 너비 조정 */
+        }
+
+        #left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* --- UI 패널 (HTML) --- */
+        #ui-panel {
+            background-color: var(--grid-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #player-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        #player-hp { color: var(--hp-color); font-weight: bold; }
+        #wave-display { color: var(--wave-color); font-weight: bold; }
+
+        #resource-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--qp-color);
+            margin-bottom: 10px;
+        }
+        #summon-dice-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            background-color: var(--hp-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #summon-dice-btn:hover:not(:disabled) {
+            background-color: #f4a261;
+        }
+        #summon-dice-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #summon-cost-display {
+            font-size: 0.9em;
+            color: #555;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* --- 캔버스 영역 --- */
+        #game-canvas-container {
+            border: 2px solid var(--grid-border);
+            padding: 10px;
+            border-radius: 8px;
+            background-color: var(--canvas-bg);
+            /* 캔버스 크기(490x410) + 패딩(10*2) */
+            width: 510px;
+            height: 430px;
+            box-sizing: border-box; /* 패딩 포함 크기 */
+        }
+
+        #game-canvas {
+            display: block;
+            background-color: var(--canvas-bg);
+            cursor: grab;
+        }
+        #game-canvas:active {
+            cursor: grabbing;
+        }
+
+        /* --- 퀴즈 패널 (HTML) --- */
+        #quiz-container {
+            width: 400px;
+            background-color: var(--grid-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        #quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        #quiz-timer-bar {
+            height: 10px;
+            flex-grow: 1;
+            background-color: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-right: 15px;
+        }
+        #quiz-timer-progress {
+            height: 100%;
+            width: 100%;
+            background-color: #4caf50;
+            transition: width 0.1s linear;
+        }
+        #quiz-reward {
+            font-size: 0.9em;
+            font-weight: 500;
+            color: var(--qp-color);
+        }
+
+        #question {
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-bottom: 15px;
+            min-height: 50px;
+        }
+
+        #answer-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .option-btn {
+            padding: 12px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            font-size: 1em;
+        }
+        .option-btn:hover {
+            background-color: #eef;
+            border-color: #aac;
+        }
+        .option-btn.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .option-btn.wrong {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        #skip-btn {
+            padding: 10px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            align-self: flex-end;
+        }
+        #skip-btn:hover {
+            background-color: #5a6268;
+        }
+        #quiz-feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* --- 게임 오버 모달 --- */
+        #game-over-modal {
+            display: none; /* 숨김 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        #game-over-content {
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        #game-over-content h2 {
+            font-size: 2.5em;
+            color: var(--hp-color);
+            margin-bottom: 20px;
+        }
+        #restart-btn {
+            padding: 12px 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* --- 모바일 반응형 --- */
+        @media (max-width: 960px) { /* 너비 기준 변경 */
+            body {
+                padding: 10px 5px;
+            }
+            #game-container {
+                flex-direction: column; /* 세로로 쌓기 */
+                align-items: center;
+            }
+            #left-panel, #quiz-container {
+                width: 98%;
+                max-width: 530px; /* 캔버스 컨테이너 크기 + 여백 */
+            }
+            #game-canvas-container {
+                width: 100%;
+                /* 캔버스 비율 유지를 위해 510:430 */
+                height: auto;
+                aspect-ratio: 510 / 430;
+            }
+            #game-canvas {
+                width: 100%;
+                height: 100%;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>다이스 랜덤 퀴즈 디펜스</h1>
+
+<div id="game-container">
+    <!-- 왼쪽: 게임 보드 및 UI -->
+    <div id="left-panel">
+        <div id="ui-panel">
+            <div id="player-stats">
+                <span>HP: <span id="player-hp">20</span> / 20</span>
+                <span>Wave: <span id="wave-display">0</span></span>
+            </div>
+            <div id="resource-display">QP: 100</div>
+            <button id="summon-dice-btn">다이스 소환</button>
+            <div id="summon-cost-display">비용: 100 QP</div>
+        </div>
+        <!-- 캔버스 영역 -->
+        <div id="game-canvas-container">
+            <canvas id="game-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- 오른쪽: 퀴즈 패널 -->
+    <div id="quiz-container">
+        <div id="quiz-header">
+            <div id="quiz-timer-bar">
+                <div id="quiz-timer-progress"></div>
+            </div>
+            <div id="quiz-reward">QP: 100</div>
+        </div>
+        <div id="question">퀴즈가 로드 중입니다...</div>
+        <div id="answer-options"></div>
+        <button id="skip-btn">스킵</button>
+        <div id="quiz-feedback"></div>
+    </div>
+</div>
+
+<!-- 게임 오버 모달 -->
+<div id="game-over-modal">
+    <div id="game-over-content">
+        <h2>게임 오버</h2>
+        <p>최종 웨이브: <span id="final-wave">0</span></p>
+        <button id="restart-btn">다시 시작</button>
+    </div>
+</div>
+
+
+<script>
+    // --- 1. 퀴즈 데이터 (6학년 사회, 4지선다) ---
+    /**
+     * question: 문제
+     * options: 4개 선택지 (배열)
+     * answer: 정답 (options 배열의 인덱스, 0~3)
+     * difficulty: 'easy', 'medium', 'hard'
+     * reward: 획득 QP
+     * time: 제한 시간 (초)
+     */
+    const quizData = [
+        // 세계지도, 지구본
+        { question: "세계에서 가장 큰 대륙은 어디인가요?", options: ["아프리카", "아시아", "북아메리카", "유럽"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "지구본의 장점이 *아닌* 것은 무엇인가요?", options: ["실제 지구의 모습을 축소함", "대륙과 바다의 크기 비교가 쉬움", "한눈에 전 세계를 볼 수 있음", "위치와 거리를 비교적 정확하게 표시함"], answer: 2, difficulty: 'medium', reward: 100, time: 20 },
+        { question: "디지털 영상 지도의 특징으로 *틀린* 것은?", options: ["정보를 쉽게 수정하고 추가할 수 있다", "원하는 장소를 확대/축소하기 어렵다", "위성 사진을 통해 실제 모습을 볼 수 있다", "길 찾기, 거리 측정 등 다양한 기능이 있다"], answer: 1, difficulty: 'medium', reward: 100, time: 20 },
+
+        // 5대양 6대주
+        { question: "세계에서 가장 큰 바다는 어디인가요?", options: ["대서양", "인도양", "북극해", "태평양"], answer: 3, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "6대주에 속하지 *않는* 것은 무엇인가요?", options: ["아시아", "유럽", "남극", "오세아니아"], answer: 2, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "아시아 대륙에 대한 설명으로 *틀린* 것은?", options: ["세계에서 가장 넓은 대륙이다", "세계에서 인구가 가장 많은 대륙이다", "세계에서 가장 긴 강(나일강)이 있다", "우리나라가 속해 있는 대륙이다"], answer: 2, difficulty: 'medium', reward: 100, time: 20 },
+        { question: "오세아니아 대륙을 대표하는 나라는?", options: ["이집트", "브라질", "오스트레일리아", "캐나다"], answer: 2, difficulty: 'easy', reward: 50, time: 10 },
+
+        // 기후
+        { question: "1년 내내 덥고 비가 많이 내리는 기후는?", options: ["열대 기후", "온대 기후", "한대 기후", "건조 기후"], answer: 0, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "사계절이 뚜렷하게 나타나는 기후는?", options: ["열대 기후", "온대 기후", "한대 기후", "고산 기후"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "1년 내내 춥고, 사람들이 순록을 기르며 사는 기후는?", options: ["열대 기후", "건조 기후", "한대 기후", "온대 기후"], answer: 2, difficulty: 'medium', reward: 100, time: 20 },
+        { question: "아마존 열대 우림이 주로 위치한 대륙은?", options: ["아시아", "아프리카", "남아메리카", "북아메리카"], answer: 2, difficulty: 'medium', reward: 100, time: 15 },
+
+        // 환경 (자연/인문)
+        { question: "산, 강, 바다, 날씨처럼 자연 그대로의 환경을 무엇이라고 하나요?", options: ["자연 환경", "인문 환경", "사회 환경", "도시 환경"], answer: 0, difficulty: 'easy', reward: 50, time: 15 },
+        { question: "사람들이 만든 도시, 건물, 도로, 다리 등을 무엇이라고 하나요?", options: ["자연 환경", "인문 환경", "문화 환경", "지리 환경"], answer: 1, difficulty: 'easy', reward: 50, time: 15 },
+        { question: "인문 환경에 해당하는 것을 고르세요.", options: ["사막", "높은 산", "논과 밭", "계절풍"], answer: 2, difficulty: 'medium', reward: 100, time: 15 },
+
+        // 이웃 나라
+        { question: "우리나라의 이웃 나라가 *아닌* 곳은?", options: ["중국", "일본", "러시아", "베트남"], answer: 3, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "세계에서 인구가 가장 많은 나라는? (2024년 기준 1위)", options: ["중국", "미국", "인도", "러시아"], answer: 2, difficulty: 'hard', reward: 150, time: 25 }, // 2023년 인도가 추월
+        { question: "일본의 수도는 어디인가요?", options: ["베이징", "도쿄", "오사카", "모스크바"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "세계에서 영토가 가장 넓은 나라는?", options: ["중국", "캐나다", "미국", "러시아"], answer: 3, difficulty: 'medium', reward: 100, time: 15 },
+    ];
+
+    // --- 2. 다이스 설정 ---
+    const DICE_TYPES = ['fire', 'ice', 'wind', 'earth', 'light'];
+    const DICE_CONFIG = {
+        'fire': { name: '불', color: '#e74c3c' },
+        'ice': { name: '얼음', color: '#3498db' },
+        'wind': { name: '바람', color: '#2ecc71' },
+        'earth': { name: '대지', color: '#f39c12' },
+        'light': { name: '빛', color: '#f1c40f' },
+    };
+    // [수정] 그리드 크기 4x5로 변경
+    const GRID_ROWS = 4;
+    const GRID_COLS = 5;
+    const GRID_SIZE = GRID_ROWS * GRID_COLS; // 20
+
+    // --- 3. 캔버스 & 길(Path) 설정 ---
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // [수정] CSS 변수 값 가져오기 (SyntaxError 수정)
+    const computedStyles = getComputedStyle(document.documentElement);
+    const PATH_COLOR = computedStyles.getPropertyValue('--path-color').trim();
+    const GRID_BG_COLOR = computedStyles.getPropertyValue('--grid-bg').trim();
+    const GRID_BORDER_COLOR = computedStyles.getPropertyValue('--grid-border').trim();
+
+    // [수정] 셀 크기 70px로 변경
+    const CELL_SIZE = 70;
+    const GAP = 10;
+    // 적이 지나갈 길 너비
+    const PATH_WIDTH = 50;
+
+    // 다이스 그리드 영역 설정
+    const GRID_OFFSET_X = PATH_WIDTH;
+    const GRID_OFFSET_Y = PATH_WIDTH;
+    // [수정] 새 그리드 크기에 맞게 너비/높이 계산
+    const GRID_WIDTH = (CELL_SIZE * GRID_COLS) + (GAP * (GRID_COLS - 1)); // (70*5)+(10*4) = 390
+    const GRID_HEIGHT = (CELL_SIZE * GRID_ROWS) + (GAP * (GRID_ROWS - 1)); // (70*4)+(10*3) = 310
+
+    // 캔버스 전체 크기 설정 (그리드 + 양쪽 길)
+    canvas.width = GRID_WIDTH + PATH_WIDTH * 2; // 390 + 100 = 490
+    canvas.height = GRID_HEIGHT + PATH_WIDTH * 2; // 310 + 100 = 410
+
+    // [수정] 적 이동 경로 (길 중앙으로)
+    const pathCenter = PATH_WIDTH / 2; // 25
+    const enemyPath = [
+        { x: 0, y: pathCenter }, // Start (좌측 중앙)
+        { x: pathCenter, y: pathCenter }, // 1. 좌측 상단 코너
+        { x: canvas.width - pathCenter, y: pathCenter }, // 2. 우측 상단 코너
+        { x: canvas.width - pathCenter, y: canvas.height - pathCenter }, // 3. 우측 하단 코너
+        { x: pathCenter, y: canvas.height - pathCenter }, // 4. 좌측 하단 코너
+        { x: pathCenter, y: pathCenter + 20 } // 5. End (베이스, 좌측 상단 코너 근처)
+    ];
+
+    // --- 4. 게임 상태 변수 ---
+    let resources = 100;
+    let summonCost = 100;
+    let playerHP = 20;
+    const MAX_HP = 20;
+    let wave = 0;
+    let enemiesToSpawn = 0;
+    let spawnInterval;
+    let gameRunning = false;
+
+    let diceGrid = new Array(GRID_SIZE).fill(null); // { type, pips, cooldown, ... }
+    let enemies = [];
+    let projectiles = [];
+
+    let currentQuiz = null;
+    let quizTimerInterval;
+    let timeLeft = 0;
+
+    let dragState = {
+        isDragging: false,
+        die: null,
+        startIndex: -1,
+        x: 0,
+        y: 0
+    };
+    let animationFrameId;
+
+    // --- 5. DOM 요소 (HTML UI) ---
+    const resourceDisplay = document.getElementById('resource-display');
+    const summonBtn = document.getElementById('summon-dice-btn');
+    const summonCostDisplay = document.getElementById('summon-cost-display');
+    const hpDisplay = document.getElementById('player-hp');
+    const waveDisplay = document.getElementById('wave-display');
+
+    const quizTypeTitle = document.getElementById('quiz-type-title');
+    const questionEl = document.getElementById('question');
+    const answerOptionsEl = document.getElementById('answer-options');
+    const quizRewardDisplay = document.getElementById('quiz-reward');
+    const timerBarProgress = document.getElementById('quiz-timer-progress');
+    const skipBtn = document.getElementById('skip-btn');
+    const quizFeedback = document.getElementById('quiz-feedback');
+
+    const gameOverModal = document.getElementById('game-over-modal');
+    const finalWaveDisplay = document.getElementById('final-wave');
+    const restartBtn = document.getElementById('restart-btn');
+
+
+    // --- 6. 퀴즈 로직 (HTML UI 제어) ---
+    function loadQuiz() {
+        quizFeedback.textContent = '';
+        answerOptionsEl.innerHTML = ''; // 이전 버튼 삭제
+
+        clearInterval(quizTimerInterval); // 이전 타이머 제거
+        currentQuiz = quizData[Math.floor(Math.random() * quizData.length)];
+
+        questionEl.textContent = currentQuiz.question;
+        quizRewardDisplay.textContent = `획득 QP: ${currentQuiz.reward}`;
+
+        currentQuiz.options.forEach((option, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = `${index + 1}. ${option}`;
+            btn.onclick = () => checkAnswer(index, btn);
+            answerOptionsEl.appendChild(btn);
+        });
+
+        // 타이머 시작
+        timeLeft = currentQuiz.time;
+        timerBarProgress.style.transition = 'none'; // 초기화 시 트랜지션 제거
+        timerBarProgress.style.width = '100%';
+
+        // 약간의 딜레이 후 트랜지션 다시 활성화 (시각적 리셋)
+        setTimeout(() => {
+            // [수정] 타이머 시간을 1초가 아닌 100ms 단위로 부드럽게
+            timerBarProgress.style.transition = `width ${timeLeft}s linear`;
+            timerBarProgress.style.width = '0%';
+        }, 50);
+
+        quizTimerInterval = setInterval(() => {
+            timeLeft -= 0.1; // 100ms
+            if (timeLeft <= 0) {
+                skipQuiz();
+            }
+        }, 100);
+    }
+
+    function checkAnswer(userAnswerIndex, btnElement) {
+        clearInterval(quizTimerInterval); // 타이머 정지
+
+        // 모든 버튼 비활성화
+        Array.from(answerOptionsEl.children).forEach(btn => btn.disabled = true);
+
+        // 타이머 바 정지 (현재 위치에서)
+        const currentWidth = timerBarProgress.style.width;
+        timerBarProgress.style.transition = 'none';
+        timerBarProgress.style.width = currentWidth;
+
+
+        const isCorrect = (userAnswerIndex === currentQuiz.answer);
+
+        if (isCorrect) {
+            quizFeedback.textContent = `정답! +${currentQuiz.reward} QP`;
+            quizFeedback.style.color = 'green';
+            btnElement.classList.add('correct');
+            addResources(currentQuiz.reward);
+        } else {
+            quizFeedback.textContent = `오답... (정답: ${currentQuiz.options[currentQuiz.answer]})`;
+            quizFeedback.style.color = 'red';
+            btnElement.classList.add('wrong');
+            // 정답 버튼 표시
+            answerOptionsEl.children[currentQuiz.answer].classList.add('correct');
+        }
+
+        setTimeout(loadQuiz, 1500); // 1.5초 후 다음 문제
+    }
+
+    function skipQuiz() {
+        clearInterval(quizTimerInterval);
+        quizFeedback.textContent = '스킵했습니다.';
+        quizFeedback.style.color = 'gray';
+        setTimeout(loadQuiz, 500);
+    }
+    skipBtn.onclick = skipQuiz;
+
+    // --- 7. 게임 UI 로직 (HTML UI 제어) ---
+    function addResources(amount) {
+        resources += amount;
+        updateUI();
+    }
+
+    function updateUI() {
+        resourceDisplay.textContent = `QP: ${resources}`;
+        summonCostDisplay.textContent = `비용: ${summonCost} QP`;
+        summonBtn.disabled = resources < summonCost;
+        hpDisplay.textContent = `${playerHP}`;
+        waveDisplay.textContent = `${wave}`;
+    }
+
+    // --- 8. 다이스 소환 로직 (diceGrid 데이터 변경) ---
+    function summonDice() {
+        if (resources < summonCost) return;
+
+        const emptyIndex = diceGrid.findIndex(cell => cell === null);
+        if (emptyIndex === -1) {
+            quizFeedback.textContent = '그리드가 꽉 찼습니다!';
+            quizFeedback.style.color = 'orange';
+            return;
+        }
+
+        resources -= summonCost;
+        summonCost += 20; // 소환 비용 증가
+
+        const randomType = DICE_TYPES[Math.floor(Math.random() * DICE_TYPES.length)];
+        diceGrid[emptyIndex] = {
+            type: randomType,
+            pips: 1,
+            cooldown: 0,
+            attackSpeed: 60, // 60프레임 (약 1초)
+            range: 120, // 픽셀
+            damage: 10
+        };
+
+        updateUI();
+    }
+    summonBtn.onclick = summonDice;
+
+    // --- 9. 캔버스 렌더링 로직 ---
+
+    function gameLoop() {
+        if (!gameRunning) return;
+
+        clearCanvas();
+        drawPath();
+        drawGrid();
+        drawDice();
+
+        updateEnemies();
+        drawEnemies();
+
+        updateDiceAttacks();
+        updateProjectiles();
+        drawProjectiles();
+
+        drawDraggingDice(); // 드래그 중인 다이스는 항상 위에
+
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawPath() {
+        ctx.fillStyle = PATH_COLOR; // (오류 수정) var(--path-color) -> PATH_COLOR
+        // 상단 길
+        ctx.fillRect(0, 0, canvas.width, PATH_WIDTH);
+        // 하단 길
+        ctx.fillRect(0, canvas.height - PATH_WIDTH, canvas.width, PATH_WIDTH);
+        // 좌측 길
+        ctx.fillRect(0, PATH_WIDTH, PATH_WIDTH, GRID_HEIGHT);
+        // 우측 길
+        ctx.fillRect(canvas.width - PATH_WIDTH, PATH_WIDTH, PATH_WIDTH, GRID_HEIGHT);
+
+        // '베이스' 표시 (적이 도달하는 곳)
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.beginPath();
+        ctx.arc(enemyPath[enemyPath.length-1].x, enemyPath[enemyPath.length-1].y, 15, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function drawGrid() {
+        ctx.strokeStyle = GRID_BORDER_COLOR; // (오류 수정) '#9db2c9' -> GRID_BORDER_COLOR
+        ctx.fillStyle = GRID_BG_COLOR; // (오류 수정) var(--grid-bg) -> GRID_BG_COLOR
+
+        for (let i = 0; i < GRID_SIZE; i++) {
+            const { x, y } = getGridCoords(i);
+
+            ctx.beginPath();
+            ctx.roundRect(x, y, CELL_SIZE, CELL_SIZE, 6);
+            ctx.fill();
+            ctx.stroke();
+        }
+    }
+
+    function drawDice() {
+        for (let i = 0; i < GRID_SIZE; i++) {
+            const die = diceGrid[i];
+            if (die && !(dragState.isDragging && dragState.startIndex === i)) {
+                const { x, y } = getGridCoords(i);
+                drawDie(x, y, die);
+            }
+        }
+    }
+
+    function drawDraggingDice() {
+        if (dragState.isDragging && dragState.die) {
+            const x = dragState.x - CELL_SIZE / 2;
+            const y = dragState.y - CELL_SIZE / 2;
+            ctx.save();
+            ctx.globalAlpha = 0.7;
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 10;
+            drawDie(x, y, dragState.die);
+            ctx.restore();
+        }
+    }
+
+    function drawDie(x, y, die) {
+        ctx.fillStyle = DICE_CONFIG[die.type].color;
+        ctx.beginPath();
+        ctx.roundRect(x, y, CELL_SIZE, CELL_SIZE, 10);
+        ctx.fill();
+        drawPips(x, y, die.pips);
+    }
+
+    function drawPips(x, y, pips) {
+        // [수정] 셀 크기가 70px로 줄었으므로 pips 크기/패딩 미세 조정
+        const pipSize = 5; // 6 -> 5
+        const padding = 12; // 15 -> 12
+        const center = CELL_SIZE / 2;
+        const left = padding, right = CELL_SIZE - padding;
+        const top = padding, bottom = CELL_SIZE - padding;
+
+        const positions = {
+            1: [[center, center]],
+            2: [[left, top], [right, bottom]],
+            3: [[left, top], [center, center], [right, bottom]],
+            4: [[left, top], [right, top], [left, bottom], [right, bottom]],
+            5: [[left, top], [right, top], [center, center], [left, bottom], [right, bottom]],
+            6: [[left, top], [right, top], [left, center], [right, center], [left, bottom], [right, bottom]],
+            7: [[left, top], [right, top], [left, center], [center, center], [right, center], [left, bottom], [right, bottom]]
+        };
+
+        const pipsToDraw = positions[pips] || positions[7];
+
+        ctx.fillStyle = 'white';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 2;
+
+        pipsToDraw.forEach(([px, py]) => {
+            ctx.beginPath();
+            ctx.arc(x + px, y + py, pipSize, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+    }
+
+    // --- 10. 적 (Enemy) 로직 ---
+
+    class Enemy {
+        constructor() {
+            this.x = enemyPath[0].x;
+            this.y = enemyPath[0].y;
+            this.pathIndex = 1;
+            this.speed = 1 + (wave * 0.1);
+            this.maxHp = 50 + (wave * 15);
+            this.hp = this.maxHp;
+            this.radius = 10;
+            this.color = '#c0392b';
+        }
+
+        move() {
+            if (this.pathIndex >= enemyPath.length) return;
+
+            const target = enemyPath[this.pathIndex];
+            const dx = target.x - this.x;
+            const dy = target.y - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < this.speed) {
+                this.x = target.x;
+                this.y = target.y;
+                this.pathIndex++;
+            } else {
+                this.x += (dx / dist) * this.speed;
+                this.y += (dy / dist) * this.speed;
+            }
+        }
+
+        draw() {
+            // 몸체
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // HP 바
+            const hpBarWidth = 20;
+            const hpBarHeight = 4;
+            const hpPercent = this.hp / this.maxHp;
+            ctx.fillStyle = '#e74c3c'; // HP 배경
+            ctx.fillRect(this.x - hpBarWidth / 2, this.y - this.radius - 10, hpBarWidth, hpBarHeight);
+            ctx.fillStyle = '#2ecc71'; // HP
+            ctx.fillRect(this.x - hpBarWidth / 2, this.y - this.radius - 10, hpBarWidth * hpPercent, hpBarHeight);
+        }
+    }
+
+    function startNextWave() {
+        wave++;
+        enemiesToSpawn = 10 + wave * 2;
+        waveDisplay.textContent = wave;
+
+        spawnInterval = setInterval(() => {
+            if (enemiesToSpawn > 0) {
+                enemies.push(new Enemy());
+                enemiesToSpawn--;
+            } else {
+                clearInterval(spawnInterval);
+            }
+        }, 1000 - (wave * 20)); // 웨이브가 오를수록 스폰 간격 짧아짐
+    }
+
+    function updateEnemies() {
+        let waveOver = (enemiesToSpawn === 0 && enemies.length === 0);
+
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const enemy = enemies[i];
+            enemy.move();
+
+            if (enemy.pathIndex >= enemyPath.length) {
+                // 베이스 도달
+                enemies.splice(i, 1);
+                playerHP--;
+                if (playerHP <= 0) {
+                    playerHP = 0;
+                    gameOver();
+                }
+                updateUI();
+            } else if (enemy.hp <= 0) {
+                enemies.splice(i, 1);
+                addResources(5 + wave); // 킬 보너스
+            }
+        }
+
+        if (waveOver && gameRunning) {
+            startNextWave();
+        }
+    }
+
+    function drawEnemies() {
+        enemies.forEach(enemy => enemy.draw());
+    }
+
+    // --- 11. 다이스 공격 & 발사체 로직 ---
+
+    class Projectile {
+        constructor(x, y, target, die) {
+            this.x = x;
+            this.y = y;
+            this.target = target;
+            this.speed = 5;
+            this.damage = die.pips * 10 + (die.pips - 1) * 5; // 성(pips) 보너스
+            this.color = DICE_CONFIG[die.type].color;
+            this.radius = 4;
+        }
+
+        move() {
+            if (!this.target || this.target.hp <= 0) return false; // 타겟 없음
+
+            const dx = this.target.x - this.x;
+            const dy = this.target.y - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < this.speed) {
+                this.x = this.target.x;
+                this.y = this.target.y;
+                // Hit!
+                this.target.hp -= this.damage;
+                return false; // 맞았으므로 제거
+            } else {
+                this.x += (dx / dist) * this.speed;
+                this.y += (dy / dist) * this.speed;
+                return true; // 계속 이동
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function findTarget(dieX, dieY, range) {
+        let closestEnemy = null;
+        let minRange = range;
+        for (const enemy of enemies) {
+            const dx = enemy.x - dieX;
+            const dy = enemy.y - dieY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < minRange) {
+                minRange = dist;
+                closestEnemy = enemy;
+            }
+        }
+        return closestEnemy;
+    }
+
+    function updateDiceAttacks() {
+        for (let i = 0; i < diceGrid.length; i++) {
+            const die = diceGrid[i];
+            if (!die) continue;
+
+            if (die.cooldown > 0) {
+                die.cooldown--;
+                continue;
+            }
+
+            const { x, y } = getGridCoords(i);
+            const dieCenterX = x + CELL_SIZE / 2;
+            const dieCenterY = y + CELL_SIZE / 2;
+            const range = 100 + die.pips * 15; // 성(pips)이 높을수록 사거리 증가
+            die.range = range; // (디버깅용)
+
+            let target = findTarget(dieCenterX, dieCenterY, range);
+            if (target) {
+                projectiles.push(new Projectile(dieCenterX, dieCenterY, target, die));
+                die.cooldown = 60 - die.pips * 5; // 성(pips)이 높을수록 공속 증가
+            }
+        }
+    }
+
+    function updateProjectiles() {
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+            if (!projectiles[i].move()) {
+                projectiles.splice(i, 1);
+            }
+        }
+    }
+
+    function drawProjectiles() {
+        projectiles.forEach(p => p.draw());
+    }
+
+
+    // --- 12. 캔버스 이벤트 핸들링 (드래그 앤 드롭) ---
+
+    function getMousePos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let x, y;
+
+        if (e.changedTouches) { // 터치 이벤트
+            x = (e.changedTouches[0].clientX - rect.left) * scaleX;
+            y = (e.changedTouches[0].clientY - rect.top) * scaleY;
+        } else { // 마우스 이벤트
+            x = (e.clientX - rect.left) * scaleX;
+            y = (e.clientY - rect.top) * scaleY;
+        }
+        return { x, y };
+    }
+
+    function getGridIndexFromPos(x, y) {
+        // 마우스/터치 좌표를 그리드 내부 좌표로 변환
+        const gridX = x - GRID_OFFSET_X;
+        const gridY = y - GRID_OFFSET_Y;
+
+        for (let i = 0; i < GRID_SIZE; i++) {
+            const col = i % GRID_COLS;
+            const row = Math.floor(i / GRID_COLS);
+            const cellX = col * (CELL_SIZE + GAP);
+            const cellY = row * (CELL_SIZE + GAP);
+
+            if (gridX >= cellX && gridX <= cellX + CELL_SIZE &&
+                gridY >= cellY && gridY <= cellY + CELL_SIZE) {
+                return i;
+            }
+        }
+        return -1; // 그리드 밖
+    }
+
+    // (i) -> (x, y) 좌표 변환 (그리드 오프셋 포함)
+    function getGridCoords(index) {
+        const row = Math.floor(index / GRID_ROWS);
+        const col = index % GRID_COLS;
+        const x = GRID_OFFSET_X + col * (CELL_SIZE + GAP);
+        const y = GRID_OFFSET_Y + row * (CELL_SIZE + GAP);
+        return { x, y };
+    }
+
+    function handleDragStart(e) {
+        e.preventDefault();
+        const { x, y } = getMousePos(e);
+        const index = getGridIndexFromPos(x, y);
+
+        if (index !== -1 && diceGrid[index]) {
+            dragState.isDragging = true;
+            dragState.startIndex = index;
+            dragState.die = { ...diceGrid[index] }; // 다이스 복사
+            dragState.x = x;
+            dragState.y = y;
+            diceGrid[index] = null; // 원래 자리 비우기 (시각적)
+        }
+    }
+
+    function handleDragMove(e) {
+        if (!dragState.isDragging) return;
+        e.preventDefault();
+        const { x, y } = getMousePos(e);
+        dragState.x = x;
+        dragState.y = y;
+    }
+
+    function handleDragEnd(e) {
+        if (!dragState.isDragging) return;
+        e.preventDefault();
+
+        const { x, y } = getMousePos(e);
+        const dropIndex = getGridIndexFromPos(x, y);
+        const dragDice = dragState.die;
+        const startIndex = dragState.startIndex;
+
+        if (dropIndex === -1) {
+            // Case 1: 그리드 밖 - 원래 자리로
+            diceGrid[startIndex] = dragDice;
+        } else {
+            const dropDice = diceGrid[dropIndex];
+
+            if (dropDice === null) {
+                // Case 2: 빈 칸으로 이동
+                diceGrid[dropIndex] = dragDice;
+            } else {
+                // Case 3: 다른 다이스와 합성/교환
+                if (dragDice.type === dropDice.type && dragDice.pips === dropDice.pips) {
+                    // 합성 성공
+                    diceGrid[dropIndex].pips += 1;
+                    // 합성 보너스 (공격력, 사거리 등 재설정)
+                    diceGrid[dropIndex].damage = diceGrid[dropIndex].pips * 10 + (diceGrid[dropIndex].pips - 1) * 5;
+                    diceGrid[dropIndex].range = 100 + diceGrid[dropIndex].pips * 15;
+                    diceGrid[dropIndex].cooldown = 0; // 즉시 공격 가능하게
+                } else {
+                    // 합성 실패 - 위치 교환
+                    diceGrid[startIndex] = dropDice;
+                    diceGrid[dropIndex] = dragDice;
+                }
+            }
+        }
+
+        // 드래그 상태 리셋
+        dragState.isDragging = false;
+        dragState.die = null;
+        dragState.startIndex = -1;
+    }
+
+    // 마우스 이벤트
+    canvas.addEventListener('mousedown', handleDragStart);
+    canvas.addEventListener('mousemove', handleDragMove);
+    canvas.addEventListener('mouseup', handleDragEnd);
+    canvas.addEventListener('mouseleave', handleDragEnd);
+
+    // 터치 이벤트
+    canvas.addEventListener('touchstart', handleDragStart, { passive: false });
+    canvas.addEventListener('touchmove', handleDragMove, { passive: false });
+    canvas.addEventListener('touchend', handleDragEnd, { passive: false });
+
+
+    // --- 13. 게임 시작/종료 로직 ---
+
+    function gameOver() {
+        gameRunning = false;
+        cancelAnimationFrame(animationFrameId);
+        clearInterval(spawnInterval);
+        clearInterval(quizTimerInterval);
+
+        finalWaveDisplay.textContent = wave;
+        gameOverModal.style.display = 'flex';
+    }
+
+    restartBtn.onclick = () => {
+        location.reload(); // 페이지 새로고침으로 재시작
+    };
+
+    function initGame() {
+        gameRunning = true;
+        loadQuiz();
+        updateUI();
+        startNextWave(); // 첫 번째 웨이브 시작
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    initGame();
+
+</script>
+</body>
+</html>
