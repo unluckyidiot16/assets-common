@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>다이스 랜덤 퀴즈 디펜스 (v2.4)</title>
+    <title>다이스 랜덤 퀴즈 디펜스 (v3.1)</title>
     <style>
         :root {
             --canvas-bg: #dbe4ee;
@@ -14,6 +14,7 @@
             --qp-color: #2a9d8f;
             --hp-color: #e76f51;
             --wave-color: #f3a261;
+            --point-color: #8e44ad;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
@@ -27,6 +28,7 @@
             color: var(--text-dark);
             min-height: 100vh;
             box-sizing: border-box;
+            overflow: hidden; /* 모달 띄울 때 스크롤 방지 */
         }
 
         h1 {
@@ -35,13 +37,16 @@
             margin-bottom: 20px;
         }
 
+        /* --- [수정] 게임/퀴즈 컨테이너 초기 숨김 --- */
+        #game-container, #quiz-container {
+            display: none; /* 시작 시 숨김 */
+        }
         #game-container {
-            display: flex;
-            flex-wrap: nowrap; /* 기본은 옆으로 */
+            flex-wrap: nowrap;
             justify-content: center;
             gap: 20px;
             width: 100%;
-            max-width: 1050px; /* 최대 너비 조정 */
+            max-width: 1050px;
         }
 
         #left-panel {
@@ -100,7 +105,7 @@
             margin-top: 5px;
         }
 
-        /* --- [수정] 강화 패널 --- */
+        /* --- 강화 패널 --- */
         #upgrade-panel {
             display: grid;
             grid-template-columns: repeat(5, 1fr); /* 1줄 5칸 */
@@ -181,91 +186,24 @@
             box-sizing: border-box;
         }
 
-        #quiz-header {
+        #quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        #quiz-timer-bar { height: 10px; flex-grow: 1; background-color: #eee; border-radius: 5px; overflow: hidden; margin-right: 15px; }
+        #quiz-timer-progress { height: 100%; width: 100%; background-color: #4caf50; transition: width 0.1s linear; }
+        #quiz-reward { font-size: 0.9em; font-weight: 500; color: var(--qp-color); }
+        #question { font-size: 1.1em; font-weight: 500; margin-bottom: 15px; min-height: 50px; }
+        #answer-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .option-btn { padding: 12px; border: 1px solid #ddd; background-color: #f9f9f9; border-radius: 5px; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 1em; }
+        .option-btn:hover { background-color: #eef; border-color: #aac; }
+        .option-btn.correct { background-color: #d4edda; border-color: #c3e6cb; }
+        .option-btn.wrong { background-color: #f8d7da; border-color: #f5c6cb; }
+        #skip-btn { padding: 10px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9em; align-self: flex-end; }
+        #skip-btn:hover { background-color: #5a6268; }
+        #quiz-feedback { margin-top: 15px; font-weight: bold; text-align: center; }
+
+
+        /* --- 모달 공통 스타일 --- */
+        .modal-overlay {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        #quiz-timer-bar {
-            height: 10px;
-            flex-grow: 1;
-            background-color: #eee;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-right: 15px;
-        }
-        #quiz-timer-progress {
-            height: 100%;
-            width: 100%;
-            background-color: #4caf50;
-            transition: width 0.1s linear;
-        }
-        #quiz-reward {
-            font-size: 0.9em;
-            font-weight: 500;
-            color: var(--qp-color);
-        }
-
-        #question {
-            font-size: 1.1em;
-            font-weight: 500;
-            margin-bottom: 15px;
-            min-height: 50px;
-        }
-
-        #answer-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .option-btn {
-            padding: 12px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-            font-size: 1em;
-        }
-        .option-btn:hover {
-            background-color: #eef;
-            border-color: #aac;
-        }
-        .option-btn.correct {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-        }
-        .option-btn.wrong {
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-        }
-
-        #skip-btn {
-            padding: 10px;
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            align-self: flex-end;
-        }
-        #skip-btn:hover {
-            background-color: #5a6268;
-        }
-        #quiz-feedback {
-            margin-top: 15px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        /* --- 게임 오버 모달 --- */
-        #game-over-modal {
-            display: none; /* 숨김 */
             position: fixed;
             top: 0;
             left: 0;
@@ -276,19 +214,37 @@
             align-items: center;
             z-index: 100;
         }
-        #game-over-content {
+        .modal-content {
             background-color: white;
             padding: 30px 40px;
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
-        #game-over-content h2 {
-            font-size: 2.5em;
-            color: var(--hp-color);
+        .modal-content h2 {
+            font-size: 2.2em;
+            color: var(--text-dark);
             margin-bottom: 20px;
         }
-        #restart-btn {
+        .modal-content p {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2em;
+            cursor: pointer;
+            color: #aaa;
+            background: none;
+            border: none;
+        }
+        .modal-btn {
             padding: 12px 25px;
             font-size: 1.2em;
             font-weight: bold;
@@ -297,6 +253,121 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin: 10px 5px;
+            transition: background-color 0.2s;
+        }
+        .modal-btn:hover {
+            background-color: #0056b3;
+        }
+        .modal-btn.secondary {
+            background-color: #6c757d;
+        }
+        .modal-btn.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        /* --- 시작 화면 --- */
+        #start-screen h1 {
+            font-size: 2.5em;
+            color: var(--hp-color);
+        }
+        #start-screen .instructions {
+            text-align: left;
+            padding: 0 10px;
+            margin-bottom: 25px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+
+        /* --- 영구 강화 모달 --- */
+        #total-points-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--point-color);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        .roguelite-upgrade-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .roguelite-upgrade-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .roguelite-upgrade-item h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+        .roguelite-upgrade-item p {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .roguelite-upgrade-btn {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: var(--point-color);
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .roguelite-upgrade-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .roguelite-upgrade-btn:hover:not(:disabled) {
+            background-color: #7a3d9b;
+        }
+        .roguelite-cost {
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        /* --- 업적 모달 --- */
+        #achievement-list {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+        #achievement-list li {
+            font-size: 1.1em;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        #achievement-list li.unlocked {
+            color: green;
+            font-weight: bold;
+            text-decoration: line-through;
+        }
+        #achievement-list li.locked {
+            color: #aaa;
+        }
+        #achievement-list li.locked::before { content: '🔒 '; }
+        #achievement-list li.unlocked::before { content: '🏆 '; }
+
+
+        /* --- 게임 오버 모달 --- */
+        #game-over-modal { display: none; } /* flex로 변경 */
+        #game-over-content h2 { color: var(--hp-color); }
+        .points-display {
+            font-size: 1.2em;
+            margin: 15px 0;
+        }
+        .points-display strong {
+            color: var(--point-color);
+            font-size: 1.3em;
         }
 
         /* --- [수정] 모바일 반응형 --- */
@@ -304,13 +375,17 @@
             body {
                 padding: 10px 5px;
             }
-            #game-container {
+            #game-container, #quiz-container {
                 flex-direction: column; /* 세로로 쌓기 */
                 align-items: center;
+                display: none;
+            }
+            #game-container.active, #quiz-container.active {
+                display: flex;
             }
             #left-panel, #quiz-container {
                 width: 98%;
-                max-width: 530px; /* 캔버스 컨테이너 크기 + 여백 */
+                max-width: 530px;
             }
             #game-canvas-container {
                 width: 100%;
@@ -324,29 +399,111 @@
             h1 {
                 font-size: 1.5em;
             }
-            /* 강화 패널 3열 */
+            /* [수정] 강화 패널 3열 */
             #upgrade-panel {
                 grid-template-columns: repeat(3, 1fr);
             }
+            .roguelite-upgrade-grid {
+                grid-template-columns: 1fr;
+            }
         }
         @media (max-width: 600px) {
-            /* 강화 패널 2열 */
+            /* [수정] 강화 패널 2열 */
             #upgrade-panel {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
-        @media (max-width: 450px) {
-            /* 강화 패널 1열 (세로 모드) */
-            #upgrade-panel {
-                grid-template-columns: 1fr;
-            }
-        }
+        /* [삭제] 450px 1열 CSS 삭제
+           960px 이하에서는 3열, 600px 이하에서는 2열로만 작동
+           1열로 강제하지 않아 3+2 깨짐 현상 및 세로로 긴 현상 모두 방지
+        */
 
     </style>
 </head>
 <body>
 
-<h1>다이스 랜덤 퀴즈 디펜스</h1>
+<!-- [신규] 시작 화면 모달 -->
+<div id="start-screen" class="modal-overlay">
+    <div class="modal-content">
+        <h1>다이스 퀴즈 디펜스</h1>
+        <div class="instructions">
+            <p><strong>📜 게임 방법</strong></p>
+            <ul>
+                <li>퀴즈를 풀고 <strong>QP</strong>를 모으세요.</li>
+                <li><strong>QP</strong>로 랜덤 다이스를 소환하세요.</li>
+                <li>같은 종류, 같은 눈금의 다이스를 합쳐 강화하세요.</li>
+                <li>몰려오는 적들을 막고 웨이브를 클리어하세요!</li>
+                <li>게임 오버 시 <strong>지식 포인트(KP)</strong>를 얻습니다.</li>
+            </ul>
+        </div>
+        <button id="start-game-btn" class="modal-btn">게임 시작</button>
+        <button id="show-roguelite-btn" class="modal-btn secondary">영구 강화</button>
+        <button id="show-achievements-btn" class="modal-btn secondary">업적</button>
+    </div>
+</div>
+
+<!-- [신규] 영구 강화 모달 -->
+<div id="roguelite-upgrade-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <button id="close-roguelite-btn" class="modal-close-btn">&times;</button>
+        <h2>영구 강화</h2>
+        <div id="total-points-display">보유: 0 KP</div>
+        <div class="roguelite-upgrade-grid">
+            <!-- 시작 QP -->
+            <div class="roguelite-upgrade-item">
+                <h3>시작 QP 증가</h3>
+                <p id="roguelite-startQP-desc">시작 QP가 20 증가합니다. (현재 +0)</p>
+                <button id="roguelite-startQP-btn" class="roguelite-upgrade-btn">
+                    강화
+                </button>
+                <div class="roguelite-cost" id="roguelite-startQP-cost">비용: 200 KP</div>
+            </div>
+            <!-- 퀴즈 보상 -->
+            <div class="roguelite-upgrade-item">
+                <h3>퀴즈 보상 증가</h3>
+                <p id="roguelite-quizQP-desc">퀴즈 정답 QP 보상이 10% 증가합니다. (현재 +0%)</p>
+                <button id="roguelite-quizQP-btn" class="roguelite-upgrade-btn">
+                    강화
+                </button>
+                <div class="roguelite-cost" id="roguelite-quizQP-cost">비용: 300 KP</div>
+            </div>
+            <!-- 2성 소환 -->
+            <div class="roguelite-upgrade-item">
+                <h3>상위 소환 확률</h3>
+                <p id="roguelite-highSpawn-desc">다이스 소환 시 1% 확률로 2성 등장. (현재 0%)</p>
+                <button id="roguelite-highSpawn-btn" class="roguelite-upgrade-btn">
+                    강화
+                </button>
+                <div class="roguelite-cost" id="roguelite-highSpawn-cost">비용: 400 KP</div>
+            </div>
+            <!-- 2단 합성 -->
+            <div class="roguelite-upgrade-item">
+                <h3>2단 합성 확률</h3>
+                <p id="roguelite-mergeBonus-desc">합성 시 1% 확률로 +2성(Bonus). (현재 0%)</p>
+                <button id="roguelite-mergeBonus-btn" class="roguelite-upgrade-btn">
+                    강화
+                </button>
+                <div class="roguelite-cost" id="roguelite-mergeBonus-cost">비용: 500 KP</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- [신규] 업적 모달 -->
+<div id="achievements-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <button id="close-achievements-btn" class="modal-close-btn">&times;</button>
+        <h2>업적</h2>
+        <ul id="achievement-list">
+            <li id="ach-wave5" class="locked">첫 번째 보스 조우 (Wave 5)</li>
+            <li id="ach-wave10" class="locked">Wave 10 달성</li>
+            <li id="ach-wave20" class="locked">Wave 20 달성</li>
+            <li id="ach-wave30" class="locked">Wave 30 달성</li>
+            <li id="ach-pip7" class="locked">7성 다이스 제작</li>
+        </ul>
+    </div>
+</div>
+
 
 <div id="game-container">
     <!-- 왼쪽: 게임 보드 및 UI -->
@@ -361,33 +518,27 @@
             <div id="summon-cost-display">비용: 50 QP</div>
         </div>
 
-        <!-- [수정] 강화 패널 UI -->
         <div id="upgrade-panel" class="panel">
-            <!-- Fire -->
             <div class="upgrade-section" id="upgrade-fire">
                 <div class="dice-icon" style="background-color: #e74c3c;"></div>
                 <div class="upgrade-info" id="fire-lvl">Lvl 1</div>
                 <div class="upgrade-cost" id="fire-cost">100 QP</div>
             </div>
-            <!-- Ice -->
             <div class="upgrade-section" id="upgrade-ice">
                 <div class="dice-icon" style="background-color: #3498db;"></div>
                 <div class="upgrade-info" id="ice-lvl">Lvl 1</div>
                 <div class="upgrade-cost" id="ice-cost">100 QP</div>
             </div>
-            <!-- Wind -->
             <div class="upgrade-section" id="upgrade-wind">
                 <div class="dice-icon" style="background-color: #2ecc71;"></div>
                 <div class="upgrade-info" id="wind-lvl">Lvl 1</div>
                 <div class="upgrade-cost" id="wind-cost">100 QP</div>
             </div>
-            <!-- Earth -->
             <div class="upgrade-section" id="upgrade-earth">
                 <div class="dice-icon" style="background-color: #f39c12;"></div>
                 <div class="upgrade-info" id="earth-lvl">Lvl 1</div>
                 <div class="upgrade-cost" id="earth-cost">100 QP</div>
             </div>
-            <!-- Light -->
             <div class="upgrade-section" id="upgrade-light">
                 <div class="dice-icon" style="background-color: #f1c40f;"></div>
                 <div class="upgrade-info" id="light-lvl">Lvl 1</div>
@@ -395,7 +546,6 @@
             </div>
         </div>
 
-        <!-- 캔버스 영역 -->
         <div id="game-canvas-container">
             <canvas id="game-canvas"></canvas>
         </div>
@@ -417,11 +567,17 @@
 </div>
 
 <!-- 게임 오버 모달 -->
-<div id="game-over-modal">
-    <div id="game-over-content">
+<div id="game-over-modal" class="modal-overlay">
+    <div class="modal-content">
         <h2>게임 오버</h2>
         <p>최종 웨이브: <span id="final-wave">0</span></p>
-        <button id="restart-btn">다시 시작</button>
+        <div classs="points-display">
+            획득한 지식 포인트: <strong><span id="points-earned">0</span> KP</strong>
+        </div>
+        <div classs="points-display">
+            총 보유 지식 포인트: <strong><span id="total-points">0</span> KP</strong>
+        </div>
+        <button id="restart-btn" class="modal-btn">타이틀로</button>
     </div>
 </div>
 
@@ -446,7 +602,6 @@
         { question: "세계에서 가장 작은 바다는?", options: ["남극해", "북극해", "인도양", "대서양"], answer: 1, difficulty: 'medium', reward: 100, time: 15 },
         { question: "다음 중 5대양에 속하지 않는 바다는?", options: ["태평양", "대서양", "지중해", "인도양"], answer: 2, difficulty: 'easy', reward: 50, time: 10 },
         { question: "다음 중 6대주에 속하지 않는 대륙은?", options: ["아시아", "아프리카", "그린란드", "유럽"], answer: 2, difficulty: 'easy', reward: 50, time: 10 },
-
         // 지리: 지도, 지구본
         { question: "지구본의 장점이 *아닌* 것은 무엇인가요?", options: ["실제 지구의 모습을 축소함", "대륙과 바다의 크기 비교가 쉬움", "한눈에 전 세계를 볼 수 있음", "위치와 거리를 비교적 정확하게 표시함"], answer: 2, difficulty: 'medium', reward: 100, time: 20 },
         { question: "디지털 영상 지도의 특징으로 *틀린* 것은?", options: ["정보를 쉽게 수정하고 추가할 수 있다", "원하는 장소를 확대/축소하기 어렵다", "위성 사진을 통해 실제 모습을 볼 수 있다", "길 찾기, 거리 측정 등 다양한 기능이 있다"], answer: 1, difficulty: 'medium', reward: 100, time: 20 },
@@ -459,7 +614,6 @@
         { question: "위선의 기준이 되며 위도 0도인 선은?", options: ["북회귀선", "남회귀선", "본초 자오선", "적도"], answer: 3, difficulty: 'easy', reward: 50, time: 10 },
         { question: "경선의 기준이 되며 경도 0도인 선(영국 그리니치 천문대)은?", options: ["적도", "본초 자오선", "날짜 변경선", "남회귀선"], answer: 1, difficulty: 'medium', reward: 100, time: 20 },
         { question: "우리나라는 적도를 기준으로 어느 쪽에 위치하나요?", options: ["북쪽 (북반구)", "남쪽 (남반구)", "적도 위", "알 수 없음"], answer: 0, difficulty: 'easy', reward: 50, time: 10 },
-
         // 지리: 기후
         { question: "1년 내내 덥고 비가 많이 내리는 기후는?", options: ["열대 기후", "온대 기후", "한대 기후", "건조 기후"], answer: 0, difficulty: 'easy', reward: 50, time: 10 },
         { question: "사계절이 뚜렷하게 나타나는 기후는?", options: ["열대 기후", "온대 기후", "한대 기후", "고산 기후"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
@@ -474,7 +628,6 @@
         { question: "1년 내내 기온이 높고, 비가 오는 계절과 오지 않는 계절이 뚜렷한 기후는?", options: ["사바나 기후", "지중해성 기후", "사막 기후", "툰드라 기후"], answer: 0, difficulty: 'medium', reward: 100, time: 20 },
         { question: "동남아시아나 인도처럼 계절에 따라 바람의 방향이 바뀌는 '계절풍'의 영향을 받는 기후는?", options: ["열대 몬순 기후", "서안 해양성 기후", "냉대 기후", "고산 기후"], answer: 0, difficulty: 'medium', reward: 100, time: 20 },
         { question: "해발 고도가 높아 1년 내내 봄처럼 선선한 기후는?", options: ["고산 기후", "냉대 기후", "한대 기후", "사막 기후"], answer: 0, difficulty: 'medium', reward: 100, time: 15 },
-
         // 지리: 환경 (자연/인문)
         { question: "산, 강, 바다, 날씨처럼 자연 그대로의 환경을 무엇이라고 하나요?", options: ["자연 환경", "인문 환경", "사회 환경", "도시 환경"], answer: 0, difficulty: 'easy', reward: 50, time: 15 },
         { question: "사람들이 만든 도시, 건물, 도로, 다리 등을 무엇이라고 하나요?", options: ["자연 환경", "인문 환경", "문화 환경", "지리 환경"], answer: 1, difficulty: 'easy', reward: 50, time: 15 },
@@ -483,7 +636,6 @@
         { question: "열대 기후 지역의 전통 가옥이 개방적인 이유는?", options: ["나무가 많아서", "춥고 눈이 많이 와서", "바람이 잘 통하고 시원하게", "동물의 침입을 막기 위해"], answer: 2, difficulty: 'medium', reward: 100, time: 20 },
         { question: "한대 기후 지역의 가옥이 폐쇄적이고 창이 작은 이유는?", options: ["나무가 부족해서", "추위를 막고 열을 보존하기 위해", "비가 많이 와서", "햇빛이 너무 강해서"], answer: 1, difficulty: 'medium', reward: 100, time: 20 },
         { question: "건조 기후 지역에서 집을 흙벽돌로 짓는 이유는?", options: ["흙이 많아서", "나무가 없어서", "비가 자주 와서", "낮의 열기를 막고 밤의 추위를 막기 위해"], answer: 3, difficulty: 'hard', reward: 150, time: 25 },
-
         // 지리: 국가, 수도, 랜드마크
         { question: "우리나라의 이웃 나라가 *아닌* 곳은?", options: ["중국", "일본", "러시아", "베트남"], answer: 3, difficulty: 'easy', reward: 50, time: 10 },
         { question: "일본의 수도는 어디인가요?", options: ["베이징", "도쿄", "오사카", "모스크바"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
@@ -526,7 +678,6 @@
         { question: "아시아에 있는 '고비 사막'은 주로 어느 나라들에 걸쳐 있나요?", options: ["중국과 몽골", "인도와 파키스탄", "사우디아라비아", "카자흐스탄"], answer: 0, difficulty: 'hard', reward: 150, time: 25 },
         { question: "적도 부근에 위치한 나라들의 기후는?", options: ["열대 기후", "한대 기후", "온대 기후", "건조 기후"], answer: 0, difficulty: 'easy', reward: 50, time: 10 },
         { question: "북극이나 남극에 가까운 나라들의 기후는?", options: ["열대 기후", "한대 기후", "온대 기후", "건조 기후"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
-
         // 문화: 의식주, 전통
         { question: "세계 여러 나라의 전통 의상이 *아닌* 것은?", options: ["한복(한국)", "기모노(일본)", "치파오(중국)", "청바지(미국)"], answer: 3, difficulty: 'easy', reward: 50, time: 10 },
         { question: "인도의 여성들이 입는 전통 의상은?", options: ["사리", "아오자이", "한푸", "하카마"], answer: 0, difficulty: 'medium', reward: 100, time: 15 },
@@ -574,20 +725,20 @@
 
     const GRID_OFFSET_X = PATH_WIDTH;
     const GRID_OFFSET_Y = PATH_WIDTH;
-    const GRID_WIDTH = (CELL_SIZE * GRID_COLS) + (GAP * (GRID_COLS - 1)); // (70*5)+(10*4) = 390
-    const GRID_HEIGHT = (CELL_SIZE * GRID_ROWS) + (GAP * (GRID_ROWS - 1)); // (70*4)+(10*3) = 310
+    const GRID_WIDTH = (CELL_SIZE * GRID_COLS) + (GAP * (GRID_COLS - 1)); // 390
+    const GRID_HEIGHT = (CELL_SIZE * GRID_ROWS) + (GAP * (GRID_ROWS - 1)); // 310
 
-    canvas.width = GRID_WIDTH + PATH_WIDTH * 2; // 390 + 100 = 490
-    canvas.height = GRID_HEIGHT + PATH_WIDTH * 2; // 310 + 100 = 410
+    canvas.width = GRID_WIDTH + PATH_WIDTH * 2; // 490
+    canvas.height = GRID_HEIGHT + PATH_WIDTH * 2; // 410
 
     const pathCenter = PATH_WIDTH / 2; // 25
     const enemyPath = [
-        { x: 0, y: pathCenter }, // Start (좌측 중앙)
-        { x: pathCenter, y: pathCenter }, // 1. 좌측 상단 코너
-        { x: canvas.width - pathCenter, y: pathCenter }, // 2. 우측 상단 코너
-        { x: canvas.width - pathCenter, y: canvas.height - pathCenter }, // 3. 우측 하단 코너
-        { x: pathCenter, y: canvas.height - pathCenter }, // 4. 좌측 하단 코너
-        { x: pathCenter, y: pathCenter + 20 } // 5. End (베이스, 좌측 상단 코너 근처)
+        { x: 0, y: pathCenter }, // Start
+        { x: pathCenter, y: pathCenter }, // 1.
+        { x: canvas.width - pathCenter, y: pathCenter }, // 2.
+        { x: canvas.width - pathCenter, y: canvas.height - pathCenter }, // 3.
+        { x: pathCenter, y: canvas.height - pathCenter }, // 4.
+        { x: pathCenter, y: pathCenter + 20 } // 5. End
     ];
 
     // --- 4. 게임 상태 변수 ---
@@ -605,10 +756,20 @@
     let projectiles = [];
     let damageNumbers = [];
 
-    // [수정] 다이스 강화 상태
+    // [신규] 인게임 다이스 강화 상태
     let diceUpgrades = {};
-    const UPGRADE_COST_SCALING = 1.5; // 업그레이드 비용 증가 배율 (1.5배)
-    const UPGRADE_COST_START = 100; // 초기 업그레이드 비용
+    const UPGRADE_COST_SCALING = 1.5;
+    const UPGRADE_COST_START = 100;
+
+    // [신규] 영구 강화(로그라이트) 상태
+    let totalKnowledgePoints = 0;
+    let rogueliteUpgrades = {};
+    const KP_KEY = 'quizTowerDefense_KP';
+    const ROGUELITE_KEY = 'quizTowerDefense_Roguelite';
+    const ACHIEVEMENTS_KEY = 'quizTowerDefense_Achievements';
+
+    // [신규] 업적 상태
+    let achievements = {};
 
     let currentQuiz = null;
     let quizTimerInterval;
@@ -637,11 +798,47 @@
     const skipBtn = document.getElementById('skip-btn');
     const quizFeedback = document.getElementById('quiz-feedback');
 
+    // [신규] 모달 DOM
+    const startScreenModal = document.getElementById('start-screen');
+    const rogueliteModal = document.getElementById('roguelite-upgrade-modal');
+    const achievementsModal = document.getElementById('achievements-modal');
     const gameOverModal = document.getElementById('game-over-modal');
+
+    // [신규] 게임 오버 모달 내부
     const finalWaveDisplay = document.getElementById('final-wave');
+    const pointsEarnedDisplay = document.getElementById('points-earned');
+    const totalPointsDisplay = document.getElementById('total-points');
     const restartBtn = document.getElementById('restart-btn');
 
-    // [수정] 강화 패널 DOM 요소
+    // [신규] 영구 강화 모달 내부
+    const totalPointsDisplayRoguelite = document.getElementById('total-points-display');
+    const rogueliteButtons = {
+        startQP: {
+            btn: document.getElementById('roguelite-startQP-btn'),
+            desc: document.getElementById('roguelite-startQP-desc'),
+            cost: document.getElementById('roguelite-startQP-cost')
+        },
+        quizQP: {
+            btn: document.getElementById('roguelite-quizQP-btn'),
+            desc: document.getElementById('roguelite-quizQP-desc'),
+            cost: document.getElementById('roguelite-quizQP-cost')
+        },
+        highSpawn: {
+            btn: document.getElementById('roguelite-highSpawn-btn'),
+            desc: document.getElementById('roguelite-highSpawn-desc'),
+            cost: document.getElementById('roguelite-highSpawn-cost')
+        },
+        mergeBonus: {
+            btn: document.getElementById('roguelite-mergeBonus-btn'),
+            desc: document.getElementById('roguelite-mergeBonus-desc'),
+            cost: document.getElementById('roguelite-mergeBonus-cost')
+        }
+    };
+
+    // [신규] 업적 모달 내부
+    const achievementList = document.getElementById('achievement-list');
+
+    // [수정] 인게임 강화 패널 DOM
     const upgradeDOMElements = {};
     DICE_TYPES.forEach(type => {
         upgradeDOMElements[type] = {
@@ -650,6 +847,10 @@
             cost: document.getElementById(`${type}-cost`),
         };
     });
+
+    // [신규] 컨테이너
+    const gameContainer = document.getElementById('game-container');
+    const quizContainer = document.getElementById('quiz-container');
 
 
     // --- 6. 퀴즈 로직 (HTML UI 제어) ---
@@ -661,7 +862,9 @@
         currentQuiz = quizData[Math.floor(Math.random() * quizData.length)];
 
         questionEl.textContent = currentQuiz.question;
-        quizRewardDisplay.textContent = `획득 QP: ${currentQuiz.reward}`;
+        // [수정] 퀴즈 보상에 영구 강화 적용
+        const reward = Math.round(currentQuiz.reward * (1 + (rogueliteUpgrades.quizQP.level - 1) * 0.1));
+        quizRewardDisplay.textContent = `획득 QP: ${reward}`;
 
         currentQuiz.options.forEach((option, index) => {
             const btn = document.createElement('button');
@@ -699,10 +902,12 @@
         const isCorrect = (userAnswerIndex === currentQuiz.answer);
 
         if (isCorrect) {
-            quizFeedback.textContent = `정답! +${currentQuiz.reward} QP`;
+            // [수정] 퀴즈 보상에 영구 강화 적용
+            const reward = Math.round(currentQuiz.reward * (1 + (rogueliteUpgrades.quizQP.level - 1) * 0.1));
+            quizFeedback.textContent = `정답! +${reward} QP`;
             quizFeedback.style.color = 'green';
             btnElement.classList.add('correct');
-            addResources(currentQuiz.reward);
+            addResources(reward);
         } else {
             quizFeedback.textContent = `오답... (정답: ${currentQuiz.options[currentQuiz.answer]})`;
             quizFeedback.style.color = 'red';
@@ -735,7 +940,7 @@
         hpDisplay.textContent = `${playerHP}`;
         waveDisplay.textContent = `${wave}`;
 
-        // [수정] 강화 패널 UI 업데이트
+        // 인게임 강화 패널 UI
         DICE_TYPES.forEach(type => {
             const upgrade = diceUpgrades[type];
             const els = upgradeDOMElements[type];
@@ -751,8 +956,8 @@
         });
     }
 
-    // --- 7.5 [수정] 강화 로직 ---
-    function initUpgrades() {
+    // --- 7.5 [수정] 인게임 강화 로직 ---
+    function initInGameUpgrades() {
         diceUpgrades = {};
         DICE_TYPES.forEach(type => {
             diceUpgrades[type] = {
@@ -760,20 +965,19 @@
                 cost: UPGRADE_COST_START
             };
 
-            // 이벤트 리스너 연결
             const els = upgradeDOMElements[type];
-            els.section.onclick = () => handleUpgrade(type);
+            els.section.onclick = () => handleInGameUpgrade(type);
         });
     }
 
-    function handleUpgrade(type) {
+    function handleInGameUpgrade(type) {
         const upgrade = diceUpgrades[type];
 
         if (resources >= upgrade.cost) {
             resources -= upgrade.cost;
             upgrade.level++;
             upgrade.cost = Math.floor(upgrade.cost * UPGRADE_COST_SCALING);
-            updateUI(); // 변경된 내용 즉시 반영
+            updateUI();
         }
     }
 
@@ -791,10 +995,17 @@
         resources -= summonCost;
         summonCost += 10;
 
+        // [수정] 영구 강화 - 2성 소환 확률
+        let startPips = 1;
+        const highSpawnChance = (rogueliteUpgrades.highSpawn.level - 1) * 0.01;
+        if (Math.random() < highSpawnChance) {
+            startPips = 2;
+        }
+
         const randomType = DICE_TYPES[Math.floor(Math.random() * DICE_TYPES.length)];
         diceGrid[emptyIndex] = {
             type: randomType,
-            pips: 1,
+            pips: startPips,
             cooldown: 0
         };
 
@@ -803,42 +1014,30 @@
     summonBtn.onclick = summonDice;
 
     // --- 9. 캔버스 렌더링 로직 ---
-
+    // (내부 로직 변경 없음, 이전과 동일)
     function gameLoop() {
         if (!gameRunning) return;
-
         clearCanvas();
         drawPath();
         drawGrid();
         drawDice();
-
         updateEnemies();
         drawEnemies();
-
         updateDiceAttacks();
         updateProjectiles();
         drawProjectiles();
-
         updateDamageNumbers();
         drawDamageNumbers();
-
         drawDraggingDice();
-
         animationFrameId = requestAnimationFrame(gameLoop);
     }
-
-    function clearCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
+    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
     function drawPath() {
         ctx.fillStyle = PATH_COLOR;
         ctx.fillRect(0, 0, canvas.width, PATH_WIDTH);
         ctx.fillRect(0, canvas.height - PATH_WIDTH, canvas.width, PATH_WIDTH);
         ctx.fillRect(0, PATH_WIDTH, PATH_WIDTH, GRID_HEIGHT);
         ctx.fillRect(canvas.width - PATH_WIDTH, PATH_WIDTH, PATH_WIDTH, GRID_HEIGHT);
-
-        // '베이스' 표시 (삼각형)
         const basePos = enemyPath[enemyPath.length-1];
         const baseSize = 30;
         ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
@@ -849,21 +1048,17 @@
         ctx.closePath();
         ctx.fill();
     }
-
     function drawGrid() {
         ctx.strokeStyle = GRID_BORDER_COLOR;
         ctx.fillStyle = GRID_BG_COLOR;
-
         for (let i = 0; i < GRID_SIZE; i++) {
             const { x, y } = getGridCoords(i);
-
             ctx.beginPath();
             ctx.roundRect(x, y, CELL_SIZE, CELL_SIZE, 6);
             ctx.fill();
             ctx.stroke();
         }
     }
-
     function drawDice() {
         for (let i = 0; i < GRID_SIZE; i++) {
             const die = diceGrid[i];
@@ -873,7 +1068,6 @@
             }
         }
     }
-
     function drawDraggingDice() {
         if (dragState.isDragging && dragState.die) {
             const x = dragState.x - CELL_SIZE / 2;
@@ -886,7 +1080,6 @@
             ctx.restore();
         }
     }
-
     function drawDie(x, y, die) {
         ctx.fillStyle = DICE_CONFIG[die.type].color;
         ctx.beginPath();
@@ -894,98 +1087,70 @@
         ctx.fill();
         drawPips(x, y, die.pips);
     }
-
     function drawPips(x, y, pips) {
         const pipSize = 5;
         const padding = 12;
         const center = CELL_SIZE / 2;
         const left = padding, right = CELL_SIZE - padding;
         const top = padding, bottom = CELL_SIZE - padding;
-
         const positions = {
-            1: [[center, center]],
-            2: [[left, top], [right, bottom]],
-            3: [[left, top], [center, center], [right, bottom]],
-            4: [[left, top], [right, top], [left, bottom], [right, bottom]],
-            5: [[left, top], [right, top], [center, center], [left, bottom], [right, bottom]],
+            1: [[center, center]], 2: [[left, top], [right, bottom]], 3: [[left, top], [center, center], [right, bottom]],
+            4: [[left, top], [right, top], [left, bottom], [right, bottom]], 5: [[left, top], [right, top], [center, center], [left, bottom], [right, bottom]],
             6: [[left, top], [right, top], [left, center], [right, center], [left, bottom], [right, bottom]],
             7: [[left, top], [right, top], [left, center], [center, center], [right, center], [left, bottom], [right, bottom]]
         };
-
         const pipsToDraw = positions[pips] || positions[7];
-
         ctx.fillStyle = 'white';
         ctx.shadowColor = 'rgba(0,0,0,0.5)';
         ctx.shadowBlur = 2;
-
         pipsToDraw.forEach(([px, py]) => {
             ctx.beginPath();
             ctx.arc(x + px, y + py, pipSize, 0, Math.PI * 2);
             ctx.fill();
         });
-
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
     }
 
     // --- 10. 적 (Enemy) 로직 ---
-
     class Enemy {
         constructor(isBoss = false) {
             this.isBoss = isBoss;
             this.pathIndex = 1;
             this.statusEffects = {};
-
             // [수정] 계단형 난이도 계산
-            const chapter = Math.max(0, Math.floor((wave - 1) / 10)); // wave 1~10 = chap 0
+            const chapter = Math.max(0, Math.floor((wave - 1) / 10));
+            const postWave6Multiplier = (wave > 6) ? 1.5 : 1.0; // [신규] 6웨이브 이후 난이도 상승
 
             if (isBoss) {
-                this.x = enemyPath[0].x;
-                this.y = enemyPath[0].y;
-                this.originalSpeed = 0.5 + (chapter * 0.15); // [수정] 챕터별 속도
+                this.x = enemyPath[0].x; this.y = enemyPath[0].y;
+                this.originalSpeed = 0.5 + (chapter * 0.15);
                 this.speed = this.originalSpeed;
-                this.maxHp = (500 + (wave * 100)) * Math.pow(2.2, chapter); // [수정] 챕터별 HP
+                this.maxHp = (500 + (wave * 100)) * Math.pow(2.5, chapter) * postWave6Multiplier; // [수정] 난이도 상향
                 this.hp = this.maxHp;
-                this.radius = 20;
-                this.color = '#8e44ad';
+                this.radius = 20; this.color = '#8e44ad';
             } else {
-                this.x = enemyPath[0].x;
-                this.y = enemyPath[0].y;
-                this.originalSpeed = 1 + (chapter * 0.3) + (wave * 0.01); // [수정] 챕터별/웨이브별 속도
+                this.x = enemyPath[0].x; this.y = enemyPath[0].y;
+                this.originalSpeed = 1 + (chapter * 0.3) + (wave * 0.02); // [수정] 속도 스케일링
                 this.speed = this.originalSpeed;
-                this.maxHp = (50 + (wave * 15)) * Math.pow(2.2, chapter); // [수정] 챕터별/웨이브별 HP
+                this.maxHp = (50 + (wave * 20)) * Math.pow(2.5, chapter) * postWave6Multiplier; // [수정] 난이도 상향 (15->20, 2.2->2.5)
                 this.hp = this.maxHp;
-                this.radius = 10;
-                this.color = '#c0392b';
+                this.radius = 10; this.color = '#c0392b';
             }
         }
-
         applyStatus(type, pips) {
             switch(type) {
-                case 'ice':
-                    this.statusEffects.slow = { duration: 120 }; // 2초
-                    this.speed = this.originalSpeed * 0.5;
-                    break;
-                case 'fire':
-                    this.statusEffects.burn = { duration: 180, damage: pips * 2, tick: 60 };
-                    break;
-                case 'wind':
-                    this.statusEffects.poison = { duration: 300, damage: pips * 1, tick: 60 };
-                    break;
-                case 'earth':
-                    this.statusEffects.stun = { duration: 15 }; // 0.25초
-                    break;
-                case 'light':
-                    this.statusEffects.armorBreak = { duration: 240 }; // 4초
-                    break;
+                case 'ice': this.statusEffects.slow = { duration: 120 }; this.speed = this.originalSpeed * 0.5; break;
+                case 'fire': this.statusEffects.burn = { duration: 180, damage: pips * 2, tick: 60 }; break;
+                case 'wind': this.statusEffects.poison = { duration: 300, damage: pips * 1, tick: 60 }; break;
+                case 'earth': this.statusEffects.stun = { duration: 15 }; break;
+                case 'light': this.statusEffects.armorBreak = { duration: 240 }; break;
             }
         }
-
         updateStatusEffects() {
             for (const key in this.statusEffects) {
                 const effect = this.statusEffects[key];
                 effect.duration--;
-
                 if (key === 'burn' || key === 'poison') {
                     effect.tick--;
                     if (effect.tick <= 0) {
@@ -996,61 +1161,38 @@
                         effect.tick = 60;
                     }
                 }
-
                 if (effect.duration <= 0) {
-                    if (key === 'slow') {
-                        this.speed = this.originalSpeed;
-                    }
+                    if (key === 'slow') { this.speed = this.originalSpeed; }
                     delete this.statusEffects[key];
                 }
             }
         }
-
         move() {
             this.updateStatusEffects();
-
             if (this.statusEffects.stun) return;
             if (this.pathIndex >= enemyPath.length) return;
-
             const target = enemyPath[this.pathIndex];
-            const dx = target.x - this.x;
-            const dy = target.y - this.y;
+            const dx = target.x - this.x; const dy = target.y - this.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-
             if (dist < this.speed) {
-                this.x = target.x;
-                this.y = target.y;
+                this.x = target.x; this.y = target.y;
                 this.pathIndex++;
             } else {
                 this.x += (dx / dist) * this.speed;
                 this.y += (dy / dist) * this.speed;
             }
         }
-
         draw() {
             ctx.fillStyle = this.color;
             if (this.statusEffects.slow) ctx.fillStyle = '#3498db';
             if (this.statusEffects.poison) ctx.fillStyle = '#2ecc71';
             if (this.statusEffects.armorBreak) ctx.fillStyle = '#f1c40f';
-
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
             ctx.fill();
-
-            if(this.statusEffects.burn) {
-                ctx.strokeStyle = '#e74c3c';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-            }
-            if(this.statusEffects.stun) {
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 12px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Stun!', this.x, this.y - this.radius - 15);
-            }
-
-            const hpBarWidth = this.isBoss ? 40 : 20;
-            const hpBarHeight = 4;
+            if(this.statusEffects.burn) { ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 3; ctx.stroke(); }
+            if(this.statusEffects.stun) { ctx.fillStyle = 'white'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Stun!', this.x, this.y - this.radius - 15); }
+            const hpBarWidth = this.isBoss ? 40 : 20; const hpBarHeight = 4;
             const hpPercent = this.hp / this.maxHp;
             ctx.fillStyle = '#e74c3c';
             ctx.fillRect(this.x - hpBarWidth / 2, this.y - this.radius - 10, hpBarWidth, hpBarHeight);
@@ -1058,20 +1200,17 @@
             ctx.fillRect(this.x - hpBarWidth / 2, this.y - this.radius - 10, hpBarWidth * hpPercent, hpBarHeight);
         }
     }
-
     function startNextWave() {
         wave++;
         waveDisplay.textContent = wave;
-
-        // [수정] 계단형 난이도 계산
+        checkAchievements();
         const chapter = Math.max(0, Math.floor((wave - 1) / 10));
-
         if (wave % 5 === 0) {
             enemies.push(new Enemy(true));
             enemiesToSpawn = 0;
             clearInterval(spawnInterval);
         } else {
-            enemiesToSpawn = 10 + (wave * 2) + (chapter * 10); // [수정] 챕터별 스폰 수
+            enemiesToSpawn = 10 + (wave * 3) + (chapter * 15); // [수정] 스폰 수 상향
             spawnInterval = setInterval(() => {
                 if (enemiesToSpawn > 0) {
                     enemies.push(new Enemy(false));
@@ -1079,24 +1218,18 @@
                 } else {
                     clearInterval(spawnInterval);
                 }
-            }, Math.max(200, 1000 - (wave * 20) - (chapter * 50))); // [수정] 스폰 속도도 챕터별로 빨라짐
+            }, Math.max(150, 1000 - (wave * 25) - (chapter * 60))); // [수정] 스폰 속도 상향
         }
     }
-
     function updateEnemies() {
         let waveOver = (enemiesToSpawn === 0 && enemies.length === 0);
-
         for (let i = enemies.length - 1; i >= 0; i--) {
             const enemy = enemies[i];
             enemy.move();
-
             if (enemy.pathIndex >= enemyPath.length) {
                 enemies.splice(i, 1);
                 playerHP--;
-                if (playerHP <= 0) {
-                    playerHP = 0;
-                    gameOver();
-                }
+                if (playerHP <= 0) { playerHP = 0; gameOver(); }
                 updateUI();
             } else if (enemy.hp <= 0) {
                 const reward = enemy.isBoss ? (100 + wave * 10) : (5 + wave);
@@ -1104,53 +1237,36 @@
                 enemies.splice(i, 1);
             }
         }
-
         if (waveOver && gameRunning) {
             startNextWave();
         }
     }
-
-    function drawEnemies() {
-        enemies.forEach(enemy => enemy.draw());
-    }
+    function drawEnemies() { enemies.forEach(enemy => enemy.draw()); }
 
     // --- 11. 다이스 공격 & 발사체 로직 ---
-
     class Projectile {
         constructor(x, y, target, die) {
-            this.x = x;
-            this.y = y;
+            this.x = x; this.y = y;
             this.target = target;
             this.speed = 5;
-            this.pips = die.pips;
-            this.type = die.type;
+            this.pips = die.pips; this.type = die.type;
             this.color = DICE_CONFIG[die.type].color;
             this.radius = 4;
-
-            // [수정] 데미지 계산에 강화 레벨 적용
             const upgrade = diceUpgrades[this.type];
             const baseDamage = die.pips * 10 + (die.pips - 1) * 5;
             this.damage = Math.round(baseDamage * (1 + (upgrade.level - 1) * 0.1)); // 레벨당 10%
         }
-
         move() {
             if (!this.target || this.target.hp <= 0) return false;
-
-            const dx = this.target.x - this.x;
-            const dy = this.target.y - this.y;
+            const dx = this.target.x - this.x; const dy = this.target.y - this.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-
             if (dist < this.speed) {
                 let damageDealt = this.damage;
-                if (this.target.statusEffects.armorBreak) {
-                    damageDealt *= 1.3;
-                }
+                if (this.target.statusEffects.armorBreak) { damageDealt *= 1.3; }
                 damageDealt = Math.round(damageDealt);
-
                 this.target.hp -= damageDealt;
                 createDamageNumber(this.target.x, this.target.y - this.target.radius, damageDealt, this.color);
                 this.target.applyStatus(this.type, this.pips);
-
                 return false;
             } else {
                 this.x += (dx / dist) * this.speed;
@@ -1158,7 +1274,6 @@
                 return true;
             }
         }
-
         draw() {
             ctx.fillStyle = this.color;
             ctx.beginPath();
@@ -1166,105 +1281,66 @@
             ctx.fill();
         }
     }
-
     function findTarget(dieX, dieY, range) {
-        let closestEnemy = null;
-        let minRange = range;
+        let closestEnemy = null; let minRange = range;
         for (const enemy of enemies) {
-            const dx = enemy.x - dieX;
-            const dy = enemy.y - dieY;
+            const dx = enemy.x - dieX; const dy = enemy.y - dieY;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < minRange) {
-                minRange = dist;
-                closestEnemy = enemy;
-            }
+            if (dist < minRange) { minRange = dist; closestEnemy = enemy; }
         }
         return closestEnemy;
     }
-
     function updateDiceAttacks() {
         for (let i = 0; i < diceGrid.length; i++) {
             const die = diceGrid[i];
             if (!die) continue;
-
-            if (die.cooldown > 0) {
-                die.cooldown--;
-                continue;
-            }
-
+            if (die.cooldown > 0) { die.cooldown--; continue; }
             const { x, y } = getGridCoords(i);
-            const dieCenterX = x + CELL_SIZE / 2;
-            const dieCenterY = y + CELL_SIZE / 2;
+            const dieCenterX = x + CELL_SIZE / 2; const dieCenterY = y + CELL_SIZE / 2;
             const range = 100 + die.pips * 15;
-
             let target = findTarget(dieCenterX, dieCenterY, range);
             if (target) {
                 projectiles.push(new Projectile(dieCenterX, dieCenterY, target, die));
-                // [수정] 쿨다운 계산에 강화 레벨 적용
                 const upgrade = diceUpgrades[die.type];
                 const baseCooldown = 60 - die.pips * 5;
-                die.cooldown = Math.max(10, Math.round(baseCooldown * Math.pow(0.95, upgrade.level - 1))); // 레벨당 5% 감소, 최소 10프레임
+                die.cooldown = Math.max(10, Math.round(baseCooldown * Math.pow(0.95, upgrade.level - 1))); // 레벨당 5% 감소
             }
         }
     }
-
     function updateProjectiles() {
         for (let i = projectiles.length - 1; i >= 0; i--) {
-            if (!projectiles[i].move()) {
-                projectiles.splice(i, 1);
-            }
+            if (!projectiles[i].move()) { projectiles.splice(i, 1); }
         }
     }
-
-    function drawProjectiles() {
-        projectiles.forEach(p => p.draw());
-    }
+    function drawProjectiles() { projectiles.forEach(p => p.draw()); }
 
     // --- 11.5 데미지 숫자 로직 ---
     function createDamageNumber(x, y, text, color) {
-        damageNumbers.push({
-            x,
-            y,
-            text: Math.round(text),
-            color,
-            alpha: 1.0,
-            duration: 60 // 1초
-        });
+        damageNumbers.push({ x, y, text: Math.round(text), color, alpha: 1.0, duration: 60 });
     }
-
     function updateDamageNumbers() {
         for (let i = damageNumbers.length - 1; i >= 0; i--) {
             const dn = damageNumbers[i];
-            dn.y -= 0.5;
-            dn.duration--;
+            dn.y -= 0.5; dn.duration--;
             dn.alpha = dn.duration / 60;
-
-            if (dn.duration <= 0) {
-                damageNumbers.splice(i, 1);
-            }
+            if (dn.duration <= 0) { damageNumbers.splice(i, 1); }
         }
     }
-
     function drawDamageNumbers() {
         ctx.save();
-        ctx.font = 'bold 14px sans-serif';
-        ctx.textAlign = 'center';
+        ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
         for (const dn of damageNumbers) {
-            ctx.globalAlpha = dn.alpha;
-            ctx.fillStyle = dn.color;
+            ctx.globalAlpha = dn.alpha; ctx.fillStyle = dn.color;
             ctx.fillText(dn.text, dn.x, dn.y);
         }
         ctx.restore();
     }
 
-
     // --- 12. 캔버스 이벤트 핸들링 (드래그 앤 드롭) ---
     function getMousePos(e) {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
         let x, y;
-
         if (e.changedTouches) {
             x = (e.changedTouches[0].clientX - rect.left) * scaleX;
             y = (e.changedTouches[0].clientY - rect.top) * scaleY;
@@ -1274,88 +1350,77 @@
         }
         return { x, y };
     }
-
     function getGridIndexFromPos(x, y) {
-        const gridX = x - GRID_OFFSET_X;
-        const gridY = y - GRID_OFFSET_Y;
-
+        const gridX = x - GRID_OFFSET_X; const gridY = y - GRID_OFFSET_Y;
         for (let i = 0; i < GRID_SIZE; i++) {
-            const col = i % GRID_COLS;
-            const row = Math.floor(i / GRID_COLS);
-            const cellX = col * (CELL_SIZE + GAP);
-            const cellY = row * (CELL_SIZE + GAP);
-
-            if (gridX >= cellX && gridX <= cellX + CELL_SIZE &&
-                gridY >= cellY && gridY <= cellY + CELL_SIZE) {
+            const col = i % GRID_COLS; const row = Math.floor(i / GRID_COLS);
+            const cellX = col * (CELL_SIZE + GAP); const cellY = row * (CELL_SIZE + GAP);
+            if (gridX >= cellX && gridX <= cellX + CELL_SIZE && gridY >= cellY && gridY <= cellY + CELL_SIZE) {
                 return i;
             }
         }
         return -1;
     }
-
     function getGridCoords(index) {
-        const row = Math.floor(index / GRID_COLS);
-        const col = index % GRID_COLS;
+        const row = Math.floor(index / GRID_COLS); const col = index % GRID_COLS;
         const x = GRID_OFFSET_X + col * (CELL_SIZE + GAP);
         const y = GRID_OFFSET_Y + row * (CELL_SIZE + GAP);
         return { x, y };
     }
-
     function handleDragStart(e) {
         e.preventDefault();
         const { x, y } = getMousePos(e);
         const index = getGridIndexFromPos(x, y);
-
         if (index !== -1 && diceGrid[index]) {
             dragState.isDragging = true;
             dragState.startIndex = index;
             dragState.die = { ...diceGrid[index] };
-            dragState.x = x;
-            dragState.y = y;
+            dragState.x = x; dragState.y = y;
             diceGrid[index] = null;
         }
     }
-
     function handleDragMove(e) {
         if (!dragState.isDragging) return;
         e.preventDefault();
         const { x, y } = getMousePos(e);
-        dragState.x = x;
-        dragState.y = y;
+        dragState.x = x; dragState.y = y;
     }
-
     function handleDragEnd(e) {
         if (!dragState.isDragging) return;
         e.preventDefault();
-
         const { x, y } = getMousePos(e);
         const dropIndex = getGridIndexFromPos(x, y);
         const dragDice = dragState.die;
         const startIndex = dragState.startIndex;
-
         if (dropIndex === -1) {
             diceGrid[startIndex] = dragDice;
         } else {
             const dropDice = diceGrid[dropIndex];
-
             if (dropDice === null) {
                 diceGrid[dropIndex] = dragDice;
             } else {
                 if (dragDice.type === dropDice.type && dragDice.pips === dropDice.pips) {
                     diceGrid[dropIndex].pips += 1;
                     diceGrid[dropIndex].cooldown = 0;
+                    const mergeBonusChance = (rogueliteUpgrades.mergeBonus.level - 1) * 0.01;
+                    if (Math.random() < mergeBonusChance) {
+                        diceGrid[dropIndex].pips += 1;
+                        const {x: cellX, y: cellY} = getGridCoords(dropIndex);
+                        createDamageNumber(cellX + CELL_SIZE / 2, cellY + CELL_SIZE / 2, "BONUS!", "#f1c40f");
+                    }
+                    if (diceGrid[dropIndex].pips >= 7) {
+                        checkAchievements('pip7');
+                    }
                 } else {
                     diceGrid[startIndex] = dropDice;
                     diceGrid[dropIndex] = dragDice;
                 }
             }
         }
-
         dragState.isDragging = false;
         dragState.die = null;
         dragState.startIndex = -1;
     }
-
     canvas.addEventListener('mousedown', handleDragStart);
     canvas.addEventListener('mousemove', handleDragMove);
     canvas.addEventListener('mouseup', handleDragEnd);
@@ -1365,7 +1430,99 @@
     canvas.addEventListener('touchend', handleDragEnd, { passive: false });
 
 
-    // --- 13. 게임 시작/종료 로직 ---
+    // --- 13. [수정] 게임 시작/저장/로드/종료 로직 ---
+
+    function initRogueliteUpgrades() {
+        return {
+            startQP: { level: 1, cost: 200 },
+            quizQP: { level: 1, cost: 300 },
+            highSpawn: { level: 1, cost: 400 },
+            mergeBonus: { level: 1, cost: 500 }
+        };
+    }
+    function initAchievements() {
+        return {
+            wave5: false, wave10: false, wave20: false, wave30: false, pip7: false
+        };
+    }
+    function updateRogueliteUI() {
+        totalPointsDisplayRoguelite.textContent = `보유: ${totalKnowledgePoints} KP`;
+        let rgu = rogueliteUpgrades.startQP;
+        rogueliteButtons.startQP.desc.textContent = `시작 QP가 20 증가합니다. (현재 +${(rgu.level - 1) * 20})`;
+        rogueliteButtons.startQP.cost.textContent = `비용: ${rgu.cost} KP`;
+        rogueliteButtons.startQP.btn.disabled = totalKnowledgePoints < rgu.cost;
+        rgu = rogueliteUpgrades.quizQP;
+        rogueliteButtons.quizQP.desc.textContent = `퀴즈 보상이 10% 증가합니다. (현재 +${(rgu.level - 1) * 10}%)`;
+        rogueliteButtons.quizQP.cost.textContent = `비용: ${rgu.cost} KP`;
+        rogueliteButtons.quizQP.btn.disabled = totalKnowledgePoints < rgu.cost;
+        rgu = rogueliteUpgrades.highSpawn;
+        rogueliteButtons.highSpawn.desc.textContent = `2성 소환 확률이 1% 증가합니다. (현재 ${(rgu.level - 1) * 1}%)`;
+        rogueliteButtons.highSpawn.cost.textContent = `비용: ${rgu.cost} KP`;
+        rogueliteButtons.highSpawn.btn.disabled = totalKnowledgePoints < rgu.cost;
+        rgu = rogueliteUpgrades.mergeBonus;
+        rogueliteButtons.mergeBonus.desc.textContent = `2단 합성 확률이 1% 증가합니다. (현재 ${(rgu.level - 1) * 1}%)`;
+        rogueliteButtons.mergeBonus.cost.textContent = `비용: ${rgu.cost} KP`;
+        rogueliteButtons.mergeBonus.btn.disabled = totalKnowledgePoints < rgu.cost;
+    }
+    function buyRogueliteUpgrade(key) {
+        const upgrade = rogueliteUpgrades[key];
+        if (totalKnowledgePoints >= upgrade.cost) {
+            totalKnowledgePoints -= upgrade.cost;
+            upgrade.level++;
+            upgrade.cost = Math.floor(upgrade.cost * (1.2 + (upgrade.level * 0.1))); // 비용 증가
+            saveGameData();
+            updateRogueliteUI();
+        }
+    }
+    function updateAchievementsUI() {
+        Object.keys(achievements).forEach(key => {
+            const el = document.getElementById(`ach-${key}`);
+            if (el) {
+                if (achievements[key]) {
+                    el.classList.add('unlocked');
+                    el.classList.remove('locked');
+                } else {
+                    el.classList.add('locked');
+                    el.classList.remove('unlocked');
+                }
+            }
+        });
+    }
+    function checkAchievements(type = 'wave') {
+        let changed = false;
+        if (type === 'wave') {
+            if (wave >= 5 && !achievements.wave5) { achievements.wave5 = true; changed = true; }
+            if (wave >= 10 && !achievements.wave10) { achievements.wave10 = true; changed = true; }
+            if (wave >= 20 && !achievements.wave20) { achievements.wave20 = true; changed = true; }
+            if (wave >= 30 && !achievements.wave30) { achievements.wave30 = true; changed = true; }
+        } else if (type === 'pip7' && !achievements.pip7) {
+            achievements.pip7 = true; changed = true;
+        }
+        if (changed) { saveGameData(); }
+    }
+    function saveGameData() {
+        try {
+            localStorage.setItem(KP_KEY, totalKnowledgePoints.toString());
+            localStorage.setItem(ROGUELITE_KEY, JSON.stringify(rogueliteUpgrades));
+            localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
+        } catch (e) { console.error("Failed to save game data:", e); }
+    }
+    function loadGameData() {
+        try {
+            totalKnowledgePoints = parseInt(localStorage.getItem(KP_KEY)) || 0;
+            rogueliteUpgrades = JSON.parse(localStorage.getItem(ROGUELITE_KEY)) || initRogueliteUpgrades();
+            achievements = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)) || initAchievements();
+        } catch (e) {
+            console.error("Failed to load game data, resetting:", e);
+            totalKnowledgePoints = 0;
+            rogueliteUpgrades = initRogueliteUpgrades();
+            achievements = initAchievements();
+        }
+        if (!rogueliteUpgrades.startQP) rogueliteUpgrades.startQP = initRogueliteUpgrades().startQP;
+        if (!rogueliteUpgrades.quizQP) rogueliteUpgrades.quizQP = initRogueliteUpgrades().quizQP;
+        if (!rogueliteUpgrades.highSpawn) rogueliteUpgrades.highSpawn = initRogueliteUpgrades().highSpawn;
+        if (!rogueliteUpgrades.mergeBonus) rogueliteUpgrades.mergeBonus = initRogueliteUpgrades().mergeBonus;
+    }
 
     function gameOver() {
         gameRunning = false;
@@ -1373,7 +1530,13 @@
         clearInterval(spawnInterval);
         clearInterval(quizTimerInterval);
 
+        const pointsEarned = wave * 10;
+        totalKnowledgePoints += pointsEarned;
+        saveGameData();
+
         finalWaveDisplay.textContent = wave;
+        pointsEarnedDisplay.textContent = `${pointsEarned} KP`;
+        totalPointsDisplay.textContent = `${totalKnowledgePoints} KP`;
         gameOverModal.style.display = 'flex';
     }
 
@@ -1383,7 +1546,8 @@
         clearInterval(spawnInterval);
         clearInterval(quizTimerInterval);
 
-        resources = 100;
+        // [수정] 영구 강화 적용
+        resources = 100 + (rogueliteUpgrades.startQP.level - 1) * 20;
         summonCost = 50;
         playerHP = MAX_HP;
         wave = 0;
@@ -1394,29 +1558,72 @@
         projectiles = [];
         damageNumbers = [];
 
-        initUpgrades(); // 강화 상태 리셋
+        initInGameUpgrades(); // 인게임 강화 상태 리셋
 
         updateUI();
         gameOverModal.style.display = 'none';
 
+        gameContainer.classList.add('active');
+        quizContainer.classList.add('active');
+
         gameRunning = true;
         loadQuiz();
         startNextWave();
         animationFrameId = requestAnimationFrame(gameLoop);
     }
 
-    restartBtn.onclick = resetGame;
-
+    // [수정] 게임 시작 (리셋 호출)
     function initGame() {
-        gameRunning = true;
-        initUpgrades(); // 강화 시스템 초기화
-        loadQuiz();
-        updateUI();
-        startNextWave();
-        animationFrameId = requestAnimationFrame(gameLoop);
+        startScreenModal.style.display = 'none';
+        resetGame();
     }
 
-    initGame();
+    // [신규] 타이틀로 돌아가기
+    function returnToTitle() {
+        gameOverModal.style.display = 'none';
+        gameContainer.style.display = 'none';
+        quizContainer.style.display = 'none';
+        gameContainer.classList.remove('active');
+        quizContainer.classList.remove('active');
+        startScreenModal.style.display = 'flex';
+    }
+
+    // --- 14. [신규] 초기화 및 이벤트 리스너 ---
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadGameData(); // 영구 데이터 로드
+
+        // 시작 화면 버튼
+        document.getElementById('start-game-btn').onclick = initGame;
+        document.getElementById('show-roguelite-btn').onclick = () => {
+            updateRogueliteUI();
+            rogueliteModal.style.display = 'flex';
+        };
+        document.getElementById('show-achievements-btn').onclick = () => {
+            updateAchievementsUI();
+            achievementsModal.style.display = 'flex';
+        };
+
+        // [수정] 재시작 버튼 -> 타이틀로
+        restartBtn.onclick = returnToTitle;
+
+        // 영구 강화 모달
+        document.getElementById('close-roguelite-btn').onclick = () => {
+            rogueliteModal.style.display = 'none';
+        };
+        rogueliteButtons.startQP.btn.onclick = () => buyRogueliteUpgrade('startQP');
+        rogueliteButtons.quizQP.btn.onclick = () => buyRogueliteUpgrade('quizQP');
+        rogueliteButtons.highSpawn.btn.onclick = () => buyRogueliteUpgrade('highSpawn');
+        rogueliteButtons.mergeBonus.btn.onclick = () => buyRogueliteUpgrade('mergeBonus');
+
+        // 업적 모달
+        document.getElementById('close-achievements-btn').onclick = () => {
+            achievementsModal.style.display = 'none';
+        };
+
+        // 게임 오버 모달 (초기 숨김)
+        gameOverModal.style.display = 'none';
+    });
 
 </script>
 </body>
