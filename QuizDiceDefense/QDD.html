@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>다이스 랜덤 퀴즈 디펜스 (v2.1)</title>
+    <title>다이스 랜덤 퀴즈 디펜스 (v2.2)</title>
     <style>
         :root {
             --canvas-bg: #dbe4ee;
@@ -294,7 +294,7 @@
             </div>
             <div id="resource-display">QP: 100</div>
             <button id="summon-dice-btn">다이스 소환</button>
-            <div id="summon-cost-display">비용: 100 QP</div>
+            <div id="summon-cost-display">비용: 50 QP</div>
         </div>
         <!-- 캔버스 영역 -->
         <div id="game-canvas-container">
@@ -329,14 +329,6 @@
 
 <script>
     // --- 1. 퀴즈 데이터 (6학년 사회, 4지선다) ---
-    /**
-     * question: 문제
-     * options: 4개 선택지 (배열)
-     * answer: 정답 (options 배열의 인덱스, 0~3)
-     * difficulty: 'easy', 'medium', 'hard'
-     * reward: 획득 QP
-     * time: 제한 시간 (초)
-     */
     const quizData = [
         // 세계지도, 지구본
         { question: "세계에서 가장 큰 대륙은 어디인가요?", options: ["아프리카", "아시아", "북아메리카", "유럽"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
@@ -362,21 +354,32 @@
 
         // 이웃 나라
         { question: "우리나라의 이웃 나라가 *아닌* 곳은?", options: ["중국", "일본", "러시아", "베트남"], answer: 3, difficulty: 'easy', reward: 50, time: 10 },
-        { question: "세계에서 인구가 가장 많은 나라는? (2024년 기준 1위)", options: ["중국", "미국", "인도", "러시아"], answer: 2, difficulty: 'hard', reward: 150, time: 25 }, // 2023년 인도가 추월
+        { question: "세계에서 인구가 가장 많은 나라는? (2024년 기준 1위)", options: ["중국", "미국", "인도", "러시아"], answer: 2, difficulty: 'hard', reward: 150, time: 25 },
         { question: "일본의 수도는 어디인가요?", options: ["베이징", "도쿄", "오사카", "모스크바"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
         { question: "세계에서 영토가 가장 넓은 나라는?", options: ["중국", "캐나다", "미국", "러시아"], answer: 3, difficulty: 'medium', reward: 100, time: 15 },
+
+        // [신규] 추가 문제
+        { question: "캥거루와 코알라의 고향으로 유명한 대륙은?", options: ["아프리카", "오세아니아", "남아메리카", "유럽"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "이집트의 피라미드와 스핑크스가 있는 대륙은?", options: ["아시아", "유럽", "아프리카", "북아메리카"], answer: 2, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "우리나라(대한민국)의 수도는 어디인가요?", options: ["부산", "인천", "평양", "서울"], answer: 3, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "춥고 건조하며, 풀이 거의 자라지 않는 '툰드라'가 나타나는 기후는?", options: ["온대 기후", "건조 기후", "한대 기후", "열대 기후"], answer: 2, difficulty: 'medium', reward: 100, time: 15 },
+        { question: "밀, 옥수수 등 농사를 짓기에 가장 적합하고 사계절이 뚜렷한 기후는?", options: ["온대 기후", "열대 기후", "한대 기후", "건조 기후"], answer: 0, difficulty: 'medium', reward: 100, time: 15 },
+        { question: "사막이 넓게 나타나고, 강수량이 매우 적은 기후는?", options: ["열대 기후", "고산 기후", "냉대 기후", "건조 기후"], answer: 3, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "'에펠탑'이 있는 나라는 어디인가요?", options: ["영국", "이탈리아", "독일", "프랑스"], answer: 3, difficulty: 'medium', reward: 100, time: 15 },
+        { question: "'자유의 여신상'이 있는 나라는 어디인가요?", options: ["미국", "캐나다", "멕시코", "브라질"], answer: 0, difficulty: 'medium', reward: 100, time: 15 },
+        { question: "세계에서 가장 작은 대륙은 어디인가요?", options: ["유럽", "오세아니아", "남아메리카", "북아메리카"], answer: 1, difficulty: 'easy', reward: 50, time: 10 },
+        { question: "1년 내내 눈과 얼음으로 덮여있고 펭귄이 사는 추운 땅은?", options: ["북극", "시베리아", "남극 대륙", "그린란드"], answer: 2, difficulty: 'easy', reward: 50, time: 15 },
     ];
 
     // --- 2. 다이스 설정 ---
     const DICE_TYPES = ['fire', 'ice', 'wind', 'earth', 'light'];
     const DICE_CONFIG = {
-        'fire': { name: '불', color: '#e74c3c' },
-        'ice': { name: '얼음', color: '#3498db' },
-        'wind': { name: '바람', color: '#2ecc71' },
-        'earth': { name: '대지', color: '#f39c12' },
-        'light': { name: '빛', color: '#f1c40f' },
+        'fire': { name: '불', color: '#e74c3c' }, // 화상 DoT
+        'ice': { name: '얼음', color: '#3498db' }, // 슬로우
+        'wind': { name: '바람', color: '#2ecc71' }, // 중독 DoT
+        'earth': { name: '대지', color: '#f39c12' }, // 스턴
+        'light': { name: '빛', color: '#f1c40f' }, // 방어력 감소
     };
-    // [수정] 그리드 크기 4x5로 변경
     const GRID_ROWS = 4;
     const GRID_COLS = 5;
     const GRID_SIZE = GRID_ROWS * GRID_COLS; // 20
@@ -385,30 +388,23 @@
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
 
-    // [수정] CSS 변수 값 가져오기 (SyntaxError 수정)
     const computedStyles = getComputedStyle(document.documentElement);
     const PATH_COLOR = computedStyles.getPropertyValue('--path-color').trim();
     const GRID_BG_COLOR = computedStyles.getPropertyValue('--grid-bg').trim();
     const GRID_BORDER_COLOR = computedStyles.getPropertyValue('--grid-border').trim();
 
-    // [수정] 셀 크기 70px로 변경
     const CELL_SIZE = 70;
     const GAP = 10;
-    // 적이 지나갈 길 너비
     const PATH_WIDTH = 50;
 
-    // 다이스 그리드 영역 설정
     const GRID_OFFSET_X = PATH_WIDTH;
     const GRID_OFFSET_Y = PATH_WIDTH;
-    // [수정] 새 그리드 크기에 맞게 너비/높이 계산
     const GRID_WIDTH = (CELL_SIZE * GRID_COLS) + (GAP * (GRID_COLS - 1)); // (70*5)+(10*4) = 390
     const GRID_HEIGHT = (CELL_SIZE * GRID_ROWS) + (GAP * (GRID_ROWS - 1)); // (70*4)+(10*3) = 310
 
-    // 캔버스 전체 크기 설정 (그리드 + 양쪽 길)
     canvas.width = GRID_WIDTH + PATH_WIDTH * 2; // 390 + 100 = 490
     canvas.height = GRID_HEIGHT + PATH_WIDTH * 2; // 310 + 100 = 410
 
-    // [수정] 적 이동 경로 (길 중앙으로)
     const pathCenter = PATH_WIDTH / 2; // 25
     const enemyPath = [
         { x: 0, y: pathCenter }, // Start (좌측 중앙)
@@ -421,7 +417,7 @@
 
     // --- 4. 게임 상태 변수 ---
     let resources = 100;
-    let summonCost = 50; // [수정] 100 -> 50
+    let summonCost = 50;
     let playerHP = 20;
     const MAX_HP = 20;
     let wave = 0;
@@ -429,9 +425,10 @@
     let spawnInterval;
     let gameRunning = false;
 
-    let diceGrid = new Array(GRID_SIZE).fill(null); // { type, pips, cooldown, ... }
+    let diceGrid = new Array(GRID_SIZE).fill(null);
     let enemies = [];
     let projectiles = [];
+    let damageNumbers = []; // [신규] 데미지 숫자 배열
 
     let currentQuiz = null;
     let quizTimerInterval;
@@ -453,7 +450,6 @@
     const hpDisplay = document.getElementById('player-hp');
     const waveDisplay = document.getElementById('wave-display');
 
-    const quizTypeTitle = document.getElementById('quiz-type-title');
     const questionEl = document.getElementById('question');
     const answerOptionsEl = document.getElementById('answer-options');
     const quizRewardDisplay = document.getElementById('quiz-reward');
@@ -469,9 +465,9 @@
     // --- 6. 퀴즈 로직 (HTML UI 제어) ---
     function loadQuiz() {
         quizFeedback.textContent = '';
-        answerOptionsEl.innerHTML = ''; // 이전 버튼 삭제
+        answerOptionsEl.innerHTML = '';
 
-        clearInterval(quizTimerInterval); // 이전 타이머 제거
+        clearInterval(quizTimerInterval);
         currentQuiz = quizData[Math.floor(Math.random() * quizData.length)];
 
         questionEl.textContent = currentQuiz.question;
@@ -487,12 +483,10 @@
 
         // 타이머 시작
         timeLeft = currentQuiz.time;
-        timerBarProgress.style.transition = 'none'; // 초기화 시 트랜지션 제거
+        timerBarProgress.style.transition = 'none';
         timerBarProgress.style.width = '100%';
 
-        // 약간의 딜레이 후 트랜지션 다시 활성화 (시각적 리셋)
         setTimeout(() => {
-            // [수정] 타이머 시간을 1초가 아닌 100ms 단위로 부드럽게
             timerBarProgress.style.transition = `width ${timeLeft}s linear`;
             timerBarProgress.style.width = '0%';
         }, 50);
@@ -506,16 +500,12 @@
     }
 
     function checkAnswer(userAnswerIndex, btnElement) {
-        clearInterval(quizTimerInterval); // 타이머 정지
-
-        // 모든 버튼 비활성화
+        clearInterval(quizTimerInterval);
         Array.from(answerOptionsEl.children).forEach(btn => btn.disabled = true);
 
-        // 타이머 바 정지 (현재 위치에서)
         const currentWidth = timerBarProgress.style.width;
         timerBarProgress.style.transition = 'none';
         timerBarProgress.style.width = currentWidth;
-
 
         const isCorrect = (userAnswerIndex === currentQuiz.answer);
 
@@ -528,11 +518,10 @@
             quizFeedback.textContent = `오답... (정답: ${currentQuiz.options[currentQuiz.answer]})`;
             quizFeedback.style.color = 'red';
             btnElement.classList.add('wrong');
-            // 정답 버튼 표시
             answerOptionsEl.children[currentQuiz.answer].classList.add('correct');
         }
 
-        setTimeout(loadQuiz, 1500); // 1.5초 후 다음 문제
+        setTimeout(loadQuiz, 1500);
     }
 
     function skipQuiz() {
@@ -569,15 +558,15 @@
         }
 
         resources -= summonCost;
-        summonCost += 10; // [수정] 20 -> 10
+        summonCost += 10; // 증가 비용 10
 
         const randomType = DICE_TYPES[Math.floor(Math.random() * DICE_TYPES.length)];
         diceGrid[emptyIndex] = {
             type: randomType,
             pips: 1,
             cooldown: 0,
-            attackSpeed: 60, // 60프레임 (약 1초)
-            range: 120, // 픽셀
+            attackSpeed: 60,
+            range: 120,
             damage: 10
         };
 
@@ -595,14 +584,17 @@
         drawGrid();
         drawDice();
 
-        updateEnemies();
+        updateEnemies(); // 상태이상 업데이트 포함
         drawEnemies();
 
         updateDiceAttacks();
         updateProjectiles();
         drawProjectiles();
 
-        drawDraggingDice(); // 드래그 중인 다이스는 항상 위에
+        updateDamageNumbers(); // [신규] 데미지 숫자 업데이트
+        drawDamageNumbers(); // [신규] 데미지 숫자 그리기
+
+        drawDraggingDice();
 
         animationFrameId = requestAnimationFrame(gameLoop);
     }
@@ -612,32 +604,27 @@
     }
 
     function drawPath() {
-        ctx.fillStyle = PATH_COLOR; // (오류 수정) var(--path-color) -> PATH_COLOR
-        // 상단 길
+        ctx.fillStyle = PATH_COLOR;
         ctx.fillRect(0, 0, canvas.width, PATH_WIDTH);
-        // 하단 길
         ctx.fillRect(0, canvas.height - PATH_WIDTH, canvas.width, PATH_WIDTH);
-        // 좌측 길
         ctx.fillRect(0, PATH_WIDTH, PATH_WIDTH, GRID_HEIGHT);
-        // 우측 길
         ctx.fillRect(canvas.width - PATH_WIDTH, PATH_WIDTH, PATH_WIDTH, GRID_HEIGHT);
 
-        // '베이스' 표시 (적이 도달하는 곳)
-        // [수정] 원 -> 삼각형
+        // '베이스' 표시 (삼각형)
         const basePos = enemyPath[enemyPath.length-1];
         const baseSize = 30;
         ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
         ctx.beginPath();
-        ctx.moveTo(basePos.x, basePos.y - baseSize / 2); // 위쪽 꼭지점
-        ctx.lineTo(basePos.x - baseSize / 2, basePos.y + baseSize / 2); // 왼쪽 아래
-        ctx.lineTo(basePos.x + baseSize / 2, basePos.y + baseSize / 2); // 오른쪽 아래
+        ctx.moveTo(basePos.x, basePos.y - baseSize / 2); // 위
+        ctx.lineTo(basePos.x - baseSize / 2, basePos.y + baseSize / 2); // 좌하
+        ctx.lineTo(basePos.x + baseSize / 2, basePos.y + baseSize / 2); // 우하
         ctx.closePath();
         ctx.fill();
     }
 
     function drawGrid() {
-        ctx.strokeStyle = GRID_BORDER_COLOR; // (오류 수정) '#9db2c9' -> GRID_BORDER_COLOR
-        ctx.fillStyle = GRID_BG_COLOR; // (오류 수정) var(--grid-bg) -> GRID_BG_COLOR
+        ctx.strokeStyle = GRID_BORDER_COLOR;
+        ctx.fillStyle = GRID_BG_COLOR;
 
         for (let i = 0; i < GRID_SIZE; i++) {
             const { x, y } = getGridCoords(i);
@@ -681,9 +668,8 @@
     }
 
     function drawPips(x, y, pips) {
-        // [수정] 셀 크기가 70px로 줄었으므로 pips 크기/패딩 미세 조정
-        const pipSize = 5; // 6 -> 5
-        const padding = 12; // 15 -> 12
+        const pipSize = 5;
+        const padding = 12;
         const center = CELL_SIZE / 2;
         const left = padding, right = CELL_SIZE - padding;
         const top = padding, bottom = CELL_SIZE - padding;
@@ -717,24 +703,25 @@
     // --- 10. 적 (Enemy) 로직 ---
 
     class Enemy {
-        constructor(isBoss = false) { // [수정] isBoss 파라미터 추가
+        constructor(isBoss = false) {
             this.isBoss = isBoss;
             this.pathIndex = 1;
+            this.statusEffects = {}; // [신규] 상태이상
 
             if (isBoss) {
-                // --- 보스 스탯 ---
                 this.x = enemyPath[0].x;
                 this.y = enemyPath[0].y;
-                this.speed = 0.5 + (wave * 0.05); // 일반몹보다 느림
-                this.maxHp = 500 + (wave * 100); // 체력 높음
+                this.originalSpeed = 0.5 + (wave * 0.05); // [신규]
+                this.speed = this.originalSpeed;
+                this.maxHp = 500 + (wave * 100);
                 this.hp = this.maxHp;
-                this.radius = 20; // 크기 큼
-                this.color = '#8e44ad'; // 보라색
+                this.radius = 20;
+                this.color = '#8e44ad';
             } else {
-                // --- 일반몹 스탯 ---
                 this.x = enemyPath[0].x;
                 this.y = enemyPath[0].y;
-                this.speed = 1 + (wave * 0.1);
+                this.originalSpeed = 1 + (wave * 0.1); // [신규]
+                this.speed = this.originalSpeed;
                 this.maxHp = 50 + (wave * 15);
                 this.hp = this.maxHp;
                 this.radius = 10;
@@ -742,7 +729,58 @@
             }
         }
 
+        // [신규] 상태이상 적용 함수
+        applyStatus(type, pips) {
+            switch(type) {
+                case 'ice': // 슬로우
+                    this.statusEffects.slow = { duration: 120 }; // 2초
+                    this.speed = this.originalSpeed * 0.5; // 50% 감속
+                    break;
+                case 'fire': // 화상 DoT
+                    this.statusEffects.burn = { duration: 180, damage: pips * 2, tick: 60 }; // 3초, 1초마다, pips*2 데미지
+                    break;
+                case 'wind': // 중독 DoT (바람=초록=독)
+                    this.statusEffects.poison = { duration: 300, damage: pips * 1, tick: 60 }; // 5초, 1초마다, pips*1 데미지
+                    break;
+                case 'earth': // 스턴
+                    this.statusEffects.stun = { duration: 15 }; // 0.25초
+                    break;
+                case 'light': // 방깎
+                    this.statusEffects.armorBreak = { duration: 240 }; // 4초
+                    break;
+            }
+        }
+
+        // [신규] 상태이상 업데이트
+        updateStatusEffects() {
+            for (const key in this.statusEffects) {
+                const effect = this.statusEffects[key];
+                effect.duration--;
+
+                // DoT 처리 (화상, 중독)
+                if (key === 'burn' || key === 'poison') {
+                    effect.tick--;
+                    if (effect.tick <= 0) {
+                        this.hp -= effect.damage;
+                        createDamageNumber(this.x, this.y - this.radius, effect.damage, (key === 'burn' ? '#e74c3c' : '#2ecc71'));
+                        effect.tick = 60; // 1초 틱 리셋
+                    }
+                }
+
+                // 만료 처리
+                if (effect.duration <= 0) {
+                    if (key === 'slow') {
+                        this.speed = this.originalSpeed; // 스피드 원상복구
+                    }
+                    delete this.statusEffects[key];
+                }
+            }
+        }
+
         move() {
+            this.updateStatusEffects(); // [신규] 매 프레임 상태이상 업데이트
+
+            if (this.statusEffects.stun) return; // [신규] 스턴이면 이동 안 함
             if (this.pathIndex >= enemyPath.length) return;
 
             const target = enemyPath[this.pathIndex];
@@ -763,17 +801,36 @@
         draw() {
             // 몸체
             ctx.fillStyle = this.color;
+            // [신규] 상태이상 시각효과
+            if (this.statusEffects.slow) ctx.fillStyle = '#3498db'; // 얼음색
+            if (this.statusEffects.poison) ctx.fillStyle = '#2ecc71'; // 독색
+            if (this.statusEffects.armorBreak) ctx.fillStyle = '#f1c40f'; // 빛색
+
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
             ctx.fill();
 
+            // [신규] 화상/스턴 효과
+            if(this.statusEffects.burn) {
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+            if(this.statusEffects.stun) {
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Stun!', this.x, this.y - this.radius - 15);
+            }
+
+
             // HP 바
-            const hpBarWidth = 20;
+            const hpBarWidth = this.isBoss ? 40 : 20;
             const hpBarHeight = 4;
             const hpPercent = this.hp / this.maxHp;
-            ctx.fillStyle = '#e74c3c'; // HP 배경
+            ctx.fillStyle = '#e74c3c';
             ctx.fillRect(this.x - hpBarWidth / 2, this.y - this.radius - 10, hpBarWidth, hpBarHeight);
-            ctx.fillStyle = '#2ecc71'; // HP
+            ctx.fillStyle = '#2ecc71';
             ctx.fillRect(this.x - hpBarWidth / 2, this.y - this.radius - 10, hpBarWidth * hpPercent, hpBarHeight);
         }
     }
@@ -782,22 +839,20 @@
         wave++;
         waveDisplay.textContent = wave;
 
-        if (wave % 10 === 0) {
-            // --- [수정] 보스 웨이브 ---
-            enemies.push(new Enemy(true)); // 보스 1마리 스폰
-            enemiesToSpawn = 0; // 일반 몹 스폰 없음
-            clearInterval(spawnInterval); // 스폰 인터벌 중지
+        if (wave % 5 === 0) { // [수정] 10 -> 5 (5스테이지마다 보스)
+            enemies.push(new Enemy(true));
+            enemiesToSpawn = 0;
+            clearInterval(spawnInterval);
         } else {
-            // --- [수정] 일반 웨이브 ---
             enemiesToSpawn = 10 + wave * 2;
             spawnInterval = setInterval(() => {
                 if (enemiesToSpawn > 0) {
-                    enemies.push(new Enemy(false)); // 'false' 명시
+                    enemies.push(new Enemy(false));
                     enemiesToSpawn--;
                 } else {
                     clearInterval(spawnInterval);
                 }
-            }, 1000 - (wave * 20)); // 웨이브가 오를수록 스폰 간격 짧아짐
+            }, 1000 - (wave * 20));
         }
     }
 
@@ -809,7 +864,6 @@
             enemy.move();
 
             if (enemy.pathIndex >= enemyPath.length) {
-                // 베이스 도달
                 enemies.splice(i, 1);
                 playerHP--;
                 if (playerHP <= 0) {
@@ -818,7 +872,6 @@
                 }
                 updateUI();
             } else if (enemy.hp <= 0) {
-                // [수정] 보스/일반 몹 킬 보너스
                 const reward = enemy.isBoss ? (100 + wave * 10) : (5 + wave);
                 addResources(reward);
                 enemies.splice(i, 1);
@@ -842,23 +895,33 @@
             this.y = y;
             this.target = target;
             this.speed = 5;
-            this.damage = die.pips * 10 + (die.pips - 1) * 5; // 성(pips) 보너스
+            this.damage = die.pips * 10 + (die.pips - 1) * 5;
+            this.pips = die.pips; // [신규] 상태이상 계산용 pips
+            this.type = die.type; // [신규] 상태이상 적용용
             this.color = DICE_CONFIG[die.type].color;
             this.radius = 4;
         }
 
         move() {
-            if (!this.target || this.target.hp <= 0) return false; // 타겟 없음
+            if (!this.target || this.target.hp <= 0) return false;
 
             const dx = this.target.x - this.x;
             const dy = this.target.y - this.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
             if (dist < this.speed) {
-                this.x = this.target.x;
-                this.y = this.target.y;
                 // Hit!
-                this.target.hp -= this.damage;
+                // [수정] 방깎 적용
+                let damageDealt = this.damage;
+                if (this.target.statusEffects.armorBreak) {
+                    damageDealt *= 1.3; // 30% 추가 데미지
+                }
+                damageDealt = Math.round(damageDealt); // 반올림
+
+                this.target.hp -= damageDealt;
+                createDamageNumber(this.target.x, this.target.y - this.target.radius, damageDealt, this.color); // [수정] 데미지 숫자 생성
+                this.target.applyStatus(this.type, this.pips); // [신규] 상태이상 적용
+
                 return false; // 맞았으므로 제거
             } else {
                 this.x += (dx / dist) * this.speed;
@@ -903,13 +966,13 @@
             const { x, y } = getGridCoords(i);
             const dieCenterX = x + CELL_SIZE / 2;
             const dieCenterY = y + CELL_SIZE / 2;
-            const range = 100 + die.pips * 15; // 성(pips)이 높을수록 사거리 증가
-            die.range = range; // (디버깅용)
+            const range = 100 + die.pips * 15;
+            die.range = range;
 
             let target = findTarget(dieCenterX, dieCenterY, range);
             if (target) {
                 projectiles.push(new Projectile(dieCenterX, dieCenterY, target, die));
-                die.cooldown = 60 - die.pips * 5; // 성(pips)이 높을수록 공속 증가
+                die.cooldown = 60 - die.pips * 5;
             }
         }
     }
@@ -926,9 +989,46 @@
         projectiles.forEach(p => p.draw());
     }
 
+    // --- 11.5 [신규] 데미지 숫자 로직 ---
+    function createDamageNumber(x, y, text, color) {
+        damageNumbers.push({
+            x,
+            y,
+            text: Math.round(text),
+            color,
+            alpha: 1.0,
+            duration: 60 // 60프레임 = 1초
+        });
+    }
+
+    function updateDamageNumbers() {
+        for (let i = damageNumbers.length - 1; i >= 0; i--) {
+            const dn = damageNumbers[i];
+            dn.y -= 0.5; // 위로 이동
+            dn.duration--;
+            dn.alpha = dn.duration / 60; // 서서히 투명하게
+
+            if (dn.duration <= 0) {
+                damageNumbers.splice(i, 1);
+            }
+        }
+    }
+
+    function drawDamageNumbers() {
+        ctx.save();
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        for (const dn of damageNumbers) {
+            ctx.globalAlpha = dn.alpha;
+            ctx.fillStyle = dn.color;
+            ctx.fillText(dn.text, dn.x, dn.y);
+        }
+        ctx.restore();
+    }
+
 
     // --- 12. 캔버스 이벤트 핸들링 (드래그 앤 드롭) ---
-
+    // (변경 없음, 이전과 동일)
     function getMousePos(e) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
@@ -946,7 +1046,6 @@
     }
 
     function getGridIndexFromPos(x, y) {
-        // 마우스/터치 좌표를 그리드 내부 좌표로 변환
         const gridX = x - GRID_OFFSET_X;
         const gridY = y - GRID_OFFSET_Y;
 
@@ -961,12 +1060,11 @@
                 return i;
             }
         }
-        return -1; // 그리드 밖
+        return -1;
     }
 
-    // (i) -> (x, y) 좌표 변환 (그리드 오프셋 포함)
     function getGridCoords(index) {
-        const row = Math.floor(index / GRID_COLS); // [수정] GRID_ROWS -> GRID_COLS
+        const row = Math.floor(index / GRID_COLS);
         const col = index % GRID_COLS;
         const x = GRID_OFFSET_X + col * (CELL_SIZE + GAP);
         const y = GRID_OFFSET_Y + row * (CELL_SIZE + GAP);
@@ -981,10 +1079,10 @@
         if (index !== -1 && diceGrid[index]) {
             dragState.isDragging = true;
             dragState.startIndex = index;
-            dragState.die = { ...diceGrid[index] }; // 다이스 복사
+            dragState.die = { ...diceGrid[index] };
             dragState.x = x;
             dragState.y = y;
-            diceGrid[index] = null; // 원래 자리 비우기 (시각적)
+            diceGrid[index] = null;
         }
     }
 
@@ -1006,23 +1104,19 @@
         const startIndex = dragState.startIndex;
 
         if (dropIndex === -1) {
-            // Case 1: 그리드 밖 - 원래 자리로
             diceGrid[startIndex] = dragDice;
         } else {
             const dropDice = diceGrid[dropIndex];
 
             if (dropDice === null) {
-                // Case 2: 빈 칸으로 이동
                 diceGrid[dropIndex] = dragDice;
             } else {
-                // Case 3: 다른 다이스와 합성/교환
                 if (dragDice.type === dropDice.type && dragDice.pips === dropDice.pips) {
                     // 합성 성공
                     diceGrid[dropIndex].pips += 1;
-                    // 합성 보너스 (공격력, 사거리 등 재설정)
                     diceGrid[dropIndex].damage = diceGrid[dropIndex].pips * 10 + (diceGrid[dropIndex].pips - 1) * 5;
                     diceGrid[dropIndex].range = 100 + diceGrid[dropIndex].pips * 15;
-                    diceGrid[dropIndex].cooldown = 0; // 즉시 공격 가능하게
+                    diceGrid[dropIndex].cooldown = 0;
                 } else {
                     // 합성 실패 - 위치 교환
                     diceGrid[startIndex] = dropDice;
@@ -1031,19 +1125,16 @@
             }
         }
 
-        // 드래그 상태 리셋
         dragState.isDragging = false;
         dragState.die = null;
         dragState.startIndex = -1;
     }
 
-    // 마우스 이벤트
+    // 이벤트 리스너
     canvas.addEventListener('mousedown', handleDragStart);
     canvas.addEventListener('mousemove', handleDragMove);
     canvas.addEventListener('mouseup', handleDragEnd);
     canvas.addEventListener('mouseleave', handleDragEnd);
-
-    // 터치 이벤트
     canvas.addEventListener('touchstart', handleDragStart, { passive: false });
     canvas.addEventListener('touchmove', handleDragMove, { passive: false });
     canvas.addEventListener('touchend', handleDragEnd, { passive: false });
@@ -1061,38 +1152,33 @@
         gameOverModal.style.display = 'flex';
     }
 
-    // [수정] 다시 시작 버튼 로직
     function resetGame() {
-        // 1. 모든 인터벌/타임아웃/루프 중지
         gameRunning = false;
         cancelAnimationFrame(animationFrameId);
         clearInterval(spawnInterval);
         clearInterval(quizTimerInterval);
 
-        // 2. 게임 상태 변수 리셋
         resources = 100;
         summonCost = 50;
         playerHP = MAX_HP;
         wave = 0;
         enemiesToSpawn = 0;
 
-        // 3. 배열 리셋
         diceGrid = new Array(GRID_SIZE).fill(null);
         enemies = [];
         projectiles = [];
+        damageNumbers = []; // [신규] 데미지 숫자 리셋
 
-        // 4. UI 리셋
         updateUI();
         gameOverModal.style.display = 'none';
 
-        // 5. 게임 재시작
         gameRunning = true;
         loadQuiz();
-        startNextWave(); // 첫 번째 웨이브 시작
+        startNextWave();
         animationFrameId = requestAnimationFrame(gameLoop);
     }
 
-    restartBtn.onclick = resetGame; // [수정] location.reload -> resetGame
+    restartBtn.onclick = resetGame;
 
     function initGame() {
         gameRunning = true;
