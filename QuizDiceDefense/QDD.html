@@ -1237,20 +1237,20 @@
             this.statusEffects = {};
             // [수정] 계단형 난이도 계산
             const chapter = Math.max(0, Math.floor((wave - 1) / 10)); // wave 1~10 = chap 0
-            const postWave6Multiplier = (wave > 6) ? 2.2 : 1.0; // [수정] 6웨이브 이후 난이도 상승 (1.5 -> 2.2)
+            const postWave6Multiplier = (wave > 6) ? 1.5 : 1.0; // [수정] 6웨이브 이후 난이도 상승 (1.5 -> 2.2)
 
             if (isBoss) {
                 this.x = enemyPath[0].x; this.y = enemyPath[0].y;
                 this.originalSpeed = 0.5 + (chapter * 0.15);
                 this.speed = this.originalSpeed;
-                this.maxHp = (500 + (wave * 120)) * Math.pow(3.0, chapter) * postWave6Multiplier; // [수정] 난이도 상향 (100 -> 120, 2.7 -> 3.0)
+                this.maxHp = (500 + (wave * 100)) * Math.pow(2.7, chapter) * postWave6Multiplier; // [수정] 난이도 상향 (100 -> 120, 2.7 -> 3.0)
                 this.hp = this.maxHp;
                 this.radius = 20; this.color = '#8e44ad';
             } else {
                 this.x = enemyPath[0].x; this.y = enemyPath[0].y;
                 this.originalSpeed = 1 + (chapter * 0.3) + (wave * 0.02);
                 this.speed = this.originalSpeed;
-                this.maxHp = (50 + (wave * 25)) * Math.pow(3.0, chapter) * postWave6Multiplier; // [수정] 난이도 상향 (20 -> 25, 2.7 -> 3.0)
+                this.maxHp = (50 + (wave * 20)) * Math.pow(2.7, chapter) * postWave6Multiplier; // [수정] 난이도 상향 (20 -> 25, 2.7 -> 3.0)
                 this.hp = this.maxHp;
                 this.radius = 10; this.color = '#c0392b';
             }
@@ -1569,10 +1569,10 @@
 
     function initRogueliteUpgrades() {
         return {
-            startQP: { level: 1, cost: 200 },
-            quizQP: { level: 1, cost: 300 },
-            highSpawn: { level: 1, cost: 400 },
-            mergeBonus: { level: 1, cost: 500 }
+            startQP: { level: 1, cost: 100 },
+            quizQP: { level: 1, cost: 150 },
+            highSpawn: { level: 1, cost: 200 },
+            mergeBonus: { level: 1, cost: 250 }
         };
     }
     function initAchievements() {
