@@ -1,0 +1,158 @@
+[
+  {
+    "question": "대한민국의 수도는?",
+    "options": [
+      "서울",
+      "부산",
+      "인천",
+      "대구"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3×4의 값은?",
+    "options": [
+      "7",
+      "10",
+      "12",
+      "14"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "물은 몇 도에서 얼기 시작하나요? (섭씨)",
+    "options": [
+      "-10",
+      "0",
+      "10",
+      "100"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "지구를 한 바퀴 도는 인공위성을 무엇이라 하나요?",
+    "options": [
+      "소행성",
+      "달",
+      "인공위성",
+      "유성"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "다음 중 대륙이 아닌 것은?",
+    "options": [
+      "아시아",
+      "오세아니아",
+      "아프리카",
+      "북극"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "대한민국 헌법상 3권 분립에 해당하지 않는 것은?",
+    "options": [
+      "입법",
+      "사법",
+      "행정",
+      "감사"
+    ],
+    "answer": 3,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "우리나라에서 동쪽에 있는 바다는?",
+    "options": [
+      "서해",
+      "남해",
+      "동해",
+      "지중해"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1리터는 몇 밀리리터인가요?",
+    "options": [
+      "10",
+      "100",
+      "500",
+      "1000"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "태양계에서 가장 큰 행성은?",
+    "options": [
+      "지구",
+      "목성",
+      "화성",
+      "토성"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 우리나라의 전통 악기는?",
+    "options": [
+      "바이올린",
+      "기타",
+      "해금",
+      "피아노"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "분수 3/4와 같은 소수는?",
+    "options": [
+      "0.25",
+      "0.5",
+      "0.75",
+      "0.8"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "‘봄볕에 그을린’의 맞춤법으로 옳은 것은?",
+    "options": [
+      "그을은",
+      "그을린",
+      "그을른",
+      "그을린다"
+    ],
+    "answer": 1,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  }
+]

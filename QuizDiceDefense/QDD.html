@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>다이스 랜덤 퀴즈 디펜스 (v3.2)</title>
+    <link rel="preload"
+          href="https://unluckyidiot16.github.io/assets-common/QuizDiceDefense/QuizPack/quizpack.json"
+          as="fetch"
+          crossorigin="anonymous">
     <style>
         :root {
             --canvas-bg: #dbe4ee;
@@ -2018,9 +2022,63 @@
     })();
 </script>
 
+<script>
+    /* === QDD QuizPack Loader (network-first, fallback-safe) === */
+    (function () {
+        const QUIZ_PACK_URL =
+            "https://unluckyidiot16.github.io/assets-common/QuizDiceDefense/QuizPack/quizpack.json";
+        const QUIZ_CACHE_NAME = "QDD-QuizPack-quizpack-v1"; // ★ 새 이름으로 캐시 무효화
 
+        let _ready = null;
 
-<!-- === END PATCH === -->
+        async function loadNetworkFirst(url) {
+            // 1) 항상 네트워크로 ETag 재검증해서 최신 시도
+            try {
+                const resp = await fetch(url, { cache: "no-cache" });
+                if (!resp.ok) throw new Error("fetch failed: " + resp.status);
+                // 2) 성공 시 캐시에 갱신 저장
+                try { const c = await caches.open(QUIZ_CACHE_NAME); await c.put(url, resp.clone()); } catch (_) {}
+                return await resp.json();
+            } catch (e) {
+                // 3) 오프라인/실패면 캐시→없으면 에러
+                const c = await caches.open(QUIZ_CACHE_NAME);
+                const hit = await c.match(url);
+                if (hit) return hit.json();
+                throw e;
+            }
+        }
+
+        async function ensureQuizPack() {
+            if (_ready) return _ready;
+            _ready = (async () => {
+                try {
+                    const remote = await loadNetworkFirst(QUIZ_PACK_URL);
+                    if (Array.isArray(remote) && remote.length) {
+                        if (typeof quizData !== "undefined" && quizData?.splice) {
+                            quizData.splice(0, quizData.length, ...remote); // 제자리 교체
+                        }
+                        console.log("[QDD] QuizPack (latest) loaded:", QUIZ_PACK_URL, `(${quizData.length})`);
+                    } else {
+                        console.warn("[QDD] Remote pack empty, using built-in fallback.");
+                    }
+                } catch (e) {
+                    console.warn("[QDD] Network failed, using built-in fallback.", e);
+                }
+            })();
+            return _ready;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => { try { ensureQuizPack(); } catch(_){} });
+
+        const __initGame__ = window.initGame;
+        if (typeof __initGame__ === "function") {
+            window.initGame = async function () {
+                try { await ensureQuizPack(); } catch (_) {}
+                return __initGame__.apply(this, arguments);
+            };
+        }
+    })();
+</script>
 
 </body>
 </html>
