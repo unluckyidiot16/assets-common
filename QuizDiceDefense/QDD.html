@@ -1892,19 +1892,19 @@
     })();
 </script>
 <script>
-    /* === HOTFIX v3.2a: 영구강화 반값 + 6웨이브 이후 난이도 완화 +(옵션) 인게임 업글 시작가 반값 === */
+    /* === HOTFIX v3.2b: window.* 참조로 깨진 강화 버튼 복구 + 난이도/비용 완화 유지 === */
     (function () {
-        const COST_FACTOR = 0.5;       // 영구강화(roguelite) 반값
-        const HP_RAMP = 1.04;          // 6웨이브 이후 HP 완만 상승
-        const SPAWN_RAMP = 1.04;       // 6웨이브 이후 스폰 수 완만 상승
-        const SPEED_RAMP = 1.03;       // 6웨이브 이후 스폰 속도(간격 감소) 완만 상승
-        const MIG_KEY = "quizTowerDefense_migrated_v32a";
+        const COST_FACTOR = 0.5;   // 영구강화 반값
+        const HP_RAMP    = 1.04;   // 6웨이브 이후 HP 완만 상승
+        const SPAWN_RAMP = 1.04;   // 6웨이브 이후 스폰 수 완만 상승
+        const SPEED_RAMP = 1.03;   // 6웨이브 이후 스폰 속도(간격 감소) 완만 상승
+        const MIG_KEY    = "quizTowerDefense_migrated_v32a";
+        const ROG_KEY    = (typeof ROGUELITE_KEY !== 'undefined' ? ROGUELITE_KEY : 'quizTowerDefense_Roguelite');
 
-        /* 1) 로컬스토리지 마이그레이션: 기존 저장된 비용을 반값으로 1회 보정 */
+        /* 1) 1회 마이그레이션: 저장된 영구강화 비용을 반값으로 */
         try {
             if (!localStorage.getItem(MIG_KEY)) {
-                const ROGUELITE_KEY = (window.ROGUELITE_KEY || 'quizTowerDefense_Roguelite');
-                const raw = localStorage.getItem(ROGUELITE_KEY);
+                const raw = localStorage.getItem(ROG_KEY);
                 if (raw) {
                     const data = JSON.parse(raw);
                     ['startQP','quizQP','highSpawn','mergeBonus'].forEach(k => {
@@ -1912,106 +1912,104 @@
                             data[k].cost = Math.max(1, Math.round(data[k].cost * COST_FACTOR));
                         }
                     });
-                    localStorage.setItem(ROGUELITE_KEY, JSON.stringify(data));
-                    if (window.rogueliteUpgrades) Object.assign(window.rogueliteUpgrades, data);
+                    localStorage.setItem(ROG_KEY, JSON.stringify(data));
+                    if (typeof rogueliteUpgrades !== 'undefined' && rogueliteUpgrades) {
+                        Object.assign(rogueliteUpgrades, data);
+                    }
                 }
                 localStorage.setItem(MIG_KEY, '1');
             }
         } catch(e) {}
 
-        /* 2) 영구강화 UI/구매 로직을 반값으로 덮어쓰기 */
-        if (typeof window.updateRogueliteUI === 'function') {
-            const __u = window.updateRogueliteUI;
-            window.updateRogueliteUI = function () {
+        /* 2) 영구강화 UI 패치: 표기/disabled를 반값 기준으로 갱신 */
+        if (typeof updateRogueliteUI === 'function') {
+            const __u = updateRogueliteUI;
+            updateRogueliteUI = function () {
                 __u();
                 try {
-                    const U = window.rogueliteUpgrades || {};
-                    const B = window.rogueliteButtons || {};
-                    const T = window.totalKnowledgePoints|0;
-
-                    function patch(key) {
-                        if (!U[key] || !B[key]) return;
-                        const eff = Math.max(1, Math.round((U[key].cost|0) * COST_FACTOR));
-                        if (B[key].cost) B[key].cost.textContent = `비용: ${eff} KP`;
-                        if (B[key].btn)  B[key].btn.disabled = (T < eff);
-                    }
-                    ['startQP','quizQP','highSpawn','mergeBonus'].forEach(patch);
+                    ['startQP','quizQP','highSpawn','mergeBonus'].forEach(key => {
+                        const up = rogueliteUpgrades?.[key];
+                        const el = rogueliteButtons?.[key];
+                        if (!up || !el) return;
+                        const eff = Math.max(1, Math.round((up.cost|0) * COST_FACTOR));
+                        if (el.cost) el.cost.textContent = `비용: ${eff} KP`;
+                        if (el.btn)  el.btn.disabled = (totalKnowledgePoints < eff);
+                    });
                 } catch(_) {}
             };
         }
-        if (typeof window.buyRogueliteUpgrade === 'function') {
-            // 원본을 호출하지 않고, 동일 동작을 반값으로 수행
-            window.buyRogueliteUpgrade = function (key) {
-                const U = window.rogueliteUpgrades || {};
-                const up = U[key]; if (!up) return;
+
+        /* 3) 영구강화 구매 로직 패치: 반값 차감 + 원래 성장식 유지 */
+        if (typeof buyRogueliteUpgrade === 'function') {
+            buyRogueliteUpgrade = function (key) {
+                const up = rogueliteUpgrades?.[key];
+                if (!up) return;
                 const eff = Math.max(1, Math.round((up.cost|0) * COST_FACTOR));
-                if ((window.totalKnowledgePoints|0) < eff) return;
-                window.totalKnowledgePoints -= eff;
+                if ((totalKnowledgePoints|0) < eff) return;
+                totalKnowledgePoints -= eff;
                 up.level = (up.level|0) + 1;
-                // 기존 성장 공식을 유지(단, 저장값은 원가 기준으로 증가; 실제 표기/차감은 항상 반값)
-                up.cost = Math.floor(up.cost * (1.2 + (up.level * 0.1)));
-                if (typeof window.saveGameData === 'function') window.saveGameData();
-                if (typeof window.updateRogueliteUI === 'function') window.updateRogueliteUI();
+                up.cost  = Math.floor(up.cost * (1.2 + (up.level * 0.1))); // 저장/성장은 원 공식
+                if (typeof saveGameData === 'function') saveGameData();
+                if (typeof updateRogueliteUI === 'function') updateRogueliteUI();
             };
         }
 
-        /* 3) (옵션) 인게임 업그레이드 시작가 반값으로 보정 */
-        if (typeof window.initInGameUpgrades === 'function') {
-            const __initIG = window.initInGameUpgrades;
-            window.initInGameUpgrades = function(){
+        /* 4) 인게임 강화 시작가 반값 */
+        if (typeof initInGameUpgrades === 'function') {
+            const __initIG = initInGameUpgrades;
+            initInGameUpgrades = function(){
                 __initIG();
                 try {
-                    // 생성 직후 시작가 반값으로
-                    const digs = window.diceUpgrades || {};
-                    Object.values(digs).forEach(u => { if (u && typeof u.cost === 'number') u.cost = Math.max(1, Math.round(u.cost * 0.5)); });
-                    if (typeof window.updateUI === 'function') window.updateUI();
+                    Object.values(diceUpgrades || {}).forEach(u => {
+                        if (u && typeof u.cost === 'number') u.cost = Math.max(1, Math.round(u.cost * 0.5));
+                    });
+                    if (typeof updateUI === 'function') updateUI();
                 } catch(_) {}
             };
         }
 
-        /* 4) 난이도 완화: Enemy 생성 HP 스텝업(1.5배)을 1.04 램프로 대체 */
-        if (typeof window.Enemy === 'function') {
-            const Orig = window.Enemy;
-            window.Enemy = function(isBoss) {
-                const e = new Orig(isBoss);
-                try {
-                    if (typeof window.wave === 'number' && window.wave > 6) {
-                        const oldMult = 1.5; // 기존 고정배수
-                        const newMult = Math.pow(HP_RAMP, Math.max(0, window.wave - 6));
-                        const factor = newMult / oldMult;     // (< 1) 이므로 HP 완화
-                        e.maxHp = Math.max(1, Math.round(e.maxHp * factor));
-                        e.hp = Math.min(e.hp, e.maxHp);
-                    }
-                } catch(_) {}
-                return Object.setPrototypeOf(e, Orig.prototype);
+        /* 5) 난이도 완화: HP 램프(1.5 고정배수 → 완만 램프) */
+        if (typeof Enemy === 'function') {
+            const Base = Enemy;
+            Enemy = class extends Base {
+                constructor(isBoss){
+                    super(isBoss);
+                    try {
+                        if ((typeof wave === 'number') && wave > 6) {
+                            const factor = Math.pow(HP_RAMP, Math.max(0, wave - 6)) / 1.5;
+                            this.maxHp = Math.max(1, Math.round(this.maxHp * factor));
+                            this.hp    = Math.min(this.hp, this.maxHp);
+                        }
+                    } catch(_) {}
+                }
             };
         }
 
-        /* 5) 난이도 완화: 스폰 수/속도 램프 완화 */
-        if (typeof window.startNextWave === 'function') {
-            const __start = window.startNextWave;
-            window.startNextWave = function () {
-                __start(); // 원본이 wave++/보스/일반 분기를 모두 처리
-                if (window.wave % 5 === 0) return; // 보스 웨이브는 건드리지 않음
+        /* 6) 난이도 완화: 스폰 수/속도 램프 완만화 */
+        if (typeof startNextWave === 'function') {
+            const __start = startNextWave;
+            startNextWave = function () {
+                __start();
+                if ((wave|0) % 5 === 0) return; // 보스 웨이브 제외
                 try {
-                    clearInterval(window.spawnInterval);
-                    const w = window.wave|0;
+                    clearInterval(spawnInterval);
+                    const w = wave|0;
                     const chapter = Math.max(0, Math.floor((w - 1) / 10));
-                    // 기본 수치 완화 + 6웨이브 이후는 램프 완만
+
                     const baseCount = 10 + (w * 2) + (chapter * 10);
                     const rampCount = (w > 6) ? Math.pow(SPAWN_RAMP, (w - 6)) : 1;
-                    window.enemiesToSpawn = Math.max(0, Math.round(baseCount * rampCount));
+                    enemiesToSpawn = Math.max(0, Math.round(baseCount * rampCount));
 
                     const baseMs = 1000 - (w * 20) - (chapter * 50);
-                    const rampSpeed = (w > 6) ? Math.pow(SPEED_RAMP, (w - 6)) : 1;
-                    const delay = Math.max(100, Math.round(baseMs / rampSpeed));
+                    const rampSp = (w > 6) ? Math.pow(SPEED_RAMP, (w - 6)) : 1;
+                    const delay  = Math.max(100, Math.round(baseMs / rampSp));
 
-                    window.spawnInterval = setInterval(function () {
-                        if (window.enemiesToSpawn > 0) {
-                            window.enemies.push(new window.Enemy(false));
-                            window.enemiesToSpawn--;
+                    spawnInterval = setInterval(function () {
+                        if (enemiesToSpawn > 0) {
+                            enemies.push(new Enemy(false));
+                            enemiesToSpawn--;
                         } else {
-                            clearInterval(window.spawnInterval);
+                            clearInterval(spawnInterval);
                         }
                     }, delay);
                 } catch(_) {}
@@ -2019,6 +2017,7 @@
         }
     })();
 </script>
+
 
 
 <!-- === END PATCH === -->
