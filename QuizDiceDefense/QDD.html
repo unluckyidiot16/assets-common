@@ -623,9 +623,15 @@
         ctx.fillRect(canvas.width - PATH_WIDTH, PATH_WIDTH, PATH_WIDTH, GRID_HEIGHT);
 
         // '베이스' 표시 (적이 도달하는 곳)
+        // [수정] 원 -> 삼각형
+        const basePos = enemyPath[enemyPath.length-1];
+        const baseSize = 30;
         ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
         ctx.beginPath();
-        ctx.arc(enemyPath[enemyPath.length-1].x, enemyPath[enemyPath.length-1].y, 15, 0, Math.PI * 2);
+        ctx.moveTo(basePos.x, basePos.y - baseSize / 2); // 위쪽 꼭지점
+        ctx.lineTo(basePos.x - baseSize / 2, basePos.y + baseSize / 2); // 왼쪽 아래
+        ctx.lineTo(basePos.x + baseSize / 2, basePos.y + baseSize / 2); // 오른쪽 아래
+        ctx.closePath();
         ctx.fill();
     }
 
@@ -711,15 +717,29 @@
     // --- 10. 적 (Enemy) 로직 ---
 
     class Enemy {
-        constructor() {
-            this.x = enemyPath[0].x;
-            this.y = enemyPath[0].y;
+        constructor(isBoss = false) { // [수정] isBoss 파라미터 추가
+            this.isBoss = isBoss;
             this.pathIndex = 1;
-            this.speed = 1 + (wave * 0.1);
-            this.maxHp = 50 + (wave * 15);
-            this.hp = this.maxHp;
-            this.radius = 10;
-            this.color = '#c0392b';
+
+            if (isBoss) {
+                // --- 보스 스탯 ---
+                this.x = enemyPath[0].x;
+                this.y = enemyPath[0].y;
+                this.speed = 0.5 + (wave * 0.05); // 일반몹보다 느림
+                this.maxHp = 500 + (wave * 100); // 체력 높음
+                this.hp = this.maxHp;
+                this.radius = 20; // 크기 큼
+                this.color = '#8e44ad'; // 보라색
+            } else {
+                // --- 일반몹 스탯 ---
+                this.x = enemyPath[0].x;
+                this.y = enemyPath[0].y;
+                this.speed = 1 + (wave * 0.1);
+                this.maxHp = 50 + (wave * 15);
+                this.hp = this.maxHp;
+                this.radius = 10;
+                this.color = '#c0392b';
+            }
         }
 
         move() {
@@ -760,17 +780,25 @@
 
     function startNextWave() {
         wave++;
-        enemiesToSpawn = 10 + wave * 2;
         waveDisplay.textContent = wave;
 
-        spawnInterval = setInterval(() => {
-            if (enemiesToSpawn > 0) {
-                enemies.push(new Enemy());
-                enemiesToSpawn--;
-            } else {
-                clearInterval(spawnInterval);
-            }
-        }, 1000 - (wave * 20)); // 웨이브가 오를수록 스폰 간격 짧아짐
+        if (wave % 10 === 0) {
+            // --- [수정] 보스 웨이브 ---
+            enemies.push(new Enemy(true)); // 보스 1마리 스폰
+            enemiesToSpawn = 0; // 일반 몹 스폰 없음
+            clearInterval(spawnInterval); // 스폰 인터벌 중지
+        } else {
+            // --- [수정] 일반 웨이브 ---
+            enemiesToSpawn = 10 + wave * 2;
+            spawnInterval = setInterval(() => {
+                if (enemiesToSpawn > 0) {
+                    enemies.push(new Enemy(false)); // 'false' 명시
+                    enemiesToSpawn--;
+                } else {
+                    clearInterval(spawnInterval);
+                }
+            }, 1000 - (wave * 20)); // 웨이브가 오를수록 스폰 간격 짧아짐
+        }
     }
 
     function updateEnemies() {
@@ -790,8 +818,10 @@
                 }
                 updateUI();
             } else if (enemy.hp <= 0) {
+                // [수정] 보스/일반 몹 킬 보너스
+                const reward = enemy.isBoss ? (100 + wave * 10) : (5 + wave);
+                addResources(reward);
                 enemies.splice(i, 1);
-                addResources(5 + wave); // 킬 보너스
             }
         }
 
@@ -1031,9 +1061,38 @@
         gameOverModal.style.display = 'flex';
     }
 
-    restartBtn.onclick = () => {
-        location.reload(); // 페이지 새로고침으로 재시작
-    };
+    // [수정] 다시 시작 버튼 로직
+    function resetGame() {
+        // 1. 모든 인터벌/타임아웃/루프 중지
+        gameRunning = false;
+        cancelAnimationFrame(animationFrameId);
+        clearInterval(spawnInterval);
+        clearInterval(quizTimerInterval);
+
+        // 2. 게임 상태 변수 리셋
+        resources = 100;
+        summonCost = 50;
+        playerHP = MAX_HP;
+        wave = 0;
+        enemiesToSpawn = 0;
+
+        // 3. 배열 리셋
+        diceGrid = new Array(GRID_SIZE).fill(null);
+        enemies = [];
+        projectiles = [];
+
+        // 4. UI 리셋
+        updateUI();
+        gameOverModal.style.display = 'none';
+
+        // 5. 게임 재시작
+        gameRunning = true;
+        loadQuiz();
+        startNextWave(); // 첫 번째 웨이브 시작
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    restartBtn.onclick = resetGame; // [수정] location.reload -> resetGame
 
     function initGame() {
         gameRunning = true;
