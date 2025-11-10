@@ -421,7 +421,7 @@
 
     // --- 4. 게임 상태 변수 ---
     let resources = 100;
-    let summonCost = 100;
+    let summonCost = 50; // [수정] 100 -> 50
     let playerHP = 20;
     const MAX_HP = 20;
     let wave = 0;
@@ -569,7 +569,7 @@
         }
 
         resources -= summonCost;
-        summonCost += 20; // 소환 비용 증가
+        summonCost += 10; // [수정] 20 -> 10
 
         const randomType = DICE_TYPES[Math.floor(Math.random() * DICE_TYPES.length)];
         diceGrid[emptyIndex] = {
@@ -936,7 +936,7 @@
 
     // (i) -> (x, y) 좌표 변환 (그리드 오프셋 포함)
     function getGridCoords(index) {
-        const row = Math.floor(index / GRID_ROWS);
+        const row = Math.floor(index / GRID_COLS); // [수정] GRID_ROWS -> GRID_COLS
         const col = index % GRID_COLS;
         const x = GRID_OFFSET_X + col * (CELL_SIZE + GAP);
         const y = GRID_OFFSET_Y + row * (CELL_SIZE + GAP);
