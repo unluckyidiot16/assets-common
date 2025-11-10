@@ -299,8 +299,8 @@
             cursor: pointer;
         }
 
-        /* --- 모바일 반응형 --- */
-        @media (max-width: 960px) { /* 너비 기준 변경 */
+        /* --- [수정] 모바일 반응형 --- */
+        @media (max-width: 960px) { /* 태블릿/데스크탑 좁게 */
             body {
                 padding: 10px 5px;
             }
@@ -324,14 +324,21 @@
             h1 {
                 font-size: 1.5em;
             }
-            /* 강화 패널 모바일 */
+            /* 강화 패널 3열 */
             #upgrade-panel {
-                grid-template-columns: repeat(3, 1fr); /* 3열로 */
+                grid-template-columns: repeat(3, 1fr);
             }
         }
-        @media (max-width: 400px) {
+        @media (max-width: 600px) {
+            /* 강화 패널 2열 */
             #upgrade-panel {
-                grid-template-columns: repeat(2, 1fr); /* 2열로 */
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 450px) {
+            /* 강화 패널 1열 (세로 모드) */
+            #upgrade-panel {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -929,21 +936,24 @@
             this.pathIndex = 1;
             this.statusEffects = {};
 
+            // [수정] 계단형 난이도 계산
+            const chapter = Math.max(0, Math.floor((wave - 1) / 10)); // wave 1~10 = chap 0
+
             if (isBoss) {
                 this.x = enemyPath[0].x;
                 this.y = enemyPath[0].y;
-                this.originalSpeed = 0.5 + (wave * 0.05);
+                this.originalSpeed = 0.5 + (chapter * 0.15); // [수정] 챕터별 속도
                 this.speed = this.originalSpeed;
-                this.maxHp = 500 + (wave * 100);
+                this.maxHp = (500 + (wave * 100)) * Math.pow(2.2, chapter); // [수정] 챕터별 HP
                 this.hp = this.maxHp;
                 this.radius = 20;
                 this.color = '#8e44ad';
             } else {
                 this.x = enemyPath[0].x;
                 this.y = enemyPath[0].y;
-                this.originalSpeed = 1 + (wave * 0.1);
+                this.originalSpeed = 1 + (chapter * 0.3) + (wave * 0.01); // [수정] 챕터별/웨이브별 속도
                 this.speed = this.originalSpeed;
-                this.maxHp = 50 + (wave * 15);
+                this.maxHp = (50 + (wave * 15)) * Math.pow(2.2, chapter); // [수정] 챕터별/웨이브별 HP
                 this.hp = this.maxHp;
                 this.radius = 10;
                 this.color = '#c0392b';
@@ -979,7 +989,6 @@
                 if (key === 'burn' || key === 'poison') {
                     effect.tick--;
                     if (effect.tick <= 0) {
-                        // [수정] DoT 데미지도 강화 영향 받음
                         const upgrade = diceUpgrades[key === 'burn' ? 'fire' : 'wind'];
                         const dotDamage = Math.round(effect.damage * (1 + (upgrade.level - 1) * 0.1));
                         this.hp -= dotDamage;
@@ -1054,12 +1063,15 @@
         wave++;
         waveDisplay.textContent = wave;
 
+        // [수정] 계단형 난이도 계산
+        const chapter = Math.max(0, Math.floor((wave - 1) / 10));
+
         if (wave % 5 === 0) {
             enemies.push(new Enemy(true));
             enemiesToSpawn = 0;
             clearInterval(spawnInterval);
         } else {
-            enemiesToSpawn = 10 + wave * 2;
+            enemiesToSpawn = 10 + (wave * 2) + (chapter * 10); // [수정] 챕터별 스폰 수
             spawnInterval = setInterval(() => {
                 if (enemiesToSpawn > 0) {
                     enemies.push(new Enemy(false));
@@ -1067,7 +1079,7 @@
                 } else {
                     clearInterval(spawnInterval);
                 }
-            }, 1000 - (wave * 20));
+            }, Math.max(200, 1000 - (wave * 20) - (chapter * 50))); // [수정] 스폰 속도도 챕터별로 빨라짐
         }
     }
 
