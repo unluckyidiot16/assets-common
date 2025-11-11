@@ -3,109 +3,73 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>픽셀 컬러링 — 4분할·확대·순차 스테이지</title>
+    <title>픽셀 컬러링 — 도감·퀴즈·가챠</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: ui-sans-serif, system-ui; touch-action: manipulation; }
         .view { display: none; width: 100%; min-height: 100vh; }
         .view.active { display: flex; }
+        canvas { display:block; image-rendering: pixelated; cursor: pointer; background:#fff; }
 
-        /* 캔버스: 박스여백 제거 + 픽셀 스냅 */
-        canvas {
-            display: block;                /* inline gap 제거 */
-            image-rendering: pixelated;
-            cursor: pointer;
-            background:#fff;
+        /* 도감 카드 */
+        #bookGrid .card { border:2px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#fff; cursor:pointer; transition:.2s; }
+        #bookGrid .card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+        #bookGrid img { image-rendering:pixelated; width:100%; aspect-ratio:1/1; object-fit:contain; background:#f9fafb; }
+        .locked { position:relative; filter:grayscale(1) opacity(.8); }
+        .locked::after{
+            content:"🔒"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+            font-size:28px; color:#fff; text-shadow:0 0 5px #000; background:rgba(0,0,0,.35);
         }
 
-        /* 팔레트(색상) 버튼 — 한 줄 유지 + 가로 스크롤 */
-                #paletteContainer,
-                #zoomPalette {
-                    display: grid;
-                    grid-auto-flow: column;
-                    grid-auto-columns: max-content;
-                    gap: 10px;
-                    width: 100%;
-                    max-width: 100%;
-                    padding: 0 8px 8px;          /* 스크롤바/여백 보정 */
-                    overflow-x: auto;             /* 가로 스크롤 */
-                    overflow-y: hidden;           /* 세로 스크롤 방지 */
-                    white-space: nowrap;          /* 안전용 */
-                    scroll-snap-type: x proximity;/* (선택) 스냅 */
-                    scrollbar-gutter: stable both-edges;
-                }
-                #paletteContainer .palette-button,
-                #zoomPalette .palette-button { scroll-snap-align: start; }        .palette-button {
-            width:50px; height:50px; border:2px solid #d1d5db; border-radius:8px; cursor:pointer;
-            font-weight:700; display:flex; align-items:center; justify-content:center; color:#fff;
-            text-shadow:0 0 2px #000;
-            transition:transform .15s, box-shadow .15s, border-color .15s;
-        }
-        .palette-button.selected { border-color:#0ea5e9; transform:scale(1.08); box-shadow:0 0 15px rgba(14,165,233,.45); }
-        .palette-button.locked { filter:grayscale(1); }
-
-        /* 쿼드 잠금 오버레이 */
-        .quad-wrap { position: relative; width: fit-content; height: fit-content; }
-        .quad-lock {
-            position:absolute; inset:0; background:rgba(0,0,0,.45); color:#fff; display:flex; flex-direction:column;
-            align-items:center; justify-content:center; gap:10px; font-weight:700; border-radius:0;
-            opacity:1; transition:opacity .2s; z-index:2;
-        }
-        .quad-lock.hidden { opacity:0; pointer-events:none; }
-
-        /* 확대 레이어 */
-        #zoomOverlay {
-            position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center;
-            z-index:1000;
-        }
-        #zoomCard {
-            background:#fff; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:16px;
-            display:flex; flex-direction:column; align-items:center; gap:12px; max-width:95vw; max-height:90vh;
-        }
+        /* 확대 오버레이 */
+        #zoomOverlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:1000; }
+        #zoomCard { background:#fff; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:16px;
+            display:flex; flex-direction:column; align-items:center; gap:12px; max-width:95vw; max-height:90vh; }
         #zoomCanvas { image-rendering: pixelated; border:2px solid #0ea5e9; border-radius:8px; }
 
-        /* 확대 팔레트 버튼 크기(옵션) */
-        #zoomPalette .palette-button { width:42px; height:42px; }
-
-
-        /* 로비 카드 */
-        #stageGrid .stage-card { border:2px solid #e5e7eb; border-radius:8px; overflow:hidden; cursor:pointer; transition:.2s; background:#fff; }
-        #stageGrid .stage-card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
-        #stageGrid .stage-card img { image-rendering:pixelated; width:100%; aspect-ratio:1/1; object-fit:contain; background:#f9fafb; }
-        .locked-card { filter:grayscale(1); position:relative; }
-        .locked-card::after {
-            content:"🔒"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-            font-size:28px; color:#fff; text-shadow:0 0 5px #000;
-            background:rgba(0,0,0,.35);
+        /* 팔레트(가로 스크롤) */
+        #paletteContainer, #zoomPalette {
+            display:grid; grid-auto-flow:column; grid-auto-columns:max-content; gap:10px; width:100%;
+            padding:0 8px 8px; overflow-x:auto; overflow-y:hidden; white-space:nowrap; scrollbar-gutter:stable both-edges;
         }
+        .palette-button{ width:50px; height:50px; border:2px solid #d1d5db; border-radius:8px; color:#fff; font-weight:700;
+            display:flex; align-items:center; justify-content:center; text-shadow:0 0 2px #000; cursor:pointer;
+            transition:transform .15s, box-shadow .15s, border-color .15s; }
+        .palette-button.selected{ border-color:#0ea5e9; transform:scale(1.08); box-shadow:0 0 15px rgba(14,165,233,.45); }
+        #zoomPalette .palette-button{ width:42px; height:42px; }
 
-        /* 모달 */
-        .modal { display:none; position:fixed; z-index:1100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,.4); justify-content:center; align-items:center; }
-        .modal-content { background:#fff; margin:auto; padding:24px; border-radius:12px; width:90%; max-width:480px; text-align:center; }
-        .modal-button { background:#0ea5e9; color:#fff; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:700; }
+        /* 2x2 캔버스 합성 영역 */
+        .composite{ display:flex; justify-content:center; overflow:auto; border:3px solid #374151; border-radius:14px; }
+        .grid-2x2{ display:inline-grid; grid-template-columns:max-content max-content; grid-template-rows:max-content max-content; gap:0; }
 
-        /* 4분할을 한 장처럼: 콘텐츠 크기로 중앙 정렬 */
-        .composite {
-            display:flex;
-            justify-content:center;
-            overflow:auto;
-            border:3px solid #374151;
-            border-radius:14px;
-        }
-        .grid-2x2 {
-            display:inline-grid;                         /* 콘텐츠 폭만큼만 차지 */
-            grid-template-columns: max-content max-content; /* 캔버스 고유 크기 유지 */
-            grid-template-rows: max-content max-content;
-            justify-items:start;
-            align-items:start;
-            gap:0;                                      /* 중앙에 맞붙게 */
-        }
+        /* 모달 공통 */
+        .modal{ display:none; position:fixed; z-index:1100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,.4); justify-content:center; align-items:center; }
+        .modal-content{ background:#fff; margin:auto; padding:24px; border-radius:12px; width:90%; max-width:520px; text-align:center; }
 
-        /* 지진 효과(오답 진동) */
+        /* 정답 오답 진동 */
         @keyframes shake { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-3px,0)} 50%{transform:translate(3px,0)} 75%{transform:translate(-3px,0)} }
         .shake { animation:shake .25s; }
+
+        /* ====== 가챠 희귀도 연출 ====== */
+        @keyframes popin { 0%{transform:scale(.6) rotate(-3deg); opacity:0} 100%{transform:scale(1) rotate(0deg); opacity:1} }
+        .result-card { animation:popin .25s ease-out both; }
+
+        .rarity-tag { position:absolute; top:4px; left:4px; font-size:10px; font-weight:800; color:#fff; padding:2px 6px; border-radius:6px; text-shadow:0 1px 2px rgba(0,0,0,.4); }
+        .ring { position:absolute; inset:-3px; border:3px solid transparent; border-radius:12px; pointer-events:none; }
+
+        /* Common */
+        .rarity-C .rarity-tag { background:#9ca3af; }
+        .rarity-C .ring { border-color:rgba(156,163,175,.7); box-shadow:0 0 12px rgba(156,163,175,.6) inset, 0 0 8px rgba(156,163,175,.4); }
+
+        /* Rare */
+        .rarity-R .rarity-tag { background:#60a5fa; }
+        .rarity-R .ring { border-color:rgba(96,165,250,.9); box-shadow:0 0 14px rgba(96,165,250,.8) inset, 0 0 10px rgba(96,165,250,.6); }
+
+        /* Super Rare */
+        @keyframes pulseGlow { 0%,100%{box-shadow:0 0 18px rgba(245,158,11,.9), 0 0 28px rgba(245,158,11,.5) inset} 50%{box-shadow:0 0 28px rgba(245,158,11,1), 0 0 40px rgba(245,158,11,.7) inset} }
+        .rarity-SR .rarity-tag { background:#f59e0b; }
+        .rarity-SR .ring { border-color:#f59e0b; animation:pulseGlow 1.2s ease-in-out infinite; }
     </style>
-    <script src="../../ClassGame/AUTOPPT/src/api/overrides.ts"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
@@ -117,27 +81,39 @@
     </button>
 </div>
 
-<!-- 2) 로비 -->
+<!-- 2) 로비(도감 + 퀴즈/가챠 영역) -->
 <div id="lobbyScreen" class="view flex-col items-center p-4 md:p-8">
-    <h1 class="text-3xl md:text-4xl font-bold text-gray-800 my-6">스테이지 선택</h1>
-    <p class="text-sm text-gray-500 mb-4">※ 스테이지는 1번부터 클리어해야 다음 번호에 입장할 수 있어요.</p>
-    <div id="stageGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 w-full max-w-6xl"></div>
+    <div class="w-full max-w-6xl flex flex-col gap-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">도감</h1>
+            <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
+          보유 포인트: <b id="pointsText" class="text-sky-600">0P</b>
+        </span>
+                <button id="quizBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow">퀴즈 도전</button>
+                <button id="gacha1Btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow">가챠 1회</button>
+                <button id="gacha10Btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow">가챠 10회</button>
+                <button id="resetBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow" title="테스트 초기화">리셋</button>
+            </div>
+        </div>
+        <p class="text-sm text-gray-500">※ 퀴즈로 포인트를 모아 가챠로 도감을 해금하세요. 해금된 항목만 색칠할 수 있어요. 중복 획득 시 가챠 비용의 절반이 환급됩니다.</p>
+        <div id="bookGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4"></div>
+    </div>
 </div>
 
-<!-- 3) 게임 -->
-<div id="gameScreen" class="view flex-col items-center justify-start p-4">
-    <div class="w-full max-w-5xl flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
+<!-- 3) 게임(색칠) -->
+<div id="gameScreen" class="view flex-col items-center p-4">
+    <div class="w-full max-w-5xl flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div class="flex items-center gap-2">
-            <button id="backButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">
-                &larr; 로비로
-            </button>
-            <span class="text-sm text-gray-500">데모: 진행 저장은 로컬(브라우저)만</span>
+            <button id="backButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">&larr; 로비로</button>
+            <span class="text-sm text-gray-500">진행은 브라우저에 저장됩니다</span>
         </div>
-        <h3 id="gameTitle" class="text-xl font-bold text-gray-800"></h3>
+        <div class="flex items-center gap-3">
+            <span class="text-sm px-3 py-1 bg-white rounded-lg border shadow-sm">보유 포인트: <b id="pointsTextGame" class="text-sky-600">0P</b></span>
+        </div>
     </div>
 
     <div class="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-5xl flex flex-col items-center">
-        <!-- 로딩 -->
         <div id="loadingSpinner" class="text-center p-8">
             <svg class="animate-spin h-10 w-10 text-sky-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -146,34 +122,15 @@
             <p class="mt-3 text-gray-600">이미지 분석 중...</p>
         </div>
 
-        <!-- 2×2 캔버스(한 장의 그림처럼) -->
         <div class="composite w-full">
-            <!-- ↓ 콘텐츠 크기만큼만 차지하도록 w-full 제거 -->
-            <div id="quadGrid" class="grid-2x2">
-                <!-- JS에서 채움 -->
-            </div>
-        </div>
-
-        <!-- 팔레트(물감) 해금 퀴즈 -->
-        <div id="paintsGate" class="hidden w-full max-w-md mt-4 p-4 border rounded-lg bg-slate-50">
-            <div class="flex items-center justify-between gap-2">
-                <h4 class="font-bold text-gray-800">물감 모으기 퀴즈</h4>
-                <button id="startPaintsQuizBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold py-2 px-4 rounded-lg shadow">
-                    시작
-                </button>
-            </div>
-            <p class="text-sm text-gray-600 mt-2">정답을 모두 맞히면 팔레트가 열립니다.</p>
-            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-3">
-                <div id="paintsQuizBar" class="bg-emerald-500 h-2.5 rounded-full" style="width:0%; transition:width .3s;"></div>
-            </div>
-            <p id="paintsQuizText" class="text-xs text-gray-500 mt-1">0%</p>
+            <div id="quadGrid" class="grid-2x2"></div>
         </div>
 
         <!-- 색상 팔레트 -->
-        <div id="paletteContainer" class="hidden"></div>
+        <div id="paletteContainer" class="w-full mt-4"></div>
 
         <!-- 전체 진행률 -->
-        <div id="progressContainer" class="w-full max-w-md mt-4 hidden">
+        <div id="progressContainer" class="w-full max-w-md mt-4">
             <div class="w-full bg-gray-200 rounded-full h-2.5">
                 <div id="progressBar" class="bg-sky-500 h-2.5 rounded-full" style="width:0%; transition:width .3s;"></div>
             </div>
@@ -182,27 +139,23 @@
     </div>
 </div>
 
-<!-- 확대 레이어 -->
+<!-- 확대(줌) 오버레이: ★ 누락되던 DOM 추가 -->
 <div id="zoomOverlay">
     <div id="zoomCard">
         <canvas id="zoomCanvas"></canvas>
-
-        <!-- ★ 추가: 확대 모달용 팔레트 -->
-        <div id="zoomPalette" class="zoom-palette"></div>
-
-        <div class="flex items-center gap-2">
-            <button id="zoomClose" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">닫기(Esc)</button>
-            <span class="text-xs text-gray-500">팁: 확대 상태에서도 팔레트에서 색을 골라 바로 칠할 수 있어요.</span>
+        <div id="zoomPalette" class="w-full"></div>
+        <div class="flex gap-2">
+            <button id="zoomCloseBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">닫기(Esc)</button>
         </div>
     </div>
 </div>
 
-<!-- 안내 모달 -->
+<!-- 일반 알림 모달 -->
 <div id="messageModal" class="modal">
     <div class="modal-content">
         <h2 id="modalTitle" class="text-xl font-bold mb-2"></h2>
         <p id="modalMessage" class="text-gray-700"></p>
-        <button id="modalCloseButton" class="modal-button">확인</button>
+        <button id="modalCloseButton" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg shadow mt-4">확인</button>
     </div>
 </div>
 
@@ -210,677 +163,189 @@
 <div id="quizModal" class="modal">
     <div class="modal-content">
         <h2 id="quizTitle" class="text-xl font-bold mb-3">퀴즈</h2>
+        <p id="quizSub" class="text-xs text-gray-500 mb-1"></p>
         <p id="quizQuestion" class="text-gray-800 mb-4"></p>
         <div id="quizChoices" class="flex flex-col gap-2"></div>
-        <button id="quizCancel" class="modal-button bg-gray-400 hover:bg-gray-500 mt-4">취소</button>
+        <button id="quizCancel" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow mt-4">종료</button>
     </div>
 </div>
 
-<script>
-    /* ---------------- 기본 설정 ---------------- */
-    const CELL_SCALE = 15;                    // 캔버스 셀 픽셀 크기
-    const REQUIRED_PAINT_QUIZ = 5;
+<!-- 가챠 결과 모달 -->
+<div id="gachaModal" class="modal">
+    <div class="modal-content">
+        <h2 class="text-xl font-bold mb-3">가챠 결과</h2>
+        <div id="gachaResults" class="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-5 gap-2 justify-items-center mb-3"></div>
+        <p id="gachaSummary" class="text-gray-700 mb-3"></p>
+        <button id="gachaClose" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg shadow">확인</button>
+    </div>
+</div>
 
+<!-- ===== 스크립트 ===== -->
+<script>
+    /* =========================
+       설정값(필요 시 수정)
+    ========================= */
     const IMAGE_BASE_URL = 'https://unluckyidiot16.github.io/assets-common/PixelArt/PNG/';
     const IMAGE_FILES = Array.from({length: 50}, (_, i) => `${i+1}.png`);
 
-    /* ---------------- DOM ---------------- */
+    const GACHA_COST = 100;          // 가챠 1회 포인트
+    const QUIZ_REWARD = 10;          // 정답 1개당 포인트
+    const QUIZ_SESSION_LEN = 10;     // 퀴즈 세션 문제 수
+
+    // 희귀도 설정
+    const RARITY_CONFIG = {
+        C:  { name:'Common',      weight: 80 },  // 80%
+        R:  { name:'Rare',        weight: 18 },  // 18%
+        SR: { name:'Super Rare',  weight:  2 }   //  2%
+    };
+    // 인덱스별 희귀도 분포(간단 규칙: 1~35 C, 36~47 R, 48~50 SR)
+    function rarityOfIndex(idx){ if (idx>=48) return 'SR'; if (idx>=36) return 'R'; return 'C'; }
+    const indicesByRarity = { C:[], R:[], SR:[] };
+    for (let i=1;i<=IMAGE_FILES.length;i++){ indicesByRarity[rarityOfIndex(i)].push(i); }
+
+    /* =========================
+       DOM
+    ========================= */
     const allViews = document.querySelectorAll('.view');
     const titleScreen = document.getElementById('titleScreen');
     const lobbyScreen = document.getElementById('lobbyScreen');
     const gameScreen  = document.getElementById('gameScreen');
     const startButton = document.getElementById('startButton');
+
+    const bookGrid = document.getElementById('bookGrid');
+    const pointsText = document.getElementById('pointsText');
+    const pointsTextGame = document.getElementById('pointsTextGame');
+    const quizBtn   = document.getElementById('quizBtn');
+    const gacha1Btn = document.getElementById('gacha1Btn');
+    const gacha10Btn= document.getElementById('gacha10Btn');
+    const resetBtn  = document.getElementById('resetBtn');
+
     const backButton  = document.getElementById('backButton');
-    const stageGrid   = document.getElementById('stageGrid');
-
-    const loadingSpinner   = document.getElementById('loadingSpinner');
-    const quadGrid         = document.getElementById('quadGrid');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const quadGrid = document.getElementById('quadGrid');
     const paletteContainer = document.getElementById('paletteContainer');
-    const progressContainer= document.getElementById('progressContainer');
-    const progressBar      = document.getElementById('progressBar');
-    const progressText     = document.getElementById('progressText');
-    const gameTitle        = document.getElementById('gameTitle');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
 
-    const paintsGate       = document.getElementById('paintsGate');
-    const startPaintsQuizBtn = document.getElementById('startPaintsQuizBtn');
-    const paintsQuizBar    = document.getElementById('paintsQuizBar');
-    const paintsQuizText   = document.getElementById('paintsQuizText');
-
-    const messageModal     = document.getElementById('messageModal');
-    const modalTitle       = document.getElementById('modalTitle');
-    const modalMessage     = document.getElementById('modalMessage');
+    const messageModal = document.getElementById('messageModal');
+    const modalTitle   = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
     const modalCloseButton = document.getElementById('modalCloseButton');
 
-    const quizModal        = document.getElementById('quizModal');
-    const quizTitle        = document.getElementById('quizTitle');
-    const quizQuestion     = document.getElementById('quizQuestion');
-    const quizChoices      = document.getElementById('quizChoices');
-    const quizCancel       = document.getElementById('quizCancel');
+    const quizModal = document.getElementById('quizModal');
+    const quizTitle = document.getElementById('quizTitle');
+    const quizSub   = document.getElementById('quizSub');
+    const quizQuestion = document.getElementById('quizQuestion');
+    const quizChoices  = document.getElementById('quizChoices');
+    const quizCancel   = document.getElementById('quizCancel');
 
-    const zoomOverlay      = document.getElementById('zoomOverlay');
-    const zoomCanvas       = document.getElementById('zoomCanvas');
-    const zoomPalette     = document.getElementById('zoomPalette');
-    const zoomClose        = document.getElementById('zoomClose');
+    const gachaModal   = document.getElementById('gachaModal');
+    const gachaResults = document.getElementById('gachaResults');
+    const gachaSummary = document.getElementById('gachaSummary');
+    const gachaClose   = document.getElementById('gachaClose');
 
-    /* ---------------- 상태 ---------------- */
-    let imgWidth, imgHeight, sourceImage;
-    let palette = {};
-    let paletteMap = [null];     // 1-based 색 인덱스 → rgba
-    let numberGrid = [];         // [y][x] → 색 인덱스
-    let completedGrid = [];      // [y][x] → boolean
-    let totalCells = 0;
-    let completedCells = 0;
+    const zoomOverlay  = document.getElementById('zoomOverlay');
+    const zoomCanvas   = document.getElementById('zoomCanvas');
+    const zoomPalette  = document.getElementById('zoomPalette');
+    const zoomCloseBtn = document.getElementById('zoomCloseBtn');
+    const zoomCtx = zoomCanvas.getContext('2d'); zoomCtx.imageSmoothingEnabled = false;
 
-    let selectedColorIndex = 0;
-    let paletteUnlocked = false;
+    /* =========================
+       로컬 저장소
+    ========================= */
+    const LS_POINTS = 'pixel.points';
+    const LS_OWNED  = 'pixel.owned';
 
-    const quadrants = [];        // {id, wrap, canvas, ctx, x, y, w, h, unlocked, lockEl}
-    let nextQuadToUnlock = 0;    // 0..3
-    let paintsQuizCount = 0;
-
-    let currentStageFilename = null;
-    let currentStageIndex = 1;
-
-    let currentZoomQuad = null;
-    let zoomCtx = zoomCanvas.getContext('2d');
-    zoomCtx.imageSmoothingEnabled = false;
-
-    /* 순차 스테이지 해금: 로컬 저장소 */
-    const LS_MAX_UNLOCK = 'pixel.maxUnlockedStage';
-    function getMaxUnlockedStage() { return parseInt(localStorage.getItem(LS_MAX_UNLOCK) || '1', 10); }
-    function setMaxUnlockedStage(n) { localStorage.setItem(LS_MAX_UNLOCK, String(n)); }
-
-    // ★ 추가: 두 팔레트 선택 표시 동기화
-    function syncPaletteSelectionUI(){
-        const idx = selectedColorIndex;
-        document.querySelectorAll('#paletteContainer .palette-button, #zoomPalette .palette-button')
-            .forEach(b => b.classList.toggle('selected', parseInt(b.dataset.colorIndex,10) === idx));
+    function getPoints(){ return parseInt(localStorage.getItem(LS_POINTS) || '0', 10); }
+    function setPoints(n){ localStorage.setItem(LS_POINTS, String(Math.max(0,n|0))); syncPointsUI(); }
+    function addPoints(n){ setPoints(getPoints()+n); }
+    function syncPointsUI(){
+        const t = `${getPoints()}P`;
+        pointsText.textContent = t;
+        pointsTextGame.textContent = t;
+    }
+    function getOwnedSet(){
+        try{ const arr = JSON.parse(localStorage.getItem(LS_OWNED)||'[]'); return new Set(arr.map(Number)); }
+        catch{ return new Set(); }
+    }
+    function saveOwnedSet(set){
+        localStorage.setItem(LS_OWNED, JSON.stringify(Array.from(set)));
     }
 
-    // ★ 추가: 색 선택 로직(잠금 체크 포함)
-    function selectColor(index){
-        if (!paletteUnlocked){
-            showModal('물감 잠금', '아직 물감이 모이지 않았어요. 4개 캔버스를 모두 해금한 뒤 "물감 모으기 퀴즈"를 완료하세요.');
-            return;
-        }
-        selectedColorIndex = index;
-        syncPaletteSelectionUI();
-    }
-
-
-    function installZoomClickMode() {
-        quadrants.forEach((q, i) => {
-            if (!q.unlocked) return;
-            q.canvas.onclick = (ev) => {
-                // 보조키 있으면 개요 화면에서 바로 칠하기(옵션)
-                if (ev.ctrlKey || ev.metaKey || ev.shiftKey) {
-                    handleCanvasClickOnQuadPaint(ev, q);
-                } else {
-                    openZoom(i);
-                }
-            };
-        });
-    }
-    
-    /* ---------------- 화면 전환 ---------------- */
-    function showView(id) {
+    /* =========================
+       화면 전환
+    ========================= */
+    function showView(id){
         allViews.forEach(v=>v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
 
-    /* ---------------- 로비 ---------------- */
-    function populateLobby() {
-        stageGrid.innerHTML = '';
-        const maxUnlocked = getMaxUnlockedStage();
-        IMAGE_FILES.forEach(filename => {
-            const idx = parseInt(filename, 10); // "12.png" → 12
+    /* =========================
+       로비(도감) 구성
+    ========================= */
+    function populateBook(){
+        const owned = getOwnedSet();
+        bookGrid.innerHTML = '';
+        IMAGE_FILES.forEach((filename, i)=>{
+            const idx = i+1;
             const card = document.createElement('div');
-            card.className = 'stage-card';
-            const locked = idx > maxUnlocked;
-            if (locked) card.classList.add('locked-card');
+            card.className = 'card';
 
             const img = document.createElement('img');
             img.src = IMAGE_BASE_URL + filename;
-            img.alt = `Stage ${idx}`;
+            img.alt = `No.${idx}`;
             img.loading = 'lazy';
 
             const title = document.createElement('p');
             title.className = 'text-center text-sm font-semibold text-gray-700 p-2';
-            title.textContent = `Stage ${idx}`;
+            title.textContent = `No.${idx}`;
+
+            if (!owned.has(idx)) {
+                img.classList.add('locked');
+                card.title = '가챠로 해금하세요';
+            } else {
+                card.addEventListener('click', ()=> startGame(filename, idx));
+            }
 
             card.appendChild(img);
             card.appendChild(title);
-            zoomPalette.innerHTML = '';
-
-            card.addEventListener('click', () => {
-                if (idx > getMaxUnlockedStage()) {
-                    alert(`스테이지 ${idx-1}을(를) 먼저 클리어해야 합니다.`);
-                    return;
-                }
-                startGame(filename);
-            });
-
-            stageGrid.appendChild(card);
+            bookGrid.appendChild(card);
         });
     }
 
-    /* ---------------- 게임 시작 ---------------- */
-    function startGame(filename) {
-        currentStageFilename = filename;
-        currentStageIndex = parseInt(filename, 10) || 1;
-
-        showView('gameScreen');
-        gameTitle.textContent = `Stage ${currentStageIndex}`;
-
-        // UI 초기화
-        loadingSpinner.style.display = 'block';
-        paintsGate.classList.add('hidden');
-        paletteContainer.classList.add('hidden');
-        progressContainer.classList.add('hidden');
-        paletteContainer.innerHTML = '';
-        progressBar.style.width = '0%';
-        progressText.textContent = '0%';
-
-        // 상태 초기화
-        palette = {};
-        paletteMap = [null];
-        numberGrid = [];
-        completedGrid = [];
-        totalCells = 0;
-        completedCells = 0;
-        selectedColorIndex = 0;
-        paletteUnlocked = false;
-
-        quadrants.length = 0;
-        nextQuadToUnlock = 0;
-        paintsQuizCount = 0;
-        paintsQuizBar.style.width = '0%';
-        paintsQuizText.textContent = '0%';
-
-        // 4분할 컨테이너 리빌드
-        quadGrid.innerHTML = '';
-        for (let i=0;i<4;i++){
-            const wrap = document.createElement('div');
-            wrap.className = 'quad-wrap';
-            const c = document.createElement('canvas');
-            c.id = `canvasQ${i}`;
-            wrap.appendChild(c);
-
-            const lock = document.createElement('div');
-            lock.className = 'quad-lock';
-            lock.innerHTML = `
-      <div class="text-2xl">🔒 ${i+1}</div>
-      <button class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow">퀴즈로 해금</button>
-    `;
-            lock.querySelector('button').addEventListener('click', ()=> {
-                if (i===nextQuadToUnlock) openQuiz('quad', i);
-                else showModal('순서 안내', `캔버스 ${nextQuadToUnlock+1}부터 차례대로 해금하세요.`);
-            });
-            wrap.appendChild(lock);
-            quadGrid.appendChild(wrap);
-
-            const ctx = c.getContext('2d');
-            ctx.imageSmoothingEnabled = false;
-            quadrants.push({ id:i, wrap, canvas:c, ctx, x:0,y:0,w:0,h:0, unlocked:false, lockEl:lock });
-
-            // 기본 클릭(해금 전/후)은 아래에서 상태에 맞게 교체
-            c.onclick = ()=>{ if (!quadrants[i].unlocked) showModal('잠금', `캔버스 ${i+1}을(를) 먼저 퀴즈로 해금하세요.`); else openZoom(i); };
-        }
-
-        loadImageAndProcess(filename);
-    }
-
-    /* ---------------- 모달/알림 ---------------- */
-    modalCloseButton.onclick = () => messageModal.style.display = 'none';
-    function showModal(title, msg) {
+    /* =========================
+       메시지 모달
+    ========================= */
+    modalCloseButton.onclick = ()=> messageModal.style.display='none';
+    function showModal(title, msg){
         modalTitle.textContent = title;
         modalMessage.textContent = msg;
         messageModal.style.display = 'flex';
     }
 
-    /* ---------------- 이미지 분석 ---------------- */
-    async function loadImageAndProcess(filename){
-        try{
-            sourceImage = await new Promise((resolve,reject)=>{
-                const im = new Image();
-                im.crossOrigin = "Anonymous";
-                im.src = IMAGE_BASE_URL + filename;
-                im.onload = ()=>resolve(im);
-                im.onerror = ()=>reject(new Error('이미지를 불러올 수 없습니다.'));
-            });
-            imgWidth = sourceImage.width;
-            imgHeight= sourceImage.height;
-
-            // 픽셀 스캔
-            const hc = document.createElement('canvas');
-            hc.width = imgWidth; hc.height = imgHeight;
-            const hctx = hc.getContext('2d');
-            hctx.drawImage(sourceImage, 0, 0);
-            const data = hctx.getImageData(0,0,imgWidth,imgHeight).data;
-
-            let colorIndex = 1;
-            for (let y=0;y<imgHeight;y++){
-                numberGrid[y]=[];
-                completedGrid[y]=[];
-                for(let x=0;x<imgWidth;x++){
-                    const i = (y*imgWidth+x)*4;
-                    const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
-                    if (a < 128) {
-                        numberGrid[y][x] = 0;           // 투명
-                        completedGrid[y][x] = true;     // 이미 완료 처리(안 칠함 영역)
-                    } else {
-                        const rgba = `rgba(${r},${g},${b},${a/255})`;
-                        if (!palette[rgba]) {
-                            palette[rgba] = colorIndex;
-                            paletteMap[colorIndex] = rgba;
-                            colorIndex++;
-                        }
-                        numberGrid[y][x] = palette[rgba];
-                        completedGrid[y][x] = false;
-                        totalCells++;
-                    }
-                }
-            }
-
-            // 4분할 지오메트리 (우하단 w는 imgWidth - halfW)
-            const halfW = Math.floor(imgWidth/2);
-            const halfH = Math.floor(imgHeight/2);
-            const quadsGeom = [
-                {x:0,      y:0,      w:halfW,            h:halfH},             // 0
-                {x:halfW,  y:0,      w:imgWidth-halfW,   h:halfH},             // 1
-                {x:0,      y:halfH,  w:halfW,            h:imgHeight-halfH},   // 2
-                {x:halfW,  y:halfH,  w:imgWidth-halfW,   h:imgHeight-halfH},   // 3 ✅
-            ];
-            quadsGeom.forEach((g,i)=>{
-                const q = quadrants[i];
-                q.x=g.x; q.y=g.y; q.w=g.w; q.h=g.h;
-
-                q.canvas.width  = g.w * CELL_SCALE;
-                q.canvas.height = g.h * CELL_SCALE;
-                /* CSS 크기를 실제 픽셀과 동일하게 고정 → 레이아웃 늘어남 방지 */
-                q.canvas.style.width  = q.canvas.width  + 'px';
-                q.canvas.style.height = q.canvas.height + 'px';
-            });
-
-            loadingSpinner.style.display = 'none';
-            progressContainer.classList.remove('hidden');
-
-            // 최초엔 1번만 해금 가능
-            updateAllQuads(true);
-            buildPaletteUI(true);  // 팔레트는 물감 퀴즈 이후 해금
-            buildPaletteUIInto(zoomPalette, true);
-        } catch(err){
-            console.error(err);
-            showModal('오류', err.message + ' 로비로 돌아갑니다.');
-            showView('lobbyScreen');
-        }
-    }
-
-    /* ---------------- 팔레트 UI ---------------- */
-    function buildPaletteUIInto(containerEl, locked){
-        containerEl.innerHTML = '';
-        const count = Math.max(1, paletteMap.length-1);
-        for (let i=1;i<=count;i++){
-            const color = paletteMap[i];
-            const btn = document.createElement('button');
-            btn.className = 'palette-button';
-            btn.style.backgroundColor = color;
-            btn.textContent = i;
-            btn.dataset.colorIndex = i;
-            if (locked) btn.classList.add('locked');
-
-            btn.addEventListener('click', ()=>{
-                // 잠금이면 알림만
-                if (!paletteUnlocked){ showModal('물감 잠금', '아직 물감이 모이지 않았어요.'); return; }
-                selectColor(parseInt(btn.dataset.colorIndex,10));
-            });
-            containerEl.appendChild(btn);
-        }
-        // 현재 선택색 유지 반영
-        if (paletteUnlocked && selectedColorIndex>0) syncPaletteSelectionUI();
-    }
-
-    // ★ 기존 함수는 그대로 두되 내부에서 공용 함수 호출
-    function buildPaletteUI(locked){
-        buildPaletteUIInto(paletteContainer, locked);
-    }
-
-    /* ---------------- 그리기 ---------------- */
-    function drawQuad(q, showGridNumbers) {
-        const ctx = q.ctx;
-        drawQuadToContext(q, ctx, CELL_SCALE, showGridNumbers);
-    }
-    function drawQuadToContext(q, ctx, scale, showGridNumbers) {
-        ctx.clearRect(0,0,q.w*scale,q.h*scale);
-        if (showGridNumbers) {
-            ctx.strokeStyle = '#e5e7eb';
-            const fontSize = Math.max(6, Math.floor(scale * 0.5));
-            ctx.font = `bold ${fontSize}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-        }
-        for (let y=q.y; y<q.y+q.h; y++){
-            for (let x=q.x; x<q.x+q.w; x++){
-                const cellX = (x - q.x) * scale;
-                const cellY = (y - q.y) * scale;
-                const idx = (numberGrid[y] && numberGrid[y][x] !== undefined) ? numberGrid[y][x] : 0; // 안전장치
-
-                if (completedGrid[y][x]) {
-                    // 채워진 칸(완성된 그림)
-                    ctx.fillStyle = (idx === 0) ? '#f5f5f5' : paletteMap[idx];
-                    ctx.fillRect(cellX, cellY, scale, scale);
-                } else {
-                    // 미완성일 때만 가이드 표시
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(cellX, cellY, scale, scale);
-                    if (showGridNumbers) {
-                        ctx.strokeRect(cellX, cellY, scale, scale);
-                        ctx.fillStyle = '#555';
-                        ctx.fillText(idx, cellX + scale/2, cellY + scale/2 + 1);
-                    }
-                }
-            }
-        }
-    }
-    function updateAllQuads(showGridNumbers=true){ quadrants.forEach(q=>drawQuad(q, showGridNumbers)); }
-    function drawCellOnQuad(q, gx, gy){
-        const ctx = q.ctx;
-        const cellX = (gx - q.x) * CELL_SCALE;
-        const cellY = (gy - q.y) * CELL_SCALE;
-        const idx = numberGrid[gy][gx];
-        ctx.fillStyle = (idx===0)?'#f5f5f5':paletteMap[idx];
-        ctx.fillRect(cellX, cellY, CELL_SCALE, CELL_SCALE);
-    }
-
-    /* ---------------- 확대(반응형 정수 배율) ---------------- */
-    function computeZoomScale(q){
-        const maxW = Math.floor(window.innerWidth * 0.95);
-        const maxH = Math.floor(window.innerHeight * 0.85);
-        const baseW = q.w * CELL_SCALE;
-        const baseH = q.h * CELL_SCALE;
-        const s = Math.max(1, Math.min(Math.floor(maxW/baseW), Math.floor(maxH/baseH)));
-        return s; // 1×, 2×, 3× …
-    }
-    function openZoom(quadIndex){
-        const q = quadrants[quadIndex];
-        if (!q.unlocked) { showModal('잠금', `캔버스 ${quadIndex+1}을(를) 먼저 퀴즈로 해금하세요.`); return; }
-
-        currentZoomQuad = q;
-        const zoomScale = computeZoomScale(q);
-        zoomCanvas.width  = q.w * CELL_SCALE * zoomScale;
-        zoomCanvas.height = q.h * CELL_SCALE * zoomScale;
-        zoomCtx.imageSmoothingEnabled = false;
-        drawQuadToContext(q, zoomCtx, CELL_SCALE*zoomScale, true);
-        zoomOverlay.style.display = 'flex';
-        
-        buildPaletteUIInto(zoomPalette, !paletteUnlocked); // ★ 잠금/해제 상태 반영
-        syncPaletteSelectionUI();
-
-        window.addEventListener('resize', onResizeZoom, { passive:true });
-    }
-    function onResizeZoom(){
-        if (!currentZoomQuad || zoomOverlay.style.display==='none') return;
-        const q = currentZoomQuad;
-        const zoomScale = computeZoomScale(q);
-        zoomCanvas.width  = q.w * CELL_SCALE * zoomScale;
-        zoomCanvas.height = q.h * CELL_SCALE * zoomScale;
-        drawQuadToContext(q, zoomCtx, CELL_SCALE*zoomScale, true);
-    }
-    function closeZoom(){
-        zoomOverlay.style.display = 'none';
-        window.removeEventListener('resize', onResizeZoom);
-        currentZoomQuad = null;
-    }
-    zoomClose.addEventListener('click', closeZoom);
-    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeZoom(); });
-
-    zoomCanvas.addEventListener('click', (e)=>{
-        if (!currentZoomQuad) return;
-        const q = currentZoomQuad;
-        if (!paletteUnlocked) { showModal('물감이 없어요', '먼저 "물감 모으기 퀴즈"를 완료해 팔레트를 여세요.'); return; }
-        if (selectedColorIndex===0) { showModal('알림', '먼저 아래 팔레트에서 색상을 선택해주세요.'); return; }
-
-        const rect = zoomCanvas.getBoundingClientRect();
-        const scaleX = zoomCanvas.width / rect.width;
-        const scaleY = zoomCanvas.height/ rect.height;
-        const lx = (e.clientX - rect.left) * scaleX;
-        const ly = (e.clientY - rect.top)  * scaleY;
-
-        const zoomScale = zoomCanvas.width / (q.w * CELL_SCALE); // 현재 정수 배율
-        const cellScaleZoom = CELL_SCALE * zoomScale;
-        const gx = q.x + Math.floor(lx / cellScaleZoom);
-        const gy = q.y + Math.floor(ly / cellScaleZoom);
-
-        if (gx<q.x || gx>=q.x+q.w || gy<q.y || gy>=q.y+q.h) return;
-
-        const idx = numberGrid[gy][gx];
-        if (completedGrid[gy][gx] || idx===0) return;
-
-        if (idx === selectedColorIndex) {
-            completedGrid[gy][gx] = true;
-            completedCells++;
-            drawCellOnZoom(q, gx, gy, zoomScale);
-            drawCellOnQuad(q, gx, gy);
-            updateProgress();
-            checkCompletion();
-        } else {
-            zoomCanvas.classList.add('shake'); setTimeout(()=>zoomCanvas.classList.remove('shake'),250);
-        }
-    });
-    function drawCellOnZoom(q, gx, gy, zoomScale){
-        const cellScale = CELL_SCALE * zoomScale;
-        const cellX = (gx - q.x) * cellScale;
-        const cellY = (gy - q.y) * cellScale;
-        const idx = numberGrid[gy][gx];
-        zoomCtx.fillStyle = (idx===0)?'#f5f5f5':paletteMap[idx];
-        zoomCtx.fillRect(cellX, cellY, cellScale, cellScale);
-    }
-
-    /* ---------------- 입력(원 뷰에서 칠하기) ---------------- */
-    function handleCanvasClickOnQuadPaint(e, q){
-        const rect = q.canvas.getBoundingClientRect();
-        const scaleX = q.canvas.width / rect.width;
-        const scaleY = q.canvas.height/ rect.height;
-        const lx = (e.clientX - rect.left) * scaleX;
-        const ly = (e.clientY - rect.top)  * scaleY;
-        const gx = q.x + Math.floor(lx / CELL_SCALE);
-        const gy = q.y + Math.floor(ly / CELL_SCALE);
-
-        if (gx<q.x || gx>=q.x+q.w || gy<q.y || gy>=q.y+q.h) return;
-
-        const idx = numberGrid[gy][gx];
-        if (completedGrid[gy][gx] || idx===0) return;
-        if (selectedColorIndex===0) { showModal('알림', '먼저 아래 팔레트에서 색상을 선택해주세요.'); return; }
-
-        if (idx === selectedColorIndex) {
-            completedGrid[gy][gx] = true;
-            completedCells++;
-            drawCellOnQuad(q, gx, gy);
-            updateProgress();
-            checkCompletion();
-        } else {
-            q.canvas.classList.add('shake'); setTimeout(()=>q.canvas.classList.remove('shake'),250);
-        }
-    }
-
-    /* ---------------- 진행률/완성 처리 ---------------- */
-    function updateProgress(){
-        if (totalCells===0) return;
-        const percent = Math.floor((completedCells/totalCells)*100);
-        progressBar.style.width = `${percent}%`;
-        progressText.textContent = `${percent}%`;
-    }
-    function checkCompletion(){
-        if (completedCells !== totalCells) return;
-
-        // 완료: 그리드/숫자 제거 → 완성 그림으로 변환
-        updateAllQuads(false); // showGridNumbers=false
-        showModal('축하합니다!', `스테이지 ${currentStageIndex} 완성!`);
-
-        // 다음 스테이지 해금
-        const nextIdx = currentStageIndex + 1;
-        const prevMax = getMaxUnlockedStage();
-        if (nextIdx > prevMax) setMaxUnlockedStage(nextIdx);
-    }
-
-    /* ---------------- 퀴즈 ---------------- */
-    let currentQuiz = null; // {type:'quad'|'paints', quadIndex, correct}
-    quizCancel.onclick = () => { quizModal.style.display='none'; currentQuiz=null; };
-
-    function openQuiz(type, quadIndex=null){
-        const q = generateMathQuestion();
-        currentQuiz = { type, quadIndex, correct: q.correctIndex };
-        quizTitle.textContent = (type==='quad') ? `캔버스 ${quadIndex+1} 해금 퀴즈` : '물감 모으기 퀴즈';
-        quizQuestion.textContent = q.question;
-        quizChoices.innerHTML = '';
-        q.choices.forEach((c, i)=>{
-            const btn = document.createElement('button');
-            btn.className = 'modal-button';
-            btn.textContent = c;
-            btn.addEventListener('click', ()=> submitQuiz(i));
-            quizChoices.appendChild(btn);
-        });
-        quizModal.style.display = 'flex';
-    }
-    function submitQuiz(choiceIndex){
-        const ok = (choiceIndex === currentQuiz.correct);
-        const {type, quadIndex} = currentQuiz;
-        quizModal.style.display = 'none';
-        currentQuiz = null;
-
-        if (!ok){ showModal('오답', '다시 도전해보세요!'); return; }
-
-        if (type==='quad'){
-            const q = quadrants[quadIndex];
-            q.unlocked = true;
-            q.lockEl.classList.add('hidden');
-
-            // 해금 후: 기본 클릭=확대, 보조키(CTRL/⌘/Shift)=개요화면 칠하기(옵션)
-                        q.canvas.onclick = (ev)=>{
-                                if (!q.unlocked) return;
-                                if (ev.ctrlKey || ev.metaKey || ev.shiftKey) {
-                                        handleCanvasClickOnQuadPaint(ev, q);
-                                    } else {
-                                        openZoom(quadIndex);
-                                    }
-                            };
-
-            drawQuad(q, true);
-            nextQuadToUnlock++;
-            if (nextQuadToUnlock>=4){
-                paintsGate.classList.remove('hidden');
-                showModal('해금 완료', '4개 캔버스를 모두 열었습니다! 이제 물감 모으기 퀴즈로 팔레트를 여세요.');
-            } else {
-                showModal('해금 성공', `캔버스 ${quadIndex+1} 해금! 다음은 ${nextQuadToUnlock+1}번 캔버스입니다.`);
-            }
-        } else if (type==='paints'){
-            paintsQuizCount++;
-            const pct = Math.floor((paintsQuizCount / REQUIRED_PAINT_QUIZ)*100);
-            paintsQuizBar.style.width = `${pct}%`;
-            paintsQuizText.textContent = `${pct}%`;
-
-            if (paintsQuizCount >= REQUIRED_PAINT_QUIZ){
-                paletteUnlocked = true;
-                paintsGate.classList.add('hidden');
-                paletteContainer.classList.remove('hidden');
-                buildPaletteUI(false);
-                installZoomClickMode();
-                buildPaletteUIInto(zoomPalette, false);
-                syncPaletteSelectionUI();
-                showModal('팔레트 오픈', '모든 물감을 모았습니다! 색칠을 시작하세요.');
-            } else {
-                showModal('정답!', '좋아요! 계속 진행해 물감을 모두 모아보세요.');
-            }
-        }
-    }
-    function generateMathQuestion(){
-        const a = Math.floor(Math.random()*9)+2;
-        const b = Math.floor(Math.random()*9)+2;
-        const ops = ['+','-','×'];
-        const op = ops[Math.floor(Math.random()*ops.length)];
-        let ans = 0;
-        if (op==='+') ans = a+b;
-        else if (op==='-') ans = a-b;
-        else ans = a*b;
-
-        const choices = new Set([ans]);
-        while (choices.size<4){
-            const delta = Math.floor(Math.random()*6)-3;
-            const fake = ans + (delta===0?3:delta);
-            choices.add(fake);
-        }
-        const arr = Array.from(choices);
-        for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
-        const correctIndex = arr.indexOf(ans);
-        return { question:`${a} ${op} ${b} = ?`, choices:arr, correctIndex };
-    }
-
-    /* ---------------- 이벤트 ---------------- */
-    startButton.addEventListener('click', ()=>{
-        if (!localStorage.getItem(LS_MAX_UNLOCK)) setMaxUnlockedStage(1);
-        showView('lobbyScreen');
-        populateLobby();
-    });
-    backButton.addEventListener('click', ()=> { showView('lobbyScreen'); populateLobby(); });
-
-    startPaintsQuizBtn.addEventListener('click', ()=>{
-        if (nextQuadToUnlock<4){ showModal('안내','먼저 4개 캔버스를 모두 해금하세요.'); return; }
-        openQuiz('paints');
-    });
-
-    /* ---------------- 시작 ---------------- */
-    showView('titleScreen');
-    // === (선택) 세로 휠을 가로 스크롤로 변환 ===
-        function enableHorizontalWheel(el){
-                if (!el) return;
-                el.addEventListener('wheel', (e) => {
-                        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                                el.scrollLeft += e.deltaY;
-                                e.preventDefault();
-                            }
-                    }, { passive:false });
-            }
-        enableHorizontalWheel(document.getElementById('paletteContainer'));
-        enableHorizontalWheel(document.getElementById('zoomPalette'));
-    
-    
-    // ====== 외부 퀴즈 JSON 로더 + 기본 클릭=확대 정렬 패치 ======
+    /* =========================
+       퀴즈 로더(외부 JSON → 폴백 산수)
+    ========================= */
     const QUIZ_JSON_URL = 'https://unluckyidiot16.github.io/assets-common/PixelArt/Quiz/Quiz.json';
-
-    let quizLoaded = false;
-    let quizBanks  = { quad:[], paints:[], all:[] };
-    let quizPtr    = { quad:0,  paints:0,  all:0  };
+    let quizLoaded=false, quizBanks={all:[]}, quizPtr={all:0};
 
     async function ensureQuizLoaded(){
         if (quizLoaded) return;
         try{
-            const res = await fetch(QUIZ_JSON_URL, { cache:'no-store' });
-            if (!res.ok) throw new Error('Quiz.json fetch failed');
+            const res = await fetch(QUIZ_JSON_URL, {cache:'no-store'});
+            if (!res.ok) throw new Error('fetch failed');
             const json = await res.json();
             normalizeQuiz(json);
             quizLoaded = true;
-            console.log('[Pixel] Quiz bank loaded', quizBanks);
         }catch(e){
-            console.warn('[Pixel] Using fallback math questions:', e);
-            quizLoaded = false; // 폴백(산수) 사용
+            quizLoaded = false; // 폴백
         }
     }
-
     function normalizeQuiz(json){
-        quizBanks = { quad:[], paints:[], all:[] };
-
-        // Case A: {quad:[...], paints:[...]}
-        if (json && (Array.isArray(json.quad) || Array.isArray(json.paints))){
-            if (Array.isArray(json.quad))   quizBanks.quad   = json.quad.map(normalizeQuestion).filter(Boolean);
-            if (Array.isArray(json.paints)) quizBanks.paints = json.paints.map(normalizeQuestion).filter(Boolean);
-        }
-        // Case B: {questions:[...]} 또는 plain array
-        const arr = Array.isArray(json) ? json : (Array.isArray(json?.questions) ? json.questions : null);
-        if (arr){
-            quizBanks.all = arr.map(normalizeQuestion).filter(Boolean);
-        }
+        quizBanks = { all:[] };
+        const arr = Array.isArray(json) ? json : (Array.isArray(json?.questions) ? json.questions : [...(json?.quad||[]), ...(json?.paints||[])]);
+        if (arr) quizBanks.all = arr.map(normalizeQuestion).filter(Boolean);
     }
-
     function normalizeQuestion(it){
         if (!it) return null;
         const qtext    = it.q ?? it.question ?? it.prompt ?? null;
@@ -901,98 +366,423 @@
         }
         if (ansIndex == null || ansIndex < 0 || ansIndex >= choices.length) return null;
 
-        // 셔플(정답 인덱스 재계산)
+        // 셔플
         const order = choices.map((_,i)=>i);
         for (let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; }
-        const shuffled   = order.map(i => choices[i]);
-        const newCorrect = order.indexOf(ansIndex);
-        return { question:qtext, choices:shuffled, correctIndex:newCorrect };
+        const shuffled = order.map(i=>choices[i]);
+        const correct  = order.indexOf(ansIndex);
+        return { question:qtext, choices:shuffled, correctIndex:correct };
     }
-
-    function pullQuestion(type){
-        const bank = (quizBanks[type] && quizBanks[type].length) ? type : (quizBanks.all.length ? 'all' : null);
-        if (!bank) return null;
-        const i = quizPtr[bank] ?? 0;
-        const q = quizBanks[bank][i % quizBanks[bank].length];
-        quizPtr[bank] = i + 1;
+    function pullQuestion(){
+        if (quizBanks.all.length===0) return generateMathQuestion();
+        const i = quizPtr.all % quizBanks.all.length;
+        const q = quizBanks.all[i];
+        quizPtr.all++;
         return q;
     }
-
-    // 기본 클릭=확대가 되도록 모든 '해금된' 쿼드의 onclick을 통일
-    function ensureZoomDefaultForUnlocked(){
-        if (typeof installZoomClickMode === 'function'){
-            installZoomClickMode();
-            return;
+    function generateMathQuestion(){
+        const a = Math.floor(Math.random()*9)+2;
+        const b = Math.floor(Math.random()*9)+2;
+        const ops = ['+','-','×']; const op=ops[Math.floor(Math.random()*ops.length)];
+        let ans = (op==='+')?a+b:(op==='-')?a-b:a*b;
+        const choices = new Set([ans]);
+        while (choices.size<4){
+            const delta = Math.floor(Math.random()*6)-3;
+            const fake = ans + (delta===0?3:delta);
+            choices.add(fake);
         }
-        // 최소 보정(installZoomClickMode 없을 때)
-        quadrants.forEach((q, i)=>{
-            if (q.unlocked){
-                q.canvas.onclick = (ev)=>{
-                    if (ev.ctrlKey || ev.metaKey || ev.shiftKey) {
-                        handleCanvasClickOnQuadPaint(ev, q);
-                    } else {
-                        openZoom(i);
-                    }
-                };
-            }
-        });
+        const arr = Array.from(choices);
+        for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+        const correctIndex = arr.indexOf(ans);
+        return { question:`${a} ${op} ${b} = ?`, choices:arr, correctIndex };
     }
 
-    // === 외부 문제를 쓰는 openQuiz 재정의(폴백: 기존 산수) ===
-    window.openQuiz = async function(type, quadIndex=null){
+    /* =========================
+       퀴즈 세션(포인트 적립)
+    ========================= */
+    let quizSession = null; // {total, idx, correct}
+
+    async function startQuizSession(){
         await ensureQuizLoaded();
-        const q = pullQuestion(type) ?? generateMathQuestion(); // 외부 실패 시 산수 폴백
-
-        quizTitle.textContent   = (type==='quad') ? `캔버스 ${quadIndex+1} 해금 퀴즈` : '물감 모으기 퀴즈';
-        quizQuestion.textContent= q.question;
-        quizChoices.innerHTML   = '';
-
+        quizSession = { total: QUIZ_SESSION_LEN, idx: 0, correct:0 };
+        askNextQuestion();
+    }
+    function askNextQuestion(){
+        if (!quizSession) return;
+        if (quizSession.idx >= quizSession.total){
+            const plus = quizSession.correct * QUIZ_REWARD;
+            addPoints(plus);
+            showModal('퀴즈 종료', `정답 ${quizSession.correct}/${quizSession.total}개! +${plus}P를 획득했습니다.`);
+            quizSession = null;
+            return;
+        }
+        const q = pullQuestion();
+        quizTitle.textContent = '퀴즈 도전';
+        quizSub.textContent = `문제 ${quizSession.idx+1} / ${quizSession.total} (정답당 +${QUIZ_REWARD}P)`;
+        quizQuestion.textContent = q.question;
+        quizChoices.innerHTML = '';
         q.choices.forEach((c, i)=>{
             const btn = document.createElement('button');
-            btn.className   = 'modal-button';
+            btn.className = 'bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow';
             btn.textContent = c;
             btn.addEventListener('click', ()=>{
+                if (i === q.correctIndex) quizSession.correct++;
+                quizSession.idx++;
                 quizModal.style.display='none';
-                const ok = (i === q.correctIndex);
-                if (!ok){ showModal('오답','다시 도전해보세요!'); return; }
-
-                if (type==='quad'){
-                    const qu = quadrants[quadIndex];
-                    qu.unlocked = true;
-                    qu.lockEl.classList.add('hidden');
-                    drawQuad(qu, true);
-                    nextQuadToUnlock++;
-                    ensureZoomDefaultForUnlocked();
-
-                    if (nextQuadToUnlock >= 4){
-                        paintsGate.classList.remove('hidden');
-                        showModal('해금 완료','4개 캔버스를 모두 열었습니다! 이제 물감 모으기 퀴즈로 팔레트를 여세요.');
-                    }else{
-                        showModal('해금 성공', `캔버스 ${quadIndex+1} 해금! 다음은 ${nextQuadToUnlock+1}번 캔버스입니다.`);
-                    }
-                }else{ // paints
-                    paintsQuizCount++;
-                    const pct = Math.floor((paintsQuizCount / REQUIRED_PAINT_QUIZ)*100);
-                    paintsQuizBar.style.width  = `${pct}%`;
-                    paintsQuizText.textContent = `${pct}%`;
-
-                    if (paintsQuizCount >= REQUIRED_PAINT_QUIZ){
-                        paletteUnlocked = true;
-                        paintsGate.classList.add('hidden');
-                        paletteContainer.classList.remove('hidden');
-                        buildPaletteUI(false);
-                        ensureZoomDefaultForUnlocked();
-                        showModal('팔레트 오픈','모든 물감을 모았습니다! 색칠을 시작하세요.');
-                    }else{
-                        showModal('정답!','좋아요! 계속 진행해 물감을 모두 모아보세요.');
-                    }
-                }
+                askNextQuestion();
             });
             quizChoices.appendChild(btn);
         });
+        quizModal.style.display='flex';
+    }
+    quizCancel.addEventListener('click', ()=>{
+        if (!quizSession){ quizModal.style.display='none'; return; }
+        const plus = quizSession.correct * QUIZ_REWARD;
+        addPoints(plus);
+        quizModal.style.display='none';
+        showModal('퀴즈 종료', `중도 종료: 정답 ${quizSession.correct}/${quizSession.idx}개. +${plus}P 적립.`);
+        quizSession = null;
+    });
 
-        quizModal.style.display = 'flex';}
-    
+    /* =========================
+       가챠 (희귀도/연출 포함)
+    ========================= */
+    function pickRarityByWeight(){
+        const total = Object.values(RARITY_CONFIG).reduce((s,r)=>s+r.weight,0);
+        let r = Math.random()*total;
+        for (const [key, cfg] of Object.entries(RARITY_CONFIG)){
+            if ((r -= cfg.weight) <= 0) return key; // 'C' | 'R' | 'SR'
+        }
+        return 'C';
+    }
+    function pickIndexOf(rarity){
+        const arr = indicesByRarity[rarity];
+        return arr[Math.floor(Math.random()*arr.length)];
+    }
+
+    function rollGacha(times=1){
+        const need = GACHA_COST * times;
+        if (getPoints() < need){
+            showModal('포인트 부족', `필요 포인트: ${need}P`);
+            return;
+        }
+        setPoints(getPoints() - need);
+
+        const owned = getOwnedSet();
+        const results = []; // {idx, dup:boolean, rarity:'C'|'R'|'SR'}
+        let refund = 0;
+
+        for (let t=0;t<times;t++){
+            const rarity = pickRarityByWeight();
+            const idx = pickIndexOf(rarity);
+            if (owned.has(idx)){
+                refund += Math.floor(GACHA_COST/2);
+                results.push({idx, dup:true, rarity});
+            }else{
+                owned.add(idx);
+                results.push({idx, dup:false, rarity});
+            }
+        }
+        if (refund>0) addPoints(refund);
+        saveOwnedSet(owned);
+        populateBook(); // 그리드 갱신
+
+        // 결과 표시(희귀도 연출)
+        gachaResults.innerHTML = '';
+        results.forEach((r, i)=>{
+            const wrap = document.createElement('div');
+            wrap.className='relative result-card';
+            wrap.style.animationDelay = `${i*40}ms`;
+
+            const img = document.createElement('img');
+            img.src = IMAGE_BASE_URL + IMAGE_FILES[r.idx-1];
+            img.alt = `No.${r.idx}`;
+            img.style.width='66px'; img.style.height='66px';
+            img.style.imageRendering='pixelated';
+            img.style.background='#f3f4f6';
+            img.style.borderRadius='12px';
+            img.style.border='2px solid #e5e7eb';
+
+            const ring = document.createElement('div'); ring.className='ring';
+            const tag = document.createElement('div'); tag.className='rarity-tag'; tag.textContent = (r.rarity==='SR'?'SR':r.rarity);
+
+            wrap.classList.add(`rarity-${r.rarity}`);
+            wrap.appendChild(img); wrap.appendChild(ring); wrap.appendChild(tag);
+
+            const caption = document.createElement('div');
+            caption.className='text-xs text-gray-700 text-center mt-1';
+            caption.textContent = r.dup ? `No.${r.idx} (중복)` : `No.${r.idx}`;
+            const cell = document.createElement('div');
+            cell.className='flex flex-col items-center';
+            cell.appendChild(wrap); cell.appendChild(caption);
+            gachaResults.appendChild(cell);
+        });
+        const spend = need;
+        gachaSummary.textContent = `소모: ${spend}P  ·  환급: ${refund}P  ·  순소모: ${Math.max(0, spend-refund)}P`;
+        gachaModal.style.display='flex';
+    }
+    gachaClose.addEventListener('click', ()=> gachaModal.style.display='none');
+
+    /* =========================
+       색칠(퀴즈 잠금 제거 버전)
+    ========================= */
+    const CELL_SCALE = 15;
+
+    let imgWidth, imgHeight, sourceImage;
+    let palette = {};
+    let paletteMap = [null];
+    let numberGrid = [];
+    let completedGrid = [];
+    let totalCells = 0;
+    let completedCells = 0;
+    let selectedColorIndex = 0;
+
+    const quadrants = []; // {canvas, ctx, x,y,w,h}
+    let currentStageFilename = null;
+    let currentStageIndex = 1;
+
+    function buildPaletteUIInto(containerEl){
+        containerEl.innerHTML = '';
+        const count = Math.max(1, paletteMap.length-1);
+        for (let i=1;i<=count;i++){
+            const color = paletteMap[i];
+            const btn = document.createElement('button');
+            btn.className = 'palette-button';
+            btn.style.backgroundColor = color;
+            btn.textContent = i;
+            btn.dataset.colorIndex = i;
+            btn.addEventListener('click', ()=>{
+                selectedColorIndex = i;
+                document.querySelectorAll('#paletteContainer .palette-button, #zoomPalette .palette-button')
+                    .forEach(b => b.classList.toggle('selected', parseInt(b.dataset.colorIndex,10) === i));
+            });
+            containerEl.appendChild(btn);
+        }
+    }
+    function buildPaletteUI(){ buildPaletteUIInto(paletteContainer); buildPaletteUIInto(zoomPalette); }
+
+    function startGame(filename, idx){
+        currentStageFilename = filename;
+        currentStageIndex = idx;
+
+        showView('gameScreen');
+        syncPointsUI();
+
+        // 초기화
+        loadingSpinner.style.display = 'block';
+        quadGrid.innerHTML = '';
+        paletteContainer.innerHTML = '';
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+
+        palette = {}; paletteMap=[null]; numberGrid=[]; completedGrid=[];
+        totalCells=0; completedCells=0; selectedColorIndex=0;
+        quadrants.length = 0;
+
+        // 4분할 캔버스 생성
+        for (let i=0;i<4;i++){
+            const c = document.createElement('canvas');
+            c.id = `canvasQ${i}`;
+            const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
+            const wrap = document.createElement('div'); wrap.appendChild(c);
+            quadGrid.appendChild(wrap);
+            const q = {id:i, canvas:c, ctx, x:0,y:0,w:0,h:0};
+            c.onclick = ()=> openZoom(i);
+            quadrants.push(q);
+        }
+
+        loadImageAndProcess(filename);
+    }
+
+    async function loadImageAndProcess(filename){
+        try{
+            sourceImage = await new Promise((resolve,reject)=>{
+                const im = new Image(); im.crossOrigin='Anonymous';
+                im.src = IMAGE_BASE_URL + filename;
+                im.onload = ()=>resolve(im);
+                im.onerror = ()=>reject(new Error('이미지를 불러올 수 없습니다.'));
+            });
+            imgWidth = sourceImage.width; imgHeight = sourceImage.height;
+
+            const hc = document.createElement('canvas'); hc.width=imgWidth; hc.height=imgHeight;
+            const hctx = hc.getContext('2d'); hctx.drawImage(sourceImage, 0, 0);
+            const data = hctx.getImageData(0,0,imgWidth,imgHeight).data;
+
+            let colorIndex = 1;
+            for (let y=0;y<imgHeight;y++){
+                numberGrid[y]=[]; completedGrid[y]=[];
+                for (let x=0;x<imgWidth;x++){
+                    const i=(y*imgWidth+x)*4; const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+                    if (a<128){ numberGrid[y][x]=0; completedGrid[y][x]=true; }
+                    else{
+                        const rgba=`rgba(${r},${g},${b},${a/255})`;
+                        if (!palette[rgba]){ palette[rgba]=colorIndex; paletteMap[colorIndex]=rgba; colorIndex++; }
+                        numberGrid[y][x]=palette[rgba]; completedGrid[y][x]=false; totalCells++;
+                    }
+                }
+            }
+
+            // 4분할 지오메트리
+            const halfW = Math.floor(imgWidth/2), halfH=Math.floor(imgHeight/2);
+            const geoms = [
+                {x:0,y:0,w:halfW,h:halfH},
+                {x:halfW,y:0,w:imgWidth-halfW,h:halfH},
+                {x:0,y:halfH,w:halfW,h:imgHeight-halfH},
+                {x:halfW,y:halfH,w:imgWidth-halfW,h:imgHeight-halfH},
+            ];
+            geoms.forEach((g,i)=>{
+                const q=quadrants[i]; q.x=g.x; q.y=g.y; q.w=g.w; q.h=g.h;
+                q.canvas.width=g.w*CELL_SCALE; q.canvas.height=g.h*CELL_SCALE;
+                q.canvas.style.width=q.canvas.width+'px'; q.canvas.style.height=q.canvas.height+'px';
+            });
+
+            loadingSpinner.style.display='none';
+            updateAllQuads(true);
+            buildPaletteUI();
+        }catch(err){
+            console.error(err);
+            showModal('오류', err.message + ' 로비로 돌아갑니다.');
+            showView('lobbyScreen');
+        }
+    }
+
+    function drawQuadToContext(q, ctx, scale, showGridNumbers){
+        ctx.clearRect(0,0,q.w*scale,q.h*scale);
+        if (showGridNumbers){
+            ctx.strokeStyle='#e5e7eb';
+            const fontSize=Math.max(6, Math.floor(scale*0.5));
+            ctx.font=`bold ${fontSize}px sans-serif`;
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+        }
+        for (let y=q.y; y<q.y+q.h; y++){
+            for (let x=q.x; x<q.x+q.w; x++){
+                const cellX=(x-q.x)*scale, cellY=(y-q.y)*scale;
+                const idx=(numberGrid[y] && numberGrid[y][x]!==undefined) ? numberGrid[y][x] : 0;
+                if (completedGrid[y][x]){
+                    ctx.fillStyle = (idx===0)?'#f5f5f5':paletteMap[idx];
+                    ctx.fillRect(cellX,cellY,scale,scale);
+                }else{
+                    ctx.fillStyle='#ffffff'; ctx.fillRect(cellX,cellY,scale,scale);
+                    if (showGridNumbers){ ctx.strokeRect(cellX,cellY,scale,scale); ctx.fillStyle='#555'; ctx.fillText(idx, cellX+scale/2, cellY+scale/2+1); }
+                }
+            }
+        }
+    }
+    function drawQuad(q, showGridNumbers){ drawQuadToContext(q, q.ctx, CELL_SCALE, showGridNumbers); }
+    function updateAllQuads(show=true){ quadrants.forEach(q=>drawQuad(q, show)); }
+
+    function updateProgress(){
+        if (!totalCells) return;
+        const percent = Math.floor((completedCells/totalCells)*100);
+        progressBar.style.width = `${percent}%`;
+        progressText.textContent = `${percent}%`;
+    }
+    function drawCellOnQuad(q, gx, gy){
+        const ctx=q.ctx; const cellX=(gx-q.x)*CELL_SCALE, cellY=(gy-q.y)*CELL_SCALE;
+        const idx=numberGrid[gy][gx]; ctx.fillStyle=(idx===0)?'#f5f5f5':paletteMap[idx];
+        ctx.fillRect(cellX,cellY,CELL_SCALE,CELL_SCALE);
+    }
+    function checkCompletion(){
+        if (completedCells !== totalCells) return;
+        updateAllQuads(false);
+        showModal('완성!', `No.${currentStageIndex} 그림을 완성했습니다!`);
+    }
+
+    function computeZoomScale(q){
+        const maxW = Math.floor(window.innerWidth * 0.95);
+        const maxH = Math.floor(window.innerHeight * 0.85);
+        const baseW = q.w * CELL_SCALE, baseH = q.h * CELL_SCALE;
+        return Math.max(1, Math.min(Math.floor(maxW/baseW), Math.floor(maxH/baseH)));
+    }
+    function openZoom(quadIndex){
+        const q = quadrants[quadIndex];
+        currentZoomQuad = q;
+        const s = computeZoomScale(q);
+        zoomCanvas.width = q.w*CELL_SCALE*s; zoomCanvas.height=q.h*CELL_SCALE*s;
+        drawQuadToContext(q, zoomCtx, CELL_SCALE*s, true);
+        buildPaletteUIInto(zoomPalette);
+        if (selectedColorIndex>0){
+            document.querySelectorAll('#paletteContainer .palette-button, #zoomPalette .palette-button')
+                .forEach(b => b.classList.toggle('selected', parseInt(b.dataset.colorIndex,10) === selectedColorIndex));
+        }
+        zoomOverlay.style.display='flex';
+        window.addEventListener('resize', onResizeZoom, {passive:true});
+    }
+    function onResizeZoom(){
+        if (!currentZoomQuad || zoomOverlay.style.display==='none') return;
+        const q=currentZoomQuad, s=computeZoomScale(q);
+        zoomCanvas.width=q.w*CELL_SCALE*s; zoomCanvas.height=q.h*CELL_SCALE*s;
+        drawQuadToContext(q, zoomCtx, CELL_SCALE*s, true);
+    }
+    function closeZoom(){
+        zoomOverlay.style.display='none';
+        window.removeEventListener('resize', onResizeZoom);
+        currentZoomQuad = null;
+    }
+    let currentZoomQuad = null;
+    zoomCloseBtn.addEventListener('click', closeZoom);
+    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeZoom(); });
+
+    zoomCanvas.addEventListener('click', (e)=>{
+        if (!currentZoomQuad) return;
+        if (selectedColorIndex===0){ showModal('색상 선택', '아래 팔레트에서 색상을 먼저 선택하세요.'); return; }
+        const q=currentZoomQuad;
+        const rect = zoomCanvas.getBoundingClientRect();
+        const scaleX=zoomCanvas.width/rect.width, scaleY=zoomCanvas.height/rect.height;
+        const lx=(e.clientX-rect.left)*scaleX, ly=(e.clientY-rect.top)*scaleY;
+
+        const zoomScale = zoomCanvas.width/(q.w*CELL_SCALE);
+        const cellScale=CELL_SCALE*zoomScale;
+        const gx=q.x + Math.floor(lx/cellScale);
+        const gy=q.y + Math.floor(ly/cellScale);
+        if (gx<q.x || gx>=q.x+q.w || gy<q.y || gy>=q.y+q.h) return;
+
+        const idx = numberGrid[gy][gx];
+        if (completedGrid[gy][gx] || idx===0) return;
+        if (idx === selectedColorIndex){
+            completedGrid[gy][gx]=true; completedCells++;
+            // 부분 리렌더
+            drawCellOnQuad(q,gx,gy);
+            // 전체 진행률
+            updateProgress();
+            checkCompletion();
+        }else{
+            zoomCanvas.classList.add('shake'); setTimeout(()=>zoomCanvas.classList.remove('shake'),250);
+        }
+    });
+
+    /* =========================
+       이벤트 바인딩 & 초기 화면
+    ========================= */
+    function enableHorizontalWheel(el){
+        if (!el) return;
+        el.addEventListener('wheel', (e)=>{
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)){
+                el.scrollLeft += e.deltaY; e.preventDefault();
+            }
+        }, {passive:false});
+    }
+    startButton.addEventListener('click', ()=>{
+        if (!localStorage.getItem(LS_POINTS)) setPoints(0);
+        if (!localStorage.getItem(LS_OWNED)) saveOwnedSet(new Set());
+        syncPointsUI();
+        populateBook();
+        showView('lobbyScreen');
+    });
+    backButton.addEventListener('click', ()=>{ showView('lobbyScreen'); populateBook(); syncPointsUI(); });
+    quizBtn.addEventListener('click', startQuizSession);
+    gacha1Btn.addEventListener('click', ()=> rollGacha(1));
+    gacha10Btn.addEventListener('click', ()=> rollGacha(10));
+    resetBtn.addEventListener('click', ()=>{
+        if (!confirm('포인트와 도감을 초기화할까요?')) return;
+        localStorage.removeItem(LS_POINTS); localStorage.removeItem(LS_OWNED);
+        syncPointsUI(); populateBook();
+        showModal('초기화 완료', '포인트와 도감을 초기화했습니다.');
+    });
+
+    showView('titleScreen');
+    enableHorizontalWheel(document.getElementById('paletteContainer'));
+    enableHorizontalWheel(document.getElementById('zoomPalette'));
 </script>
 </body>
 </html>
