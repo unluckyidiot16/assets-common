@@ -1,0 +1,1694 @@
+[
+  {
+    "question": "수 x가 44 이상 47 미만일 때, 다음 중 올바른 표기는?",
+    "choices": [
+      "44 ≤ x < 47",
+      "44 < x ≤ 47",
+      "44 ≥ x > 47",
+      "44 < x < 47"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q001",
+      "subject": "수학",
+      "standard_code": "6수01-02",
+      "difficulty": "보통",
+      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
+    }
+  },
+  {
+    "question": "수 x가 65 이상 71 미만일 때, 다음 중 올바른 표기는?",
+    "choices": [
+      "65 ≤ x < 71",
+      "65 < x ≤ 71",
+      "65 ≥ x > 71",
+      "65 < x < 71"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q002",
+      "subject": "수학",
+      "standard_code": "6수01-02",
+      "difficulty": "보통",
+      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
+    }
+  },
+  {
+    "question": "수 x가 58 이상 63 미만일 때, 다음 중 올바른 표기는?",
+    "choices": [
+      "58 ≤ x < 63",
+      "58 < x ≤ 63",
+      "58 ≥ x > 63",
+      "58 < x < 63"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q003",
+      "subject": "수학",
+      "standard_code": "6수01-02",
+      "difficulty": "보통",
+      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
+    }
+  },
+  {
+    "question": "수 x가 43 이상 54 미만일 때, 다음 중 올바른 표기는?",
+    "choices": [
+      "43 ≤ x < 54",
+      "43 < x ≤ 54",
+      "43 ≥ x > 54",
+      "43 < x < 54"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q004",
+      "subject": "수학",
+      "standard_code": "6수01-02",
+      "difficulty": "보통",
+      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
+    }
+  },
+  {
+    "question": "수 x가 41 이상 53 미만일 때, 다음 중 올바른 표기는?",
+    "choices": [
+      "41 ≤ x < 53",
+      "41 < x ≤ 53",
+      "41 ≥ x > 53",
+      "41 < x < 53"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q005",
+      "subject": "수학",
+      "standard_code": "6수01-02",
+      "difficulty": "보통",
+      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
+    }
+  },
+  {
+    "question": "427.3을(를) 1의 자리에서 반올림한 값은?",
+    "choices": [
+      "428",
+      "427"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q006",
+      "subject": "수학",
+      "standard_code": "6수01-03",
+      "difficulty": "보통",
+      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
+    }
+  },
+  {
+    "question": "226.2을(를) 100의 자리에서 반올림한 값은?",
+    "choices": [
+      "300",
+      "200"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q007",
+      "subject": "수학",
+      "standard_code": "6수01-03",
+      "difficulty": "보통",
+      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
+    }
+  },
+  {
+    "question": "565.1을(를) 100의 자리에서 반올림한 값은?",
+    "choices": [
+      "500",
+      "600",
+      "700"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q008",
+      "subject": "수학",
+      "standard_code": "6수01-03",
+      "difficulty": "보통",
+      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
+    }
+  },
+  {
+    "question": "228.0을(를) 100의 자리에서 반올림한 값은?",
+    "choices": [
+      "200",
+      "300"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q009",
+      "subject": "수학",
+      "standard_code": "6수01-03",
+      "difficulty": "보통",
+      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
+    }
+  },
+  {
+    "question": "810.5을(를) 1의 자리에서 반올림한 값은?",
+    "choices": [
+      "812",
+      "811",
+      "810"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q010",
+      "subject": "수학",
+      "standard_code": "6수01-03",
+      "difficulty": "보통",
+      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
+    }
+  },
+  {
+    "question": "42와 28의 최대공약수(GCD)는?",
+    "choices": [
+      "14",
+      "7",
+      "15",
+      "13"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q011",
+      "subject": "수학",
+      "standard_code": "6수01-04",
+      "difficulty": "보통",
+      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
+    }
+  },
+  {
+    "question": "24와 9의 최대공약수(GCD)는?",
+    "choices": [
+      "2",
+      "6",
+      "3",
+      "4"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q012",
+      "subject": "수학",
+      "standard_code": "6수01-04",
+      "difficulty": "보통",
+      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
+    }
+  },
+  {
+    "question": "18와 6의 최대공약수(GCD)는?",
+    "choices": [
+      "6",
+      "5",
+      "3",
+      "7"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q013",
+      "subject": "수학",
+      "standard_code": "6수01-04",
+      "difficulty": "보통",
+      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
+    }
+  },
+  {
+    "question": "35와 21의 최대공약수(GCD)는?",
+    "choices": [
+      "7",
+      "14",
+      "8",
+      "6"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q014",
+      "subject": "수학",
+      "standard_code": "6수01-04",
+      "difficulty": "보통",
+      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
+    }
+  },
+  {
+    "question": "18와 30의 최대공약수(GCD)는?",
+    "choices": [
+      "7",
+      "6",
+      "5",
+      "3"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q015",
+      "subject": "수학",
+      "standard_code": "6수01-04",
+      "difficulty": "보통",
+      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
+    }
+  },
+  {
+    "question": "54와 40의 최소공배수(LCM)는?",
+    "choices": [
+      "54",
+      "1080",
+      "540",
+      "1082"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q016",
+      "subject": "수학",
+      "standard_code": "6수01-05",
+      "difficulty": "보통",
+      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
+    }
+  },
+  {
+    "question": "64와 40의 최소공배수(LCM)는?",
+    "choices": [
+      "64",
+      "320",
+      "321",
+      "160"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q017",
+      "subject": "수학",
+      "standard_code": "6수01-05",
+      "difficulty": "보통",
+      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
+    }
+  },
+  {
+    "question": "24와 30의 최소공배수(LCM)는?",
+    "choices": [
+      "120",
+      "30",
+      "125",
+      "60"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q018",
+      "subject": "수학",
+      "standard_code": "6수01-05",
+      "difficulty": "보통",
+      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
+    }
+  },
+  {
+    "question": "81와 27의 최소공배수(LCM)는?",
+    "choices": [
+      "81",
+      "83",
+      "162",
+      "81"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q019",
+      "subject": "수학",
+      "standard_code": "6수01-05",
+      "difficulty": "보통",
+      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
+    }
+  },
+  {
+    "question": "20와 21의 최소공배수(LCM)는?",
+    "choices": [
+      "420",
+      "21",
+      "423",
+      "210"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q020",
+      "subject": "수학",
+      "standard_code": "6수01-05",
+      "difficulty": "보통",
+      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
+    }
+  },
+  {
+    "question": "3/10 + 5/10 = ? (기약분수)",
+    "choices": [
+      "4/10",
+      "5/5",
+      "4/5",
+      "8/10"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q021",
+      "subject": "수학",
+      "standard_code": "6수01-08",
+      "difficulty": "보통",
+      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
+    }
+  },
+  {
+    "question": "10/12 + 7/10 = ? (기약분수)",
+    "choices": [
+      "17/12",
+      "24/15",
+      "23/15",
+      "23/30"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q022",
+      "subject": "수학",
+      "standard_code": "6수01-08",
+      "difficulty": "보통",
+      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
+    }
+  },
+  {
+    "question": "2/12 + 1/10 = ? (기약분수)",
+    "choices": [
+      "3/12",
+      "4/30",
+      "5/15",
+      "4/15"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q023",
+      "subject": "수학",
+      "standard_code": "6수01-08",
+      "difficulty": "보통",
+      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
+    }
+  },
+  {
+    "question": "2/10 + 7/12 = ? (기약분수)",
+    "choices": [
+      "47/60",
+      "9/12",
+      "47/120",
+      "48/60"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q024",
+      "subject": "수학",
+      "standard_code": "6수01-08",
+      "difficulty": "보통",
+      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
+    }
+  },
+  {
+    "question": "9/12 + 1/9 = ? (기약분수)",
+    "choices": [
+      "32/36",
+      "10/12",
+      "31/72",
+      "31/36"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q025",
+      "subject": "수학",
+      "standard_code": "6수01-08",
+      "difficulty": "보통",
+      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
+    }
+  },
+  {
+    "question": "6/3 × 5/8 = ? (기약분수)",
+    "choices": [
+      "5/5",
+      "5/4",
+      "10/8",
+      "6/4"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q026",
+      "subject": "수학",
+      "standard_code": "6수01-09",
+      "difficulty": "보통",
+      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
+    }
+  },
+  {
+    "question": "5/4 × 2/6 = ? (기약분수)",
+    "choices": [
+      "5/13",
+      "10/24",
+      "5/12",
+      "6/12"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q027",
+      "subject": "수학",
+      "standard_code": "6수01-09",
+      "difficulty": "보통",
+      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
+    }
+  },
+  {
+    "question": "3/2 × 6/9 = ? (기약분수)",
+    "choices": [
+      "1/2",
+      "2/1",
+      "2/2",
+      "1/1"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q028",
+      "subject": "수학",
+      "standard_code": "6수01-09",
+      "difficulty": "보통",
+      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
+    }
+  },
+  {
+    "question": "5/5 × 1/5 = ? (기약분수)",
+    "choices": [
+      "1/6",
+      "2/5",
+      "2/10",
+      "1/5"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q029",
+      "subject": "수학",
+      "standard_code": "6수01-09",
+      "difficulty": "보통",
+      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
+    }
+  },
+  {
+    "question": "2/4 × 3/9 = ? (기약분수)",
+    "choices": [
+      "1/6",
+      "1/7",
+      "2/12",
+      "2/6"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q030",
+      "subject": "수학",
+      "standard_code": "6수01-09",
+      "difficulty": "보통",
+      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
+    }
+  },
+  {
+    "question": "5÷5를 분수로 나타내면? (기약분수)",
+    "choices": [
+      "1/1",
+      "1/5",
+      "5/5",
+      "5/5"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q031",
+      "subject": "수학",
+      "standard_code": "6수01-10",
+      "difficulty": "보통",
+      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
+    }
+  },
+  {
+    "question": "9÷9를 분수로 나타내면? (기약분수)",
+    "choices": [
+      "9/9",
+      "9/9",
+      "1/9",
+      "1/1"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q032",
+      "subject": "수학",
+      "standard_code": "6수01-10",
+      "difficulty": "보통",
+      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
+    }
+  },
+  {
+    "question": "3÷7를 분수로 나타내면? (기약분수)",
+    "choices": [
+      "7/3",
+      "3/7",
+      "3/7",
+      "3/7"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q033",
+      "subject": "수학",
+      "standard_code": "6수01-10",
+      "difficulty": "보통",
+      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
+    }
+  },
+  {
+    "question": "5÷2를 분수로 나타내면? (기약분수)",
+    "choices": [
+      "2/5",
+      "5/2",
+      "5/2",
+      "5/2"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q034",
+      "subject": "수학",
+      "standard_code": "6수01-10",
+      "difficulty": "보통",
+      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
+    }
+  },
+  {
+    "question": "5÷3를 분수로 나타내면? (기약분수)",
+    "choices": [
+      "5/3",
+      "5/3",
+      "3/5",
+      "5/3"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q035",
+      "subject": "수학",
+      "standard_code": "6수01-10",
+      "difficulty": "보통",
+      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
+    }
+  },
+  {
+    "question": "9/8와 같은 값을 나타내는 소수는?",
+    "choices": [
+      "0.11",
+      "11.25",
+      "1.125",
+      "2.25"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q036",
+      "subject": "수학",
+      "standard_code": "6수01-12",
+      "difficulty": "보통",
+      "explanation": "분수의 분자÷분모로 소수를 구합니다."
+    }
+  },
+  {
+    "question": "4/100와 같은 값을 나타내는 소수는?",
+    "choices": [
+      "0.40",
+      "0.04",
+      "0.08",
+      "0.00"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q037",
+      "subject": "수학",
+      "standard_code": "6수01-12",
+      "difficulty": "보통",
+      "explanation": "분수의 분자÷분모로 소수를 구합니다."
+    }
+  },
+  {
+    "question": "4/50와 같은 값을 나타내는 소수는?",
+    "choices": [
+      "0.08",
+      "0.80",
+      "0.01",
+      "0.16"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q038",
+      "subject": "수학",
+      "standard_code": "6수01-12",
+      "difficulty": "보통",
+      "explanation": "분수의 분자÷분모로 소수를 구합니다."
+    }
+  },
+  {
+    "question": "2/25와 같은 값을 나타내는 소수는?",
+    "choices": [
+      "0.01",
+      "0.16",
+      "0.08",
+      "0.80"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q039",
+      "subject": "수학",
+      "standard_code": "6수01-12",
+      "difficulty": "보통",
+      "explanation": "분수의 분자÷분모로 소수를 구합니다."
+    }
+  },
+  {
+    "question": "8/2와 같은 값을 나타내는 소수는?",
+    "choices": [
+      "4",
+      "40.00",
+      "8.00",
+      "0.40"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q040",
+      "subject": "수학",
+      "standard_code": "6수01-12",
+      "difficulty": "보통",
+      "explanation": "분수의 분자÷분모로 소수를 구합니다."
+    }
+  },
+  {
+    "question": "7.3 × 8.0 = ? (소수 둘째 자리까지)",
+    "choices": [
+      "58.50",
+      "58.30",
+      "59.40",
+      "58.40"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q041",
+      "subject": "수학",
+      "standard_code": "6수01-13",
+      "difficulty": "보통",
+      "explanation": "소수점 자릿수를 고려해 계산합니다."
+    }
+  },
+  {
+    "question": "2.0 × 4.6 = ? (소수 둘째 자리까지)",
+    "choices": [
+      "9.10",
+      "9.30",
+      "9.20",
+      "10.20"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q042",
+      "subject": "수학",
+      "standard_code": "6수01-13",
+      "difficulty": "보통",
+      "explanation": "소수점 자릿수를 고려해 계산합니다."
+    }
+  },
+  {
+    "question": "4.7 × 8.7 = ? (소수 둘째 자리까지)",
+    "choices": [
+      "40.79",
+      "41.89",
+      "40.99",
+      "40.89"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q043",
+      "subject": "수학",
+      "standard_code": "6수01-13",
+      "difficulty": "보통",
+      "explanation": "소수점 자릿수를 고려해 계산합니다."
+    }
+  },
+  {
+    "question": "0.7 × 9.9 = ? (소수 둘째 자리까지)",
+    "choices": [
+      "7.03",
+      "6.83",
+      "7.93",
+      "6.93"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q044",
+      "subject": "수학",
+      "standard_code": "6수01-13",
+      "difficulty": "보통",
+      "explanation": "소수점 자릿수를 고려해 계산합니다."
+    }
+  },
+  {
+    "question": "1.8 × 4.9 = ? (소수 둘째 자리까지)",
+    "choices": [
+      "8.72",
+      "8.82",
+      "9.82",
+      "8.92"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q045",
+      "subject": "수학",
+      "standard_code": "6수01-13",
+      "difficulty": "보통",
+      "explanation": "소수점 자릿수를 고려해 계산합니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
+    "choices": [
+      "남중 고도는 낮고 낮의 길이는 짧다",
+      "계절에 따라 태양 고도 측정값은 항상 같다",
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "지구의 자전축이 수직이어서 계절이 생긴다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q046",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (가을)",
+    "choices": [
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "남중 고도와 낮의 길이가 점차 짧아진다",
+      "지구의 자전축이 수직이어서 계절이 생긴다",
+      "계절에 따라 태양 고도 측정값은 항상 같다"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q047",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (여름)",
+    "choices": [
+      "지구의 자전축이 수직이어서 계절이 생긴다",
+      "계절에 따라 태양 고도 측정값은 항상 같다",
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "남중 고도는 높고 낮은 길이는 길다"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q048",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
+    "choices": [
+      "지구의 자전축이 수직이어서 계절이 생긴다",
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "계절에 따라 태양 고도 측정값은 항상 같다",
+      "남중 고도는 낮고 낮의 길이는 짧다"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q049",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
+    "choices": [
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "계절에 따라 태양 고도 측정값은 항상 같다",
+      "지구의 자전축이 수직이어서 계절이 생긴다",
+      "남중 고도는 낮고 낮의 길이는 짧다"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q050",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (가을)",
+    "choices": [
+      "남중 고도와 낮의 길이가 점차 짧아진다",
+      "지구의 자전축이 수직이어서 계절이 생긴다",
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "계절에 따라 태양 고도 측정값은 항상 같다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q051",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
+    "choices": [
+      "남중 고도는 낮고 낮의 길이는 짧다",
+      "지구의 자전축이 수직이어서 계절이 생긴다",
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "계절에 따라 태양 고도 측정값은 항상 같다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q052",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (여름)",
+    "choices": [
+      "지구의 자전축이 수직이어서 계절이 생긴다",
+      "계절에 따라 태양 고도 측정값은 항상 같다",
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "남중 고도는 높고 낮은 길이는 길다"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q053",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (봄)",
+    "choices": [
+      "남중 고도와 낮의 길이가 점차 길어진다",
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "계절에 따라 태양 고도 측정값은 항상 같다",
+      "지구의 자전축이 수직이어서 계절이 생긴다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q054",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
+    "choices": [
+      "남중 고도와 낮의 길이는 계절과 무관하다",
+      "남중 고도는 낮고 낮의 길이는 짧다",
+      "지구의 자전축이 수직이어서 계절이 생긴다",
+      "계절에 따라 태양 고도 측정값은 항상 같다"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q055",
+      "subject": "과학",
+      "standard_code": "6과13-03",
+      "difficulty": "보통",
+      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
+    }
+  },
+  {
+    "question": "식초에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q056",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "베이킹소다 용액에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q057",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "레몬즙에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q058",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "레몬즙에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q059",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "탄산음료에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q060",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "식초에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q061",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "베이킹소다 용액에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q062",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "베이킹소다 용액에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q063",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "탄산음료에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q064",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "식초에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
+    "choices": [
+      "산성",
+      "염기성",
+      "중성",
+      "모름"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q065",
+      "subject": "과학",
+      "standard_code": "6과09-01",
+      "difficulty": "보통",
+      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
+    }
+  },
+  {
+    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
+    "choices": [
+      "불교 사원 권력 확대",
+      "서원과 향교 중심의 교육",
+      "효와 예를 중시하는 생활 규범",
+      "성리학을 바탕으로 한 정치 이념"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q066",
+      "subject": "사회",
+      "standard_code": "6사05-01",
+      "difficulty": "보통",
+      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
+    }
+  },
+  {
+    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
+    "choices": [
+      "성리학을 바탕으로 한 정치 이념",
+      "효와 예를 중시하는 생활 규범",
+      "서원과 향교 중심의 교육",
+      "불교 사원 권력 확대"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q067",
+      "subject": "사회",
+      "standard_code": "6사05-01",
+      "difficulty": "보통",
+      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
+    }
+  },
+  {
+    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
+    "choices": [
+      "불교 사원 권력 확대",
+      "서원과 향교 중심의 교육",
+      "성리학을 바탕으로 한 정치 이념",
+      "효와 예를 중시하는 생활 규범"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q068",
+      "subject": "사회",
+      "standard_code": "6사05-01",
+      "difficulty": "보통",
+      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
+    }
+  },
+  {
+    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
+    "choices": [
+      "서원과 향교 중심의 교육",
+      "불교 사원 권력 확대",
+      "효와 예를 중시하는 생활 규범",
+      "성리학을 바탕으로 한 정치 이념"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q069",
+      "subject": "사회",
+      "standard_code": "6사05-01",
+      "difficulty": "보통",
+      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
+    }
+  },
+  {
+    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
+    "choices": [
+      "불교 사원 권력 확대",
+      "서원과 향교 중심의 교육",
+      "효와 예를 중시하는 생활 규범",
+      "성리학을 바탕으로 한 정치 이념"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q070",
+      "subject": "사회",
+      "standard_code": "6사05-01",
+      "difficulty": "보통",
+      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
+    }
+  },
+  {
+    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
+    "choices": [
+      "전차와 전등의 도입",
+      "훈민정음 창제",
+      "활과 창 군사훈련 강화",
+      "삼국 시대 고분 축조"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q071",
+      "subject": "사회",
+      "standard_code": "6사05-02",
+      "difficulty": "보통",
+      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
+    }
+  },
+  {
+    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
+    "choices": [
+      "삼국 시대 고분 축조",
+      "전차와 전등의 도입",
+      "활과 창 군사훈련 강화",
+      "훈민정음 창제"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q072",
+      "subject": "사회",
+      "standard_code": "6사05-02",
+      "difficulty": "보통",
+      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
+    }
+  },
+  {
+    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
+    "choices": [
+      "삼국 시대 고분 축조",
+      "활과 창 군사훈련 강화",
+      "훈민정음 창제",
+      "전차와 전등의 도입"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q073",
+      "subject": "사회",
+      "standard_code": "6사05-02",
+      "difficulty": "보통",
+      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
+    }
+  },
+  {
+    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
+    "choices": [
+      "활과 창 군사훈련 강화",
+      "훈민정음 창제",
+      "삼국 시대 고분 축조",
+      "전차와 전등의 도입"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q074",
+      "subject": "사회",
+      "standard_code": "6사05-02",
+      "difficulty": "보통",
+      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
+    }
+  },
+  {
+    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
+    "choices": [
+      "삼국 시대 고분 축조",
+      "활과 창 군사훈련 강화",
+      "전차와 전등의 도입",
+      "훈민정음 창제"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q075",
+      "subject": "사회",
+      "standard_code": "6사05-02",
+      "difficulty": "보통",
+      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대륙이 아닌 것은?",
+    "choices": [
+      "남극",
+      "발트해",
+      "아프리카",
+      "아시아"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q076",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대륙이 아닌 것은?",
+    "choices": [
+      "아시아",
+      "오세아니아",
+      "아프리카",
+      "발트해"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q077",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대륙이 아닌 것은?",
+    "choices": [
+      "남극",
+      "오세아니아",
+      "유럽",
+      "발트해"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q078",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대륙이 아닌 것은?",
+    "choices": [
+      "북아메리카",
+      "오세아니아",
+      "발트해",
+      "아프리카"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q079",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대륙이 아닌 것은?",
+    "choices": [
+      "아시아",
+      "오세아니아",
+      "남극",
+      "발트해"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q080",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대양에 해당하는 것은?",
+    "choices": [
+      "황해",
+      "발틱해",
+      "대서양",
+      "카스피해"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q081",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대양에 해당하는 것은?",
+    "choices": [
+      "발틱해",
+      "황해",
+      "태평양",
+      "카스피해"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q082",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대양에 해당하는 것은?",
+    "choices": [
+      "발틱해",
+      "카스피해",
+      "황해",
+      "인도양"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q083",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대양에 해당하는 것은?",
+    "choices": [
+      "대서양",
+      "지중해",
+      "발틱해",
+      "카스피해"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q084",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
+    }
+  },
+  {
+    "question": "다음 중 세계의 대양에 해당하는 것은?",
+    "choices": [
+      "카스피해",
+      "지중해",
+      "남극해",
+      "황해"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q085",
+      "subject": "사회",
+      "standard_code": "6사09-02",
+      "difficulty": "보통",
+      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
+    }
+  },
+  {
+    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
+    "choices": [
+      "상품을 생산하고 이윤을 극대화함",
+      "통화를 발행함",
+      "관세를 부과함",
+      "생산요소를 제공하고 소비를 함"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q086",
+      "subject": "사회",
+      "standard_code": "6사11-01",
+      "difficulty": "보통",
+      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
+    }
+  },
+  {
+    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
+    "choices": [
+      "통화를 발행함",
+      "생산요소를 제공하고 소비를 함",
+      "상품을 생산하고 이윤을 극대화함",
+      "관세를 부과함"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q087",
+      "subject": "사회",
+      "standard_code": "6사11-01",
+      "difficulty": "보통",
+      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
+    }
+  },
+  {
+    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
+    "choices": [
+      "생산요소를 제공하고 소비를 함",
+      "상품을 생산하고 이윤을 극대화함",
+      "통화를 발행함",
+      "관세를 부과함"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q088",
+      "subject": "사회",
+      "standard_code": "6사11-01",
+      "difficulty": "보통",
+      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
+    }
+  },
+  {
+    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
+    "choices": [
+      "통화를 발행함",
+      "상품을 생산하고 이윤을 극대화함",
+      "관세를 부과함",
+      "생산요소를 제공하고 소비를 함"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q089",
+      "subject": "사회",
+      "standard_code": "6사11-01",
+      "difficulty": "보통",
+      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
+    }
+  },
+  {
+    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
+    "choices": [
+      "생산요소를 제공하고 소비를 함",
+      "상품을 생산하고 이윤을 극대화함",
+      "통화를 발행함",
+      "관세를 부과함"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q090",
+      "subject": "사회",
+      "standard_code": "6사11-01",
+      "difficulty": "보통",
+      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
+    }
+  },
+  {
+    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
+    "choices": [
+      "자원의 분포와 생산품의 차이",
+      "언어의 차이",
+      "국가 간 인구수 차이",
+      "영토 면적 차이"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q091",
+      "subject": "사회",
+      "standard_code": "6사11-03",
+      "difficulty": "보통",
+      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
+    }
+  },
+  {
+    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
+    "choices": [
+      "영토 면적 차이",
+      "언어의 차이",
+      "자원의 분포와 생산품의 차이",
+      "국가 간 인구수 차이"
+    ],
+    "correctIndex": 2,
+    "meta": {
+      "id": "q092",
+      "subject": "사회",
+      "standard_code": "6사11-03",
+      "difficulty": "보통",
+      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
+    }
+  },
+  {
+    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
+    "choices": [
+      "국가 간 인구수 차이",
+      "자원의 분포와 생산품의 차이",
+      "영토 면적 차이",
+      "언어의 차이"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q093",
+      "subject": "사회",
+      "standard_code": "6사11-03",
+      "difficulty": "보통",
+      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
+    }
+  },
+  {
+    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
+    "choices": [
+      "언어의 차이",
+      "자원의 분포와 생산품의 차이",
+      "국가 간 인구수 차이",
+      "영토 면적 차이"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q094",
+      "subject": "사회",
+      "standard_code": "6사11-03",
+      "difficulty": "보통",
+      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
+    }
+  },
+  {
+    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
+    "choices": [
+      "언어의 차이",
+      "자원의 분포와 생산품의 차이",
+      "국가 간 인구수 차이",
+      "영토 면적 차이"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q095",
+      "subject": "사회",
+      "standard_code": "6사11-03",
+      "difficulty": "보통",
+      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
+    }
+  },
+  {
+    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
+    "choices": [
+      "글의 제목과 결론",
+      "글쓴이의 나이",
+      "글의 글자 수",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q096",
+      "subject": "국어",
+      "standard_code": "6국02-01",
+      "difficulty": "보통",
+      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
+    }
+  },
+  {
+    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
+    "choices": [
+      "글의 제목과 결론",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q097",
+      "subject": "국어",
+      "standard_code": "6국02-01",
+      "difficulty": "보통",
+      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
+    }
+  },
+  {
+    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
+    "choices": [
+      "글의 제목과 결론",
+      "그림의 해상도",
+      "글의 글자 수",
+      "글쓴이의 나이"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q098",
+      "subject": "국어",
+      "standard_code": "6국02-01",
+      "difficulty": "보통",
+      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
+    }
+  },
+  {
+    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
+    "choices": [
+      "그림의 해상도",
+      "글의 제목과 결론",
+      "글의 글자 수",
+      "글쓴이의 나이"
+    ],
+    "correctIndex": 1,
+    "meta": {
+      "id": "q099",
+      "subject": "국어",
+      "standard_code": "6국02-01",
+      "difficulty": "보통",
+      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
+    }
+  },
+  {
+    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
+    "choices": [
+      "글의 제목과 결론",
+      "글쓴이의 나이",
+      "그림의 해상도",
+      "글의 글자 수"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q100",
+      "subject": "국어",
+      "standard_code": "6국02-01",
+      "difficulty": "보통",
+      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
+    }
+  }
+]
