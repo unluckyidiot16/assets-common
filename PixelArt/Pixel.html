@@ -255,7 +255,9 @@
     ========================= */
     const LS_POINTS = 'pixel.points';
     const LS_OWNED  = 'pixel.owned';
-
+    const LS_PROGRESS_PREFIX = 'pixel.progress.'; // ★ 이미지별 진행 저장
+    function progressKey(idx){ return `${LS_PROGRESS_PREFIX}${idx}`; }
+    
     function getPoints(){ return parseInt(localStorage.getItem(LS_POINTS) || '0', 10); }
     function setPoints(n){ localStorage.setItem(LS_POINTS, String(Math.max(0,n|0))); syncPointsUI(); }
     function addPoints(n){ setPoints(getPoints()+n); }
@@ -271,6 +273,54 @@
     function saveOwnedSet(set){
         localStorage.setItem(LS_OWNED, JSON.stringify(Array.from(set)));
     }
+
+    // ★ 진행 비트맵 직렬화(완료칸 true/false → 비트 → base64)
+    function serializeCompletedGrid(){
+          const total = imgWidth * imgHeight;
+          const bytes = new Uint8Array(Math.ceil(total / 8));
+          let k = 0;
+          for (let y=0; y<imgHeight; y++){
+                for (let x=0; x<imgWidth; x++){
+                      if (completedGrid[y][x]) bytes[k >> 3] |= (1 << (k & 7));
+                      k++;
+                    }
+              }
+          let s = ""; for (let i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
+          return btoa(s);
+        }
+    // ★ 진행 비트맵 복원(base64 → 비트 → completedGrid 채움)
+    function deserializeCompletedGrid(b64){
+          const bin = atob(b64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+          let k = 0;
+          completedCells = 0;
+          for (let y=0; y<imgHeight; y++){
+                for (let x=0; x<imgWidth; x++){
+                      const done = (bytes[k >> 3] >> (k & 7)) & 1;
+                      completedGrid[y][x] = !!done;
+                      // 진행률은 ‘그릴 대상 칸(numberGrid>0)’만 센다
+                          if (done && numberGrid[y][x] !== 0) completedCells++;
+                      k++;
+                    }
+              }
+        }
+    // ★ 현재 스테이지 진행 저장/복원
+    function saveCurrentProgress(){
+          if (!currentStageIndex) return;
+          const payload = { w: imgWidth, h: imgHeight, bits: serializeCompletedGrid() };
+          localStorage.setItem(progressKey(currentStageIndex), JSON.stringify(payload));
+        }
+    function restoreProgress(stageIdx){
+          const raw = localStorage.getItem(progressKey(stageIdx));
+          if (!raw) return;
+          try{
+                const p = JSON.parse(raw);
+                if (p && p.w === imgWidth && p.h === imgHeight && typeof p.bits === 'string'){
+                      deserializeCompletedGrid(p.bits);
+                    }
+              }catch(_){}
+        }
 
     /* =========================
        화면 전환
@@ -636,6 +686,8 @@
                 q.canvas.style.width=q.canvas.width+'px'; q.canvas.style.height=q.canvas.height+'px';
             });
 
+            restoreProgress(currentStageIndex);
+            updateProgress();
             loadingSpinner.style.display='none';
             updateAllQuads(true);
             buildPaletteUI();
@@ -682,6 +734,17 @@
         const idx=numberGrid[gy][gx]; ctx.fillStyle=(idx===0)?'#f5f5f5':paletteMap[idx];
         ctx.fillRect(cellX,cellY,CELL_SCALE,CELL_SCALE);
     }
+
+    function drawCellOnZoom(q, gx, gy){
+          const zoomScale = zoomCanvas.width/(q.w*CELL_SCALE);
+          const cellScale = CELL_SCALE * zoomScale;
+          const cellX = (gx - q.x) * cellScale;
+          const cellY = (gy - q.y) * cellScale;
+          const idx   = numberGrid[gy][gx];
+          zoomCtx.fillStyle = (idx===0) ? '#f5f5f5' : paletteMap[idx];
+          zoomCtx.fillRect(cellX, cellY, cellScale, cellScale);
+        }
+    
     function checkCompletion(){
         if (completedCells !== totalCells) return;
         updateAllQuads(false);
@@ -742,10 +805,12 @@
         if (idx === selectedColorIndex){
             completedGrid[gy][gx]=true; completedCells++;
             // 부분 리렌더
+            drawCellOnZoom(q,gx,gy);
             drawCellOnQuad(q,gx,gy);
             // 전체 진행률
             updateProgress();
             checkCompletion();
+            saveCurrentProgress();
         }else{
             zoomCanvas.classList.add('shake'); setTimeout(()=>zoomCanvas.classList.remove('shake'),250);
         }
@@ -770,12 +835,22 @@
         showView('lobbyScreen');
     });
     backButton.addEventListener('click', ()=>{ showView('lobbyScreen'); populateBook(); syncPointsUI(); });
+    backButton.addEventListener('click', ()=>{
+        saveCurrentProgress(); // ★ 떠나기 전 저장
+        showView('lobbyScreen'); populateBook(); syncPointsUI();
+        });
     quizBtn.addEventListener('click', startQuizSession);
     gacha1Btn.addEventListener('click', ()=> rollGacha(1));
     gacha10Btn.addEventListener('click', ()=> rollGacha(10));
     resetBtn.addEventListener('click', ()=>{
         if (!confirm('포인트와 도감을 초기화할까요?')) return;
         localStorage.removeItem(LS_POINTS); localStorage.removeItem(LS_OWNED);
+        // ★ 저장된 진행 전부 삭제
+        for (let i=0; i<localStorage.length; ){
+            const key = localStorage.key(i);
+            if (key && key.startsWith(LS_PROGRESS_PREFIX)) localStorage.removeItem(key);
+            else i++;
+        }
         syncPointsUI(); populateBook();
         showModal('초기화 완료', '포인트와 도감을 초기화했습니다.');
     });
