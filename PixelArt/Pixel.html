@@ -189,8 +189,11 @@
     const IMAGE_FILES = Array.from({length: 50}, (_, i) => `${i+1}.png`);
 
     const GACHA_COST = 100;          // 가챠 1회 포인트
-    const QUIZ_REWARD = 10;          // 정답 1개당 포인트
+    const QUIZ_REWARD = 10;          // 정답 1개당 기본 포인트
     const QUIZ_SESSION_LEN = 10;     // 퀴즈 세션 문제 수
+    // === 연속 정답 보너스 설정 ===
+    const STREAK_STEP = 0.2;         // 연속 1회 추가될 때마다 +20% 배율
+    const STREAK_MAX_MULT = 3;       // 최대 3배까지 가산 (상한)
 
     // 희귀도 설정
     const RARITY_CONFIG = {
@@ -450,25 +453,25 @@
     /* =========================
        퀴즈 세션(포인트 적립)
     ========================= */
-    let quizSession = null; // {total, idx, correct}
-
+    let quizSession = null; // {total, idx, correct, streak, maxStreak, score}
+    
     async function startQuizSession(){
         await ensureQuizLoaded();
-        quizSession = { total: QUIZ_SESSION_LEN, idx: 0, correct:0 };
+        quizSession = { total: QUIZ_SESSION_LEN, idx: 0, correct:0, streak:0, maxStreak:0, score:0 };
         askNextQuestion();
     }
     function askNextQuestion(){
         if (!quizSession) return;
         if (quizSession.idx >= quizSession.total){
-            const plus = quizSession.correct * QUIZ_REWARD;
+            const plus = quizSession.score;
             addPoints(plus);
-            showModal('퀴즈 종료', `정답 ${quizSession.correct}/${quizSession.total}개! +${plus}P를 획득했습니다.`);
-            quizSession = null;
+            showModal('퀴즈 종료', `정답 ${quizSession.correct}/${quizSession.total}개!  연속 보너스 포함 +${plus}P 획득 (최대 연속 ${quizSession.maxStreak}).`);            quizSession = null;
             return;
         }
         const q = pullQuestion();
         quizTitle.textContent = '퀴즈 도전';
-        quizSub.textContent = `문제 ${quizSession.idx+1} / ${quizSession.total} (정답당 +${QUIZ_REWARD}P)`;
+        const nextMult = Math.min(STREAK_MAX_MULT, 1 + (quizSession.streak) * STREAK_STEP);
+        quizSub.textContent = `문제 ${quizSession.idx+1} / ${quizSession.total}  ·  기본 +${QUIZ_REWARD}P  ·  다음 정답 x${nextMult.toFixed(1)}`;
         quizQuestion.textContent = q.question;
         quizChoices.innerHTML = '';
         q.choices.forEach((c, i)=>{
@@ -476,7 +479,18 @@
             btn.className = 'bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow';
             btn.textContent = c;
             btn.addEventListener('click', ()=>{
-                if (i === q.correctIndex) quizSession.correct++;
+                if (i === q.correctIndex) {
+                    quizSession.correct++;
+                    // 연속 정답 누적 → 배율 계산(이번 문제에 적용)
+                    quizSession.streak++;
+                    quizSession.maxStreak = Math.max(quizSession.maxStreak, quizSession.streak);
+                    const mult = Math.min(STREAK_MAX_MULT, 1 + (quizSession.streak - 1) * STREAK_STEP);
+                    const gain = Math.round(QUIZ_REWARD * mult);
+                    quizSession.score += gain;
+                } else {
+                    // 오답 시 연속 초기화
+                    quizSession.streak = 0;
+                }
                 quizSession.idx++;
                 quizModal.style.display='none';
                 askNextQuestion();
@@ -487,10 +501,10 @@
     }
     quizCancel.addEventListener('click', ()=>{
         if (!quizSession){ quizModal.style.display='none'; return; }
-        const plus = quizSession.correct * QUIZ_REWARD;
+        const plus = quizSession.score;
         addPoints(plus);
         quizModal.style.display='none';
-        showModal('퀴즈 종료', `중도 종료: 정답 ${quizSession.correct}/${quizSession.idx}개. +${plus}P 적립.`);
+        showModal('퀴즈 종료', `중도 종료: 정답 ${quizSession.correct}/${quizSession.idx}개 · 연속 보너스 포함 +${plus}P 적립 (최대 연속 ${quizSession.maxStreak}).`);
         quizSession = null;
     });
 
