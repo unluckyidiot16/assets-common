@@ -1,55 +1,97 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>픽셀 아트 스테이지 게임 — 4분할 & 퀴즈 확장</title>
+    <title>픽셀 컬러링 — 4분할·확대·순차 스테이지</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
+        body { font-family: ui-sans-serif, system-ui; touch-action: manipulation; }
         .view { display: none; width: 100%; min-height: 100vh; }
         .view.active { display: flex; }
-        canvas { image-rendering: pixelated; cursor: pointer; border: 2px solid #374151; background:#fff; }
+
+        /* 캔버스: 박스여백 제거 + 픽셀 스냅 */
+        canvas {
+            display: block;                /* inline gap 제거 */
+            image-rendering: pixelated;
+            cursor: pointer;
+            background:#fff;
+        }
+
+        /* 팔레트(색상) 버튼 */
         #paletteContainer { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:20px; max-width:800px; }
         .palette-button {
             width:50px; height:50px; border:2px solid #d1d5db; border-radius:8px; cursor:pointer;
-            font-size:16px; font-weight:bold; display:flex; align-items:center; justify-content:center;
-            transition: all .2s; color:#fff; text-shadow:0 0 2px #000,0 0 2px #000;
+            font-weight:700; display:flex; align-items:center; justify-content:center; color:#fff;
+            text-shadow:0 0 2px #000;
+            transition:transform .15s, box-shadow .15s, border-color .15s;
         }
-        .palette-button.selected { border-color:#0ea5e9; transform:scale(1.1); box-shadow:0 0 15px rgba(14,165,233,.5); }
-        .palette-button.locked { filter:grayscale(1); position:relative; }
-        .palette-button.locked::after {
-            content:"🔒"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-            font-size:20px; color:#fff; text-shadow:0 0 3px #000;
-        }
-        @keyframes shake { 0%{transform:translate(0,0)}25%{transform:translate(-3px,0)}50%{transform:translate(3px,0)}75%{transform:translate(-3px,0)}100%{transform:translate(0,0)} }
-        .shake { animation:shake .3s; }
-        .modal {
-            display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%;
-            background:rgba(0,0,0,.4); justify-content:center; align-items:center;
-        }
-        .modal-content {
-            background:#fff; margin:auto; padding:24px; border:1px solid #888; border-radius:12px;
-            width:90%; max-width:480px; text-align:center; box-shadow:0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
-        }
-        .modal-button { background:#0ea5e9; color:#fff; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-size:16px; margin-top:16px; }
-        #stageGrid .stage-card { border:2px solid #e5e7eb; border-radius:8px; overflow:hidden; cursor:pointer; transition:.2s; }
-        #stageGrid .stage-card:hover { transform:scale(1.05); box-shadow:0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); }
-        #stageGrid .stage-card img { image-rendering:pixelated; width:100%; height:auto; aspect-ratio:1/1; object-fit:contain; background:#f9fafb; }
-        .quad-wrap { position:relative; }
+        .palette-button.selected { border-color:#0ea5e9; transform:scale(1.08); box-shadow:0 0 15px rgba(14,165,233,.45); }
+        .palette-button.locked { filter:grayscale(1); }
+
+        /* 쿼드 잠금 오버레이 */
+        .quad-wrap { position: relative; width: fit-content; height: fit-content; }
         .quad-lock {
             position:absolute; inset:0; background:rgba(0,0,0,.45); color:#fff; display:flex; flex-direction:column;
-            align-items:center; justify-content:center; gap:10px; font-weight:700; border-radius:6px;
-            opacity:1; transition:opacity .2s;
+            align-items:center; justify-content:center; gap:10px; font-weight:700; border-radius:0;
+            opacity:1; transition:opacity .2s; z-index:2;
         }
         .quad-lock.hidden { opacity:0; pointer-events:none; }
+
+        /* 확대 레이어 */
+        #zoomOverlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center;
+            z-index:1000;
+        }
+        #zoomCard {
+            background:#fff; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:16px;
+            display:flex; flex-direction:column; align-items:center; gap:12px; max-width:95vw; max-height:90vh;
+        }
+        #zoomCanvas { image-rendering: pixelated; border:2px solid #0ea5e9; border-radius:8px; }
+
+        /* 로비 카드 */
+        #stageGrid .stage-card { border:2px solid #e5e7eb; border-radius:8px; overflow:hidden; cursor:pointer; transition:.2s; background:#fff; }
+        #stageGrid .stage-card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+        #stageGrid .stage-card img { image-rendering:pixelated; width:100%; aspect-ratio:1/1; object-fit:contain; background:#f9fafb; }
+        .locked-card { filter:grayscale(1); position:relative; }
+        .locked-card::after {
+            content:"🔒"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+            font-size:28px; color:#fff; text-shadow:0 0 5px #000;
+            background:rgba(0,0,0,.35);
+        }
+
+        /* 모달 */
+        .modal { display:none; position:fixed; z-index:1100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,.4); justify-content:center; align-items:center; }
+        .modal-content { background:#fff; margin:auto; padding:24px; border-radius:12px; width:90%; max-width:480px; text-align:center; }
+        .modal-button { background:#0ea5e9; color:#fff; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:700; }
+
+        /* 4분할을 한 장처럼: 콘텐츠 크기로 중앙 정렬 */
+        .composite {
+            display:flex;
+            justify-content:center;
+            overflow:auto;
+            border:3px solid #374151;
+            border-radius:14px;
+        }
+        .grid-2x2 {
+            display:inline-grid;                         /* 콘텐츠 폭만큼만 차지 */
+            grid-template-columns: max-content max-content; /* 캔버스 고유 크기 유지 */
+            grid-template-rows: max-content max-content;
+            justify-items:start;
+            align-items:start;
+            gap:0;                                      /* 중앙에 맞붙게 */
+        }
+
+        /* 지진 효과(오답 진동) */
+        @keyframes shake { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-3px,0)} 50%{transform:translate(3px,0)} 75%{transform:translate(-3px,0)} }
+        .shake { animation:shake .25s; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
 <!-- 1) 타이틀 -->
 <div id="titleScreen" class="view active flex-col items-center justify-center p-4">
-    <h1 class="text-5xl md:text-7xl font-bold text-gray-800 mb-8 animate-pulse">픽셀 컬러링</h1>
+    <h1 class="text-5xl md:text-7xl font-extrabold text-gray-800 mb-8 animate-pulse">픽셀 컬러링</h1>
     <button id="startButton" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg hover:scale-105">
         시작하기
     </button>
@@ -58,6 +100,7 @@
 <!-- 2) 로비 -->
 <div id="lobbyScreen" class="view flex-col items-center p-4 md:p-8">
     <h1 class="text-3xl md:text-4xl font-bold text-gray-800 my-6">스테이지 선택</h1>
+    <p class="text-sm text-gray-500 mb-4">※ 스테이지는 1번부터 클리어해야 다음 번호에 입장할 수 있어요.</p>
     <div id="stageGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 w-full max-w-6xl"></div>
 </div>
 
@@ -68,7 +111,7 @@
             <button id="backButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">
                 &larr; 로비로
             </button>
-            <span class="text-sm text-gray-500">진행률은 자동 저장 없음 (데모)</span>
+            <span class="text-sm text-gray-500">데모: 진행 저장은 로컬(브라우저)만</span>
         </div>
         <h3 id="gameTitle" class="text-xl font-bold text-gray-800"></h3>
     </div>
@@ -83,12 +126,15 @@
             <p class="mt-3 text-gray-600">이미지 분석 중...</p>
         </div>
 
-        <!-- 2×2 캔버스 -->
-        <div id="quadGrid" class="hidden grid grid-cols-2 gap-2 w-full">
-            <!-- 각 칸은 JS로 채움 -->
+        <!-- 2×2 캔버스(한 장의 그림처럼) -->
+        <div class="composite w-full">
+            <!-- ↓ 콘텐츠 크기만큼만 차지하도록 w-full 제거 -->
+            <div id="quadGrid" class="grid-2x2">
+                <!-- JS에서 채움 -->
+            </div>
         </div>
 
-        <!-- 팔레트 게이트 -->
+        <!-- 팔레트(물감) 해금 퀴즈 -->
         <div id="paintsGate" class="hidden w-full max-w-md mt-4 p-4 border rounded-lg bg-slate-50">
             <div class="flex items-center justify-between gap-2">
                 <h4 class="font-bold text-gray-800">물감 모으기 퀴즈</h4>
@@ -103,7 +149,7 @@
             <p id="paintsQuizText" class="text-xs text-gray-500 mt-1">0%</p>
         </div>
 
-        <!-- 팔레트 -->
+        <!-- 색상 팔레트 -->
         <div id="paletteContainer" class="hidden"></div>
 
         <!-- 전체 진행률 -->
@@ -112,6 +158,17 @@
                 <div id="progressBar" class="bg-sky-500 h-2.5 rounded-full" style="width:0%; transition:width .3s;"></div>
             </div>
             <p id="progressText" class="text-center text-sm text-gray-600 mt-1">0%</p>
+        </div>
+    </div>
+</div>
+
+<!-- 확대 레이어 -->
+<div id="zoomOverlay">
+    <div id="zoomCard">
+        <canvas id="zoomCanvas"></canvas>
+        <div class="flex items-center gap-2">
+            <button id="zoomClose" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">닫기(Esc)</button>
+            <span class="text-xs text-gray-500">팁: 확대 상태에서 바로 색칠할 수 있어요.</span>
         </div>
     </div>
 </div>
@@ -137,11 +194,11 @@
 
 <script>
     /* ---------------- 기본 설정 ---------------- */
-    const CELL_SCALE = 15;
+    const CELL_SCALE = 15;                    // 캔버스 셀 픽셀 크기
+    const REQUIRED_PAINT_QUIZ = 5;
+
     const IMAGE_BASE_URL = 'https://unluckyidiot16.github.io/assets-common/PixelArt/PNG/';
     const IMAGE_FILES = Array.from({length: 50}, (_, i) => `${i+1}.png`);
-
-    const REQUIRED_PAINT_QUIZ = 5;   // 물감 모으기 퀴즈 문항 수
 
     /* ---------------- DOM ---------------- */
     const allViews = document.querySelectorAll('.view');
@@ -176,8 +233,12 @@
     const quizChoices      = document.getElementById('quizChoices');
     const quizCancel       = document.getElementById('quizCancel');
 
+    const zoomOverlay      = document.getElementById('zoomOverlay');
+    const zoomCanvas       = document.getElementById('zoomCanvas');
+    const zoomClose        = document.getElementById('zoomClose');
+
     /* ---------------- 상태 ---------------- */
-    let imgWidth, imgHeight;
+    let imgWidth, imgHeight, sourceImage;
     let palette = {};
     let paletteMap = [null];     // 1-based 색 인덱스 → rgba
     let numberGrid = [];         // [y][x] → 색 인덱스
@@ -188,11 +249,21 @@
     let selectedColorIndex = 0;
     let paletteUnlocked = false;
 
-    const quadrants = [];        // {id, canvas, ctx, x, y, w, h, unlocked}
+    const quadrants = [];        // {id, wrap, canvas, ctx, x, y, w, h, unlocked, lockEl}
     let nextQuadToUnlock = 0;    // 0..3
+    let paintsQuizCount = 0;
 
-    let paintsQuizCount = 0;     // 물감 퀴즈 정답 수
-    let currentQuiz = null;      // {type:'quad'|'paints', onResult:fn}
+    let currentStageFilename = null;
+    let currentStageIndex = 1;
+
+    let currentZoomQuad = null;
+    let zoomCtx = zoomCanvas.getContext('2d');
+    zoomCtx.imageSmoothingEnabled = false;
+
+    /* 순차 스테이지 해금: 로컬 저장소 */
+    const LS_MAX_UNLOCK = 'pixel.maxUnlockedStage';
+    function getMaxUnlockedStage() { return parseInt(localStorage.getItem(LS_MAX_UNLOCK) || '1', 10); }
+    function setMaxUnlockedStage(n) { localStorage.setItem(LS_MAX_UNLOCK, String(n)); }
 
     /* ---------------- 화면 전환 ---------------- */
     function showView(id) {
@@ -203,31 +274,48 @@
     /* ---------------- 로비 ---------------- */
     function populateLobby() {
         stageGrid.innerHTML = '';
+        const maxUnlocked = getMaxUnlockedStage();
         IMAGE_FILES.forEach(filename => {
+            const idx = parseInt(filename, 10); // "12.png" → 12
             const card = document.createElement('div');
-            card.className = 'stage-card bg-white shadow rounded-lg';
+            card.className = 'stage-card';
+            const locked = idx > maxUnlocked;
+            if (locked) card.classList.add('locked-card');
+
             const img = document.createElement('img');
             img.src = IMAGE_BASE_URL + filename;
-            img.alt = `Stage ${filename}`;
+            img.alt = `Stage ${idx}`;
             img.loading = 'lazy';
+
             const title = document.createElement('p');
-            title.className = 'text-center text-sm font-medium text-gray-700 p-2';
-            title.textContent = `Stage ${filename.split('.')[0]}`;
+            title.className = 'text-center text-sm font-semibold text-gray-700 p-2';
+            title.textContent = `Stage ${idx}`;
+
             card.appendChild(img);
             card.appendChild(title);
-            card.addEventListener('click', () => startGame(filename));
+
+            card.addEventListener('click', () => {
+                if (idx > getMaxUnlockedStage()) {
+                    alert(`스테이지 ${idx-1}을(를) 먼저 클리어해야 합니다.`);
+                    return;
+                }
+                startGame(filename);
+            });
+
             stageGrid.appendChild(card);
         });
     }
 
     /* ---------------- 게임 시작 ---------------- */
     function startGame(filename) {
+        currentStageFilename = filename;
+        currentStageIndex = parseInt(filename, 10) || 1;
+
         showView('gameScreen');
-        gameTitle.textContent = `Stage ${filename.split('.')[0]}`;
+        gameTitle.textContent = `Stage ${currentStageIndex}`;
 
         // UI 초기화
         loadingSpinner.style.display = 'block';
-        quadGrid.classList.add('hidden');
         paintsGate.classList.add('hidden');
         paletteContainer.classList.add('hidden');
         progressContainer.classList.add('hidden');
@@ -251,11 +339,11 @@
         paintsQuizBar.style.width = '0%';
         paintsQuizText.textContent = '0%';
 
-        // 4분할 래퍼 다시 구성
+        // 4분할 컨테이너 리빌드
         quadGrid.innerHTML = '';
         for (let i=0;i<4;i++){
             const wrap = document.createElement('div');
-            wrap.className = 'quad-wrap rounded-md overflow-hidden';
+            wrap.className = 'quad-wrap';
             const c = document.createElement('canvas');
             c.id = `canvasQ${i}`;
             wrap.appendChild(c);
@@ -267,16 +355,18 @@
       <button class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow">퀴즈로 해금</button>
     `;
             lock.querySelector('button').addEventListener('click', ()=> {
-                if (i===nextQuadToUnlock) {
-                    openQuiz('quad', i);
-                } else {
-                    showModal('순서 안내', `캔버스 ${nextQuadToUnlock+1}부터 차례대로 해금하세요.`);
-                }
+                if (i===nextQuadToUnlock) openQuiz('quad', i);
+                else showModal('순서 안내', `캔버스 ${nextQuadToUnlock+1}부터 차례대로 해금하세요.`);
             });
             wrap.appendChild(lock);
             quadGrid.appendChild(wrap);
 
-            quadrants.push({ id:i, wrap, canvas:c, ctx:c.getContext('2d'), x:0,y:0,w:0,h:0, unlocked:false, lockEl:lock });
+            const ctx = c.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            quadrants.push({ id:i, wrap, canvas:c, ctx, x:0,y:0,w:0,h:0, unlocked:false, lockEl:lock });
+
+            // 기본 클릭(해금 전/후)은 아래에서 상태에 맞게 교체
+            c.onclick = ()=>{ if (!quadrants[i].unlocked) showModal('잠금', `캔버스 ${i+1}을(를) 먼저 퀴즈로 해금하세요.`); else openZoom(i); };
         }
 
         loadImageAndProcess(filename);
@@ -284,8 +374,6 @@
 
     /* ---------------- 모달/알림 ---------------- */
     modalCloseButton.onclick = () => messageModal.style.display = 'none';
-    quizCancel.onclick = () => { quizModal.style.display='none'; currentQuiz=null; };
-
     function showModal(title, msg) {
         modalTitle.textContent = title;
         modalMessage.textContent = msg;
@@ -295,20 +383,21 @@
     /* ---------------- 이미지 분석 ---------------- */
     async function loadImageAndProcess(filename){
         try{
-            const img = await new Promise((resolve,reject)=>{
+            sourceImage = await new Promise((resolve,reject)=>{
                 const im = new Image();
                 im.crossOrigin = "Anonymous";
                 im.src = IMAGE_BASE_URL + filename;
                 im.onload = ()=>resolve(im);
                 im.onerror = ()=>reject(new Error('이미지를 불러올 수 없습니다.'));
             });
-            imgWidth = img.width;
-            imgHeight= img.height;
+            imgWidth = sourceImage.width;
+            imgHeight= sourceImage.height;
 
+            // 픽셀 스캔
             const hc = document.createElement('canvas');
             hc.width = imgWidth; hc.height = imgHeight;
             const hctx = hc.getContext('2d');
-            hctx.drawImage(img, 0, 0);
+            hctx.drawImage(sourceImage, 0, 0);
             const data = hctx.getImageData(0,0,imgWidth,imgHeight).data;
 
             let colorIndex = 1;
@@ -319,8 +408,8 @@
                     const i = (y*imgWidth+x)*4;
                     const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
                     if (a < 128) {
-                        numberGrid[y][x] = 0;
-                        completedGrid[y][x] = true;
+                        numberGrid[y][x] = 0;           // 투명
+                        completedGrid[y][x] = true;     // 이미 완료 처리(안 칠함 영역)
                     } else {
                         const rgba = `rgba(${r},${g},${b},${a/255})`;
                         if (!palette[rgba]) {
@@ -335,45 +424,32 @@
                 }
             }
 
-            // 4분할 좌표 계산
+            // 4분할 지오메트리 (우하단 w는 imgWidth - halfW)
             const halfW = Math.floor(imgWidth/2);
             const halfH = Math.floor(imgHeight/2);
             const quadsGeom = [
-                {x:0,      y:0,      w:halfW,              h:halfH},
-                {x:halfW,  y:0,      w:imgWidth-halfW,     h:halfH},
-                {x:0,      y:halfH,  w:halfW,              h:imgHeight-halfH},
-                {x:halfW,  y:halfH,  w:imgWidth-halfW,     h:imgHeight-halfH},
+                {x:0,      y:0,      w:halfW,            h:halfH},             // 0
+                {x:halfW,  y:0,      w:imgWidth-halfW,   h:halfH},             // 1
+                {x:0,      y:halfH,  w:halfW,            h:imgHeight-halfH},   // 2
+                {x:halfW,  y:halfH,  w:imgWidth-halfW,   h:imgHeight-halfH},   // 3 ✅
             ];
             quadsGeom.forEach((g,i)=>{
                 const q = quadrants[i];
                 q.x=g.x; q.y=g.y; q.w=g.w; q.h=g.h;
-                q.canvas.width = g.w * CELL_SCALE;
-                q.canvas.height= g.h * CELL_SCALE;
-                q.ctx.imageSmoothingEnabled = false;
 
-                // 클릭 핸들러
-                q.canvas.addEventListener('click', (e)=>{
-                    if (!q.unlocked) {
-                        showModal('잠금', `캔버스 ${i+1}은(는) 잠겨 있습니다. 퀴즈로 해금하세요.`);
-                        return;
-                    }
-                    if (!paletteUnlocked) {
-                        showModal('물감이 없어요', '먼저 "물감 모으기 퀴즈"를 완료해 모든 물감을 모아야 칠할 수 있어요.');
-                        return;
-                    }
-                    handleCanvasClickOnQuad(e, q);
-                });
+                q.canvas.width  = g.w * CELL_SCALE;
+                q.canvas.height = g.h * CELL_SCALE;
+                /* CSS 크기를 실제 픽셀과 동일하게 고정 → 레이아웃 늘어남 방지 */
+                q.canvas.style.width  = q.canvas.width  + 'px';
+                q.canvas.style.height = q.canvas.height + 'px';
             });
 
             loadingSpinner.style.display = 'none';
-            quadGrid.classList.remove('hidden');
             progressContainer.classList.remove('hidden');
 
-            // 최초엔 1번 캔버스만 해금 가능
-            updateAllQuads();
-
-            // 팔레트는 나중(물감 퀴즈 완료) 표시
-            buildPaletteUI(/*locked=*/true);
+            // 최초엔 1번만 해금 가능
+            updateAllQuads(true);
+            buildPaletteUI(true);  // 팔레트는 물감 퀴즈 이후 해금
         } catch(err){
             console.error(err);
             showModal('오류', err.message + ' 로비로 돌아갑니다.');
@@ -392,68 +468,148 @@
             btn.style.backgroundColor = color;
             btn.textContent = i;
             btn.dataset.colorIndex = i;
-
             if (locked) btn.classList.add('locked');
 
             btn.addEventListener('click', ()=>{
-                if (!paletteUnlocked) {
-                    showModal('물감 잠금', '아직 물감이 모이지 않았어요. 4개 캔버스를 모두 해금한 뒤 "물감 모으기 퀴즈"를 완료하세요.');
-                    return;
-                }
+                if (!paletteUnlocked) { showModal('물감 잠금', '아직 물감이 모이지 않았어요. 4개 캔버스를 모두 해금한 뒤 "물감 모으기 퀴즈"를 완료하세요.'); return; }
                 selectedColorIndex = parseInt(btn.dataset.colorIndex,10);
                 document.querySelectorAll('.palette-button').forEach(b=>b.classList.remove('selected'));
                 btn.classList.add('selected');
             });
-
             paletteContainer.appendChild(btn);
         }
     }
 
     /* ---------------- 그리기 ---------------- */
-    function drawQuad(q){
+    function drawQuad(q, showGridNumbers) {
         const ctx = q.ctx;
-        ctx.clearRect(0,0,q.canvas.width,q.canvas.height);
-        ctx.strokeStyle = '#eee';
-        const fontSize = Math.max(6, Math.floor(CELL_SCALE * 0.5));
-        ctx.font = `bold ${fontSize}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
+        drawQuadToContext(q, ctx, CELL_SCALE, showGridNumbers);
+    }
+    function drawQuadToContext(q, ctx, scale, showGridNumbers) {
+        ctx.clearRect(0,0,q.w*scale,q.h*scale);
+        if (showGridNumbers) {
+            ctx.strokeStyle = '#e5e7eb';
+            const fontSize = Math.max(6, Math.floor(scale * 0.5));
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+        }
         for (let y=q.y; y<q.y+q.h; y++){
             for (let x=q.x; x<q.x+q.w; x++){
-                const cellX = (x - q.x) * CELL_SCALE;
-                const cellY = (y - q.y) * CELL_SCALE;
-                const idx = numberGrid[y][x];
+                const cellX = (x - q.x) * scale;
+                const cellY = (y - q.y) * scale;
+                const idx = (numberGrid[y] && numberGrid[y][x] !== undefined) ? numberGrid[y][x] : 0; // 안전장치
 
                 if (completedGrid[y][x]) {
-                    if (idx === 0) {
-                        ctx.fillStyle = '#f0f0f0';
-                    } else {
-                        ctx.fillStyle = paletteMap[idx];
-                    }
-                    ctx.fillRect(cellX, cellY, CELL_SCALE, CELL_SCALE);
+                    // 채워진 칸(완성된 그림)
+                    ctx.fillStyle = (idx === 0) ? '#f5f5f5' : paletteMap[idx];
+                    ctx.fillRect(cellX, cellY, scale, scale);
                 } else {
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(cellX, cellY, CELL_SCALE, CELL_SCALE);
-                    ctx.strokeRect(cellX, cellY, CELL_SCALE, CELL_SCALE);
-                    ctx.fillStyle = '#555';
-                    ctx.fillText(idx, cellX + CELL_SCALE/2, cellY + CELL_SCALE/2 + 1);
+                    // 미완성일 때만 가이드 표시
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(cellX, cellY, scale, scale);
+                    if (showGridNumbers) {
+                        ctx.strokeRect(cellX, cellY, scale, scale);
+                        ctx.fillStyle = '#555';
+                        ctx.fillText(idx, cellX + scale/2, cellY + scale/2 + 1);
+                    }
                 }
             }
         }
     }
-    function updateAllQuads(){ quadrants.forEach(drawQuad); }
+    function updateAllQuads(showGridNumbers=true){ quadrants.forEach(q=>drawQuad(q, showGridNumbers)); }
     function drawCellOnQuad(q, gx, gy){
         const ctx = q.ctx;
         const cellX = (gx - q.x) * CELL_SCALE;
         const cellY = (gy - q.y) * CELL_SCALE;
         const idx = numberGrid[gy][gx];
-        ctx.fillStyle = (idx===0)?'#f0f0f0':paletteMap[idx];
+        ctx.fillStyle = (idx===0)?'#f5f5f5':paletteMap[idx];
         ctx.fillRect(cellX, cellY, CELL_SCALE, CELL_SCALE);
     }
 
-    /* ---------------- 입력 처리 ---------------- */
-    function handleCanvasClickOnQuad(e, q){
+    /* ---------------- 확대(반응형 정수 배율) ---------------- */
+    function computeZoomScale(q){
+        const maxW = Math.floor(window.innerWidth * 0.95);
+        const maxH = Math.floor(window.innerHeight * 0.85);
+        const baseW = q.w * CELL_SCALE;
+        const baseH = q.h * CELL_SCALE;
+        const s = Math.max(1, Math.min(Math.floor(maxW/baseW), Math.floor(maxH/baseH)));
+        return s; // 1×, 2×, 3× …
+    }
+    function openZoom(quadIndex){
+        const q = quadrants[quadIndex];
+        if (!q.unlocked) { showModal('잠금', `캔버스 ${quadIndex+1}을(를) 먼저 퀴즈로 해금하세요.`); return; }
+
+        currentZoomQuad = q;
+        const zoomScale = computeZoomScale(q);
+        zoomCanvas.width  = q.w * CELL_SCALE * zoomScale;
+        zoomCanvas.height = q.h * CELL_SCALE * zoomScale;
+        zoomCtx.imageSmoothingEnabled = false;
+        drawQuadToContext(q, zoomCtx, CELL_SCALE*zoomScale, true);
+        zoomOverlay.style.display = 'flex';
+
+        window.addEventListener('resize', onResizeZoom, { passive:true });
+    }
+    function onResizeZoom(){
+        if (!currentZoomQuad || zoomOverlay.style.display==='none') return;
+        const q = currentZoomQuad;
+        const zoomScale = computeZoomScale(q);
+        zoomCanvas.width  = q.w * CELL_SCALE * zoomScale;
+        zoomCanvas.height = q.h * CELL_SCALE * zoomScale;
+        drawQuadToContext(q, zoomCtx, CELL_SCALE*zoomScale, true);
+    }
+    function closeZoom(){
+        zoomOverlay.style.display = 'none';
+        window.removeEventListener('resize', onResizeZoom);
+        currentZoomQuad = null;
+    }
+    zoomClose.addEventListener('click', closeZoom);
+    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeZoom(); });
+
+    zoomCanvas.addEventListener('click', (e)=>{
+        if (!currentZoomQuad) return;
+        const q = currentZoomQuad;
+        if (!paletteUnlocked) { showModal('물감이 없어요', '먼저 "물감 모으기 퀴즈"를 완료해 팔레트를 여세요.'); return; }
+        if (selectedColorIndex===0) { showModal('알림', '먼저 아래 팔레트에서 색상을 선택해주세요.'); return; }
+
+        const rect = zoomCanvas.getBoundingClientRect();
+        const scaleX = zoomCanvas.width / rect.width;
+        const scaleY = zoomCanvas.height/ rect.height;
+        const lx = (e.clientX - rect.left) * scaleX;
+        const ly = (e.clientY - rect.top)  * scaleY;
+
+        const zoomScale = zoomCanvas.width / (q.w * CELL_SCALE); // 현재 정수 배율
+        const cellScaleZoom = CELL_SCALE * zoomScale;
+        const gx = q.x + Math.floor(lx / cellScaleZoom);
+        const gy = q.y + Math.floor(ly / cellScaleZoom);
+
+        if (gx<q.x || gx>=q.x+q.w || gy<q.y || gy>=q.y+q.h) return;
+
+        const idx = numberGrid[gy][gx];
+        if (completedGrid[gy][gx] || idx===0) return;
+
+        if (idx === selectedColorIndex) {
+            completedGrid[gy][gx] = true;
+            completedCells++;
+            drawCellOnZoom(q, gx, gy, zoomScale);
+            drawCellOnQuad(q, gx, gy);
+            updateProgress();
+            checkCompletion();
+        } else {
+            zoomCanvas.classList.add('shake'); setTimeout(()=>zoomCanvas.classList.remove('shake'),250);
+        }
+    });
+    function drawCellOnZoom(q, gx, gy, zoomScale){
+        const cellScale = CELL_SCALE * zoomScale;
+        const cellX = (gx - q.x) * cellScale;
+        const cellY = (gy - q.y) * cellScale;
+        const idx = numberGrid[gy][gx];
+        zoomCtx.fillStyle = (idx===0)?'#f5f5f5':paletteMap[idx];
+        zoomCtx.fillRect(cellX, cellY, cellScale, cellScale);
+    }
+
+    /* ---------------- 입력(원 뷰에서 칠하기) ---------------- */
+    function handleCanvasClickOnQuadPaint(e, q){
         const rect = q.canvas.getBoundingClientRect();
         const scaleX = q.canvas.width / rect.width;
         const scaleY = q.canvas.height/ rect.height;
@@ -466,11 +622,7 @@
 
         const idx = numberGrid[gy][gx];
         if (completedGrid[gy][gx] || idx===0) return;
-
-        if (selectedColorIndex===0) {
-            showModal('알림', '먼저 아래 팔레트에서 색상을 선택해주세요.');
-            return;
-        }
+        if (selectedColorIndex===0) { showModal('알림', '먼저 아래 팔레트에서 색상을 선택해주세요.'); return; }
 
         if (idx === selectedColorIndex) {
             completedGrid[gy][gx] = true;
@@ -479,11 +631,11 @@
             updateProgress();
             checkCompletion();
         } else {
-            q.canvas.classList.add('shake'); setTimeout(()=>q.canvas.classList.remove('shake'),300);
-            showModal('이런!', '선택한 색상이 맞지 않습니다. 다시 확인해주세요.');
+            q.canvas.classList.add('shake'); setTimeout(()=>q.canvas.classList.remove('shake'),250);
         }
     }
 
+    /* ---------------- 진행률/완성 처리 ---------------- */
     function updateProgress(){
         if (totalCells===0) return;
         const percent = Math.floor((completedCells/totalCells)*100);
@@ -491,22 +643,25 @@
         progressText.textContent = `${percent}%`;
     }
     function checkCompletion(){
-        if (completedCells === totalCells) {
-            showModal('축하합니다!', '모든 픽셀을 완벽하게 색칠했습니다!');
-            updateAllQuads();
-        }
+        if (completedCells !== totalCells) return;
+
+        // 완료: 그리드/숫자 제거 → 완성 그림으로 변환
+        updateAllQuads(false); // showGridNumbers=false
+        showModal('축하합니다!', `스테이지 ${currentStageIndex} 완성!`);
+
+        // 다음 스테이지 해금
+        const nextIdx = currentStageIndex + 1;
+        const prevMax = getMaxUnlockedStage();
+        if (nextIdx > prevMax) setMaxUnlockedStage(nextIdx);
     }
 
     /* ---------------- 퀴즈 ---------------- */
-    function openQuiz(type, quadIndex=null){
-        // 간단 산수 퀴즈 생성
-        const q = generateMathQuestion();
-        currentQuiz = {
-            type,
-            quadIndex,
-            correct: q.correctIndex
-        };
+    let currentQuiz = null; // {type:'quad'|'paints', quadIndex, correct}
+    quizCancel.onclick = () => { quizModal.style.display='none'; currentQuiz=null; };
 
+    function openQuiz(type, quadIndex=null){
+        const q = generateMathQuestion();
+        currentQuiz = { type, quadIndex, correct: q.correctIndex };
         quizTitle.textContent = (type==='quad') ? `캔버스 ${quadIndex+1} 해금 퀴즈` : '물감 모으기 퀴즈';
         quizQuestion.textContent = q.question;
         quizChoices.innerHTML = '';
@@ -525,27 +680,27 @@
         quizModal.style.display = 'none';
         currentQuiz = null;
 
-        if (!ok){
-            showModal('오답', '아쉽지만 다시 도전해보세요!');
-            return;
-        }
+        if (!ok){ showModal('오답', '다시 도전해보세요!'); return; }
 
         if (type==='quad'){
-            // 정답 → 해당 캔버스 해금
             const q = quadrants[quadIndex];
             q.unlocked = true;
             q.lockEl.classList.add('hidden');
 
-            // 바로 캔버스 렌더(번호 보이게)
-            drawQuad(q);
+            // 해금 후: 기본 클릭은 칠하기, 보조키(Ctrl/⌘/Shift)로 바로 확대
+            q.canvas.onclick = (ev)=>{
+                if (!q.unlocked) return;
+                if (ev.ctrlKey || ev.metaKey || ev.shiftKey) { openZoom(quadIndex); return; }
+                handleCanvasClickOnQuadPaint(ev, q);
+            };
 
+            drawQuad(q, true);
             nextQuadToUnlock++;
             if (nextQuadToUnlock>=4){
-                // 4개 모두 해금 → 물감 퀴즈 Gate 표시
                 paintsGate.classList.remove('hidden');
-                showModal('해금 완료', '4개 캔버스를 모두 열었습니다! 이제 물감 모으기 퀴즈를 완료해 팔레트를 여세요.');
+                showModal('해금 완료', '4개 캔버스를 모두 열었습니다! 이제 물감 모으기 퀴즈로 팔레트를 여세요.');
             } else {
-                showModal('해금 성공', `캔버스 ${quadIndex+1}이(가) 열렸습니다. 다음은 캔버스 ${nextQuadToUnlock+1}!`);
+                showModal('해금 성공', `캔버스 ${quadIndex+1} 해금! 다음은 ${nextQuadToUnlock+1}번 캔버스입니다.`);
             }
         } else if (type==='paints'){
             paintsQuizCount++;
@@ -557,17 +712,14 @@
                 paletteUnlocked = true;
                 paintsGate.classList.add('hidden');
                 paletteContainer.classList.remove('hidden');
-
-                // 팔레트 잠금 해제 반영
                 buildPaletteUI(false);
-                showModal('팔레트 오픈', '모든 물감을 모았습니다! 이제 색칠을 시작하세요.');
+                showModal('팔레트 오픈', '모든 물감을 모았습니다! 색칠을 시작하세요.');
             } else {
                 showModal('정답!', '좋아요! 계속 진행해 물감을 모두 모아보세요.');
             }
         }
     }
     function generateMathQuestion(){
-        // 아주 간단한 산수 (난도 보정)
         const a = Math.floor(Math.random()*9)+2;
         const b = Math.floor(Math.random()*9)+2;
         const ops = ['+','-','×'];
@@ -580,29 +732,29 @@
         const choices = new Set([ans]);
         while (choices.size<4){
             const delta = Math.floor(Math.random()*6)-3;
-            const fake = ans + delta + (delta===0?3:0);
+            const fake = ans + (delta===0?3:delta);
             choices.add(fake);
         }
         const arr = Array.from(choices);
-        // 정답 섞기
-        for (let i=arr.length-1;i>0;i--){
-            const j = Math.floor(Math.random()*(i+1));
-            [arr[i],arr[j]]=[arr[j],arr[i]];
-        }
+        for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
         const correctIndex = arr.indexOf(ans);
         return { question:`${a} ${op} ${b} = ?`, choices:arr, correctIndex };
     }
 
     /* ---------------- 이벤트 ---------------- */
-    startButton.addEventListener('click', ()=> showView('lobbyScreen'));
-    backButton.addEventListener('click', ()=> showView('lobbyScreen'));
+    startButton.addEventListener('click', ()=>{
+        if (!localStorage.getItem(LS_MAX_UNLOCK)) setMaxUnlockedStage(1);
+        showView('lobbyScreen');
+        populateLobby();
+    });
+    backButton.addEventListener('click', ()=> { showView('lobbyScreen'); populateLobby(); });
+
     startPaintsQuizBtn.addEventListener('click', ()=>{
         if (nextQuadToUnlock<4){ showModal('안내','먼저 4개 캔버스를 모두 해금하세요.'); return; }
         openQuiz('paints');
     });
 
     /* ---------------- 시작 ---------------- */
-    populateLobby();
     showView('titleScreen');
 </script>
 </body>
