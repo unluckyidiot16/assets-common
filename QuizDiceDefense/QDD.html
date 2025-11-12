@@ -569,7 +569,7 @@
 
     </style>
     <link rel="icon" href="data:,">
-    <script src="../../ClassGame/AUTOPPT/src/utils/supaRpc.ts"></script>
+    <!-- removed: invalid TypeScript include (supaRpc.ts) -->
 </head>
 <body>
 
@@ -1847,11 +1847,11 @@
 
         if (typeof rogueliteButtons === 'object') {
             rogueliteButtons.hpMax = {
-                    btn:  document.getElementById('roguelite-hpmax-btn'),
-                    desc: document.getElementById('roguelite-hpmax-desc'),
-                    cost: document.getElementById('roguelite-hpmax-cost')
-              };
-            }
+                btn:  document.getElementById('roguelite-hpmax-btn'),
+                desc: document.getElementById('roguelite-hpmax-desc'),
+                cost: document.getElementById('roguelite-hpmax-cost')
+            };
+        }
 
 
         // 영구 강화 구매 버튼
@@ -2131,10 +2131,13 @@
 </script>
 <script>
     /* === QDD v3.3: HP Max Roguelite + Merge Perks & +50% Damage (drop-in) === */
-    (function(){
+    const __QDD_V33_APPLY__ = function(){
         const FPS = 60;
         const PERK_COOLDOWN = Math.round(6.1*FPS); // 6.1초
-        const PERK_COLORS = {
+        // 퍼크 굴림 기본 확률(눈금당). 외부에서 window.PERK_ROLL_PER_PIP 로 재정의 가능
+        const PERK_ROLL_PER_PIP = (typeof window !== 'undefined' && typeof window.PERK_ROLL_PER_PIP === 'number')
+            ? window.PERK_ROLL_PER_PIP
+            : 0.15;        const PERK_COLORS = {
             multishot:'#ff66aa', bounce:'#66ccff', range:'#66ff66',
             selfAS:'#ffaa00', auraAS:'#00ccff', auraATK:'#ffcc00'
         };
@@ -2220,6 +2223,7 @@
             if (typeof d.tempSpeedMult!=='number') d.tempSpeedMult = 1;
             if (typeof d.tempDamageMult!=='number') d.tempDamageMult = 1;
             if (typeof d.perkCooldown!=='number') d.perkCooldown = 0;
+            if (d.perk && !d.borderColor) d.borderColor = PERK_COLORS[d.perk.type] || '#ffffff';
             return d;
         }
         function grantRandomPerk(d){
@@ -2262,9 +2266,10 @@
                                 createDamageNumber(c.x + 35, c.y + 35, "BONUS!", "#f1c40f");
                             }
 
-                            // 퍼크 굴림: 확률 = 눈금 × 10%
+                            // 퍼크 굴림: 확률 = 눈금 × 15% (상한 100%)
                             const pips = diceGrid[dropIndex].pips|0;
-                            if (Math.random() < Math.min(1, pips*0.15)) {
+                            const PERK_ROLL_PER_PIP = 1; // 필요 시 여기만 조절
+                            if (Math.random() < Math.min(1, pips * PERK_ROLL_PER_PIP)) {
                                 grantRandomPerk(dropDice);
                             }
 
@@ -2342,7 +2347,8 @@
                     if (die && die.perk) {
                         ctx.save();
                         ctx.lineWidth = 4;
-                        ctx.strokeStyle = die.borderColor || '#ffffff';
+                        const perkColor = (die.perk && PERK_COLORS[die.perk.type]) || die.borderColor || '#ffffff';
+                        ctx.strokeStyle = perkColor;
                         ctx.beginPath();
                         ctx.roundRect(x, y, 70, 70, 10);
                         ctx.stroke();
@@ -2432,7 +2438,16 @@
                 }
             };
         }
-    })();
+
+        console.log('[QDD v3.3] patch applied');
+        window.__QDD_V33_ACTIVE__ = true;
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', __QDD_V33_APPLY__);
+    } else {
+        __QDD_V33_APPLY__();
+    }
+    ;
 </script>
 </body>
 </html>
