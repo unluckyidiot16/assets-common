@@ -613,6 +613,12 @@
                 <div class="roguelite-cost" id="roguelite-quizQP-cost">비용: 300 KP</div>
             </div>
             <div class="roguelite-upgrade-item">
+                <h3>최대 HP 증가</h3>
+                <p id="roguelite-hpmax-desc">최대 HP가 5 증가합니다. (현재 +0)</p>
+                <button id="roguelite-hpmax-btn" class="roguelite-upgrade-btn">강화</button>
+                <div class="roguelite-cost" id="roguelite-hpmax-cost">비용: 180 KP</div>
+            </div>
+            <div class="roguelite-upgrade-item">
                 <h3>상위 소환 확률</h3>
                 <p id="roguelite-highSpawn-desc">다이스 소환 시 1% 확률로 2성 등장. (현재 0%)</p>
                 <button id="roguelite-highSpawn-btn" class="roguelite-upgrade-btn">강화</button>
@@ -898,7 +904,7 @@
     let resources = 100;
     let summonCost = 50;
     let playerHP = 20;
-    const MAX_HP = 20;
+    let MAX_HP = 20;
     let wave = 0;
     const MAX_WAVE = 50; // [신규] 최대 웨이브
     let enemiesToSpawn = 0;
@@ -1091,7 +1097,8 @@
         resourceDisplay.textContent = `QP: ${resources}`;
         summonCostDisplay.textContent = `비용: ${summonCost} QP`;
         summonBtn.disabled = resources < summonCost;
-        hpDisplay.textContent = `${playerHP}`;
+        const hpMaxEl = document.getElementById('player-hp-max');
+        if (hpMaxEl) hpMaxEl.textContent = `${MAX_HP}`;
         waveDisplay.textContent = `${wave}`;
 
         DICE_TYPES.forEach(type => {
@@ -1598,6 +1605,7 @@
         return {
             startQP: { level: 1, cost: 100 },
             quizQP: { level: 1, cost: 150 },
+            hpMax:    { level: 1, cost: 180 },
             highSpawn: { level: 1, cost: 200 },
             mergeBonus: { level: 1, cost: 250 }
         };
@@ -1617,6 +1625,10 @@
         rogueliteButtons.quizQP.desc.textContent = `퀴즈 보상이 10% 증가합니다. (현재 +${(rgu.level - 1) * 10}%)`;
         rogueliteButtons.quizQP.cost.textContent = `비용: ${rgu.cost} KP`;
         rogueliteButtons.quizQP.btn.disabled = totalKnowledgePoints < rgu.cost;
+        rgu = rogueliteUpgrades.hpMax;
+        rogueliteButtons.hpMax.desc.textContent = `최대 HP가 5 증가합니다. (현재 +${(rgu.level - 1) * 5})`;
+        rogueliteButtons.hpMax.cost.textContent = `비용: ${rgu.cost} KP`;
+        rogueliteButtons.hpMax.btn.disabled = totalKnowledgePoints < rgu.cost;
         rgu = rogueliteUpgrades.highSpawn;
         rogueliteButtons.highSpawn.desc.textContent = `2성 소환 확률이 1% 증가합니다. (현재 ${(rgu.level - 1) * 1}%)`;
         rogueliteButtons.highSpawn.cost.textContent = `비용: ${rgu.cost} KP`;
@@ -1674,6 +1686,7 @@
         try {
             totalKnowledgePoints = parseInt(localStorage.getItem(KP_KEY)) || 0;
             rogueliteUpgrades = JSON.parse(localStorage.getItem(ROGUELITE_KEY)) || initRogueliteUpgrades();
+            if (!rogueliteUpgrades.hpMax) rogueliteUpgrades.hpMax = { level: 1, cost: 180 };
             achievements = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)) || initAchievements();
         } catch (e) {
             console.error("Failed to load game data, resetting:", e);
@@ -1724,6 +1737,7 @@
 
         resources = 100 + ((rogueliteUpgrades && rogueliteUpgrades.startQP ? rogueliteUpgrades.startQP.level : 1) - 1) * 20;
         summonCost = 50;
+        MAX_HP = 20 + ((rogueliteUpgrades?.hpMax?.level ?? 1) - 1) * 5;
         playerHP = MAX_HP;
         wave = 0;
         enemiesToSpawn = 0;
@@ -1831,9 +1845,19 @@
             hideModal(achievementsModal);
         };
 
+        if (typeof rogueliteButtons === 'object') {
+            rogueliteButtons.hpMax = {
+                    btn:  document.getElementById('roguelite-hpmax-btn'),
+                    desc: document.getElementById('roguelite-hpmax-desc'),
+                    cost: document.getElementById('roguelite-hpmax-cost')
+              };
+            }
+
+
         // 영구 강화 구매 버튼
         rogueliteButtons.startQP.btn.onclick = () => buyRogueliteUpgrade('startQP');
         rogueliteButtons.quizQP.btn.onclick = () => buyRogueliteUpgrade('quizQP');
+        rogueliteButtons.hpMax.btn.onclick     = () => buyRogueliteUpgrade('hpMax');
         rogueliteButtons.highSpawn.btn.onclick = () => buyRogueliteUpgrade('highSpawn');
         rogueliteButtons.mergeBonus.btn.onclick = () => buyRogueliteUpgrade('mergeBonus');
     });
@@ -2361,7 +2385,7 @@
                         die.perkCooldown--;
                         if (die.perkCooldown<=0){
                             const dur = (die.pips|0) * FPS;      // pips초
-                            const val = (die.pips|0) * 0.10;     // +pips*10%
+                            const val = (die.pips|0) * 0.15;     // +pips*10%
                             if (die.perk.type==='selfAS'){
                                 die.buffs.push({type:'as', v:val, t:dur});
                             } else if (die.perk.type==='auraAS'){
