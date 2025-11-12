@@ -1,200 +1,5 @@
 [
   {
-    "question": "287을 백의 자리에서 반올림하면?",
-    "options": [
-      "500",
-      "200",
-      "300",
-      "400"
-    ],
-    "answer": 2,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "941을 백의 자리에서 반올림하면?",
-    "options": [
-      "1000",
-      "800",
-      "900",
-      "700"
-    ],
-    "answer": 2,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "125을 백의 자리에서 반올림하면?",
-    "options": [
-      "200",
-      "100",
-      "-100",
-      "0"
-    ],
-    "answer": 1,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "368을 십의 자리에서 반올림하면?",
-    "options": [
-      "380",
-      "370",
-      "350",
-      "360"
-    ],
-    "answer": 1,
-    "difficulty": "easy",
-    "reward": 50,
-    "time": 10
-  },
-  {
-    "question": "749을 백의 자리에서 반올림하면?",
-    "options": [
-      "900",
-      "800",
-      "600",
-      "700"
-    ],
-    "answer": 3,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "150을 백의 자리에서 반올림하면?",
-    "options": [
-      "300",
-      "100",
-      "0",
-      "200"
-    ],
-    "answer": 3,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "999을 백의 자리에서 반올림하면?",
-    "options": [
-      "1100",
-      "1050",
-      "900",
-      "1000"
-    ],
-    "answer": 3,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "430을 백의 자리에서 반올림하면?",
-    "options": [
-      "400",
-      "450",
-      "500",
-      "300"
-    ],
-    "answer": 0,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "512을 십의 자리에서 반올림하면?",
-    "options": [
-      "500",
-      "510",
-      "520",
-      "490"
-    ],
-    "answer": 1,
-    "difficulty": "easy",
-    "reward": 50,
-    "time": 10
-  },
-  {
-    "question": "675을 백의 자리에서 반올림하면?",
-    "options": [
-      "700",
-      "800",
-      "500",
-      "600"
-    ],
-    "answer": 0,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "832을 백의 자리에서 반올림하면?",
-    "options": [
-      "700",
-      "800",
-      "900",
-      "1000"
-    ],
-    "answer": 1,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "219을 십의 자리에서 반올림하면?",
-    "options": [
-      "210",
-      "230",
-      "220",
-      "200"
-    ],
-    "answer": 2,
-    "difficulty": "easy",
-    "reward": 50,
-    "time": 10
-  },
-  {
-    "question": "450을 십의 자리에서 반올림하면?",
-    "options": [
-      "455",
-      "450",
-      "440",
-      "460"
-    ],
-    "answer": 1,
-    "difficulty": "easy",
-    "reward": 50,
-    "time": 10
-  },
-  {
-    "question": "481을 백의 자리에서 반올림하면?",
-    "options": [
-      "600",
-      "550",
-      "400",
-      "500"
-    ],
-    "answer": 3,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "731을 백의 자리에서 반올림하면?",
-    "options": [
-      "700",
-      "750",
-      "800",
-      "600"
-    ],
-    "answer": 0,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
     "question": "다음 중 300 이상 400 미만인 수는?",
     "options": [
       "250",
@@ -323,84 +128,6 @@
     "difficulty": "easy",
     "reward": 50,
     "time": 10
-  },
-  {
-    "question": "198×5의 값을 어림한 값으로 가장 알맞은 것은?",
-    "options": [
-      "1190",
-      "890",
-      "940",
-      "1000"
-    ],
-    "answer": 3,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "49×19의 값을 어림한 값으로 가장 알맞은 것은?",
-    "options": [
-      "1900",
-      "1031",
-      "980",
-      "1000"
-    ],
-    "answer": 2,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "102×29의 값을 어림한 값으로 가장 알맞은 것은?",
-    "options": [
-      "3060",
-      "2900",
-      "5800",
-      "2000"
-    ],
-    "answer": 1,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "305×21의 값을 어림한 값으로 가장 알맞은 것은?",
-    "options": [
-      "6000",
-      "8400",
-      "6300",
-      "6100"
-    ],
-    "answer": 2,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "678×9의 값을 어림한 값으로 가장 알맞은 것은?",
-    "options": [
-      "6800",
-      "6780",
-      "6300",
-      "6052"
-    ],
-    "answer": 3,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
-  },
-  {
-    "question": "399×22의 값을 어림한 값으로 가장 알맞은 것은?",
-    "options": [
-      "8000",
-      "6000",
-      "8800",
-      "7980"
-    ],
-    "answer": 2,
-    "difficulty": "medium",
-    "reward": 100,
-    "time": 15
   },
   {
     "question": "2/3 × 6의 값은?",
@@ -2340,263 +2067,536 @@
     "time": 15
   },
   {
-    "question": "0.7×49의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "question": "3.7×15의 값은?",
     "options": [
-      "34.8",
-      "33.3",
-      "35.3",
-      "34.3"
-    ],
-    "answer": 3,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "1.9×27의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "52.3",
-      "51.8",
-      "51.3",
-      "50.3"
-    ],
-    "answer": 2,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "2.7×38의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "103.6",
-      "101.6",
-      "102.6",
-      "103.1"
-    ],
-    "answer": 2,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "3.6×19의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "68.9",
-      "67.4",
-      "68.4",
-      "69.4"
-    ],
-    "answer": 2,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "0.8×47의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "36.6",
-      "38.6",
-      "37.6",
-      "38.1"
-    ],
-    "answer": 2,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "1.4×39의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "55.6",
-      "53.6",
-      "54.6",
-      "55.1"
-    ],
-    "answer": 2,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "2.9×24의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "70.1",
-      "69.6",
-      "70.6",
-      "68.6"
-    ],
-    "answer": 1,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "0.6×73의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "44.8",
-      "42.8",
-      "44.3",
-      "43.8"
-    ],
-    "answer": 3,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "1.3×58의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "74.4",
-      "75.4",
-      "76.4",
-      "75.9"
-    ],
-    "answer": 1,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "0.9×64의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "58.6",
-      "58.1",
-      "56.6",
-      "57.6"
-    ],
-    "answer": 3,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "1.7×43의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "73.6",
-      "74.1",
-      "73.1",
-      "72.1"
-    ],
-    "answer": 2,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "1.5×37의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "54.5",
       "55.5",
+      "56",
       "56.5",
-      "56"
+      "55.7"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.6×53의 값은?",
+    "options": [
+      "31.6",
+      "31.3",
+      "32.8",
+      "31.8"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.5×83의 값은?",
+    "options": [
+      "41.5",
+      "41",
+      "42.5",
+      "40.5"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.7×63의 값은?",
+    "options": [
+      "169.1",
+      "170.1",
+      "169.9",
+      "169.6"
     ],
     "answer": 1,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "2.8×29의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "question": "1.7×82의 값은?",
     "options": [
-      "82.2",
-      "81.7",
-      "80.2",
-      "81.2"
+      "139.6",
+      "138.4",
+      "139.4",
+      "140.4"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1.9×61의 값은?",
+    "options": [
+      "115.9",
+      "115.7",
+      "114.9",
+      "116.4"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3.9×8의 값은?",
+    "options": [
+      "31.2",
+      "31.7",
+      "31",
+      "30.2"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.3×42의 값은?",
+    "options": [
+      "96.8",
+      "96.6",
+      "95.6",
+      "96.4"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.2×49의 값은?",
+    "options": [
+      "9.8",
+      "8.8",
+      "10.8",
+      "10.3"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.3×69의 값은?",
+    "options": [
+      "20.2",
+      "20.7",
+      "21.7",
+      "20.5"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1.1×38의 값은?",
+    "options": [
+      "41.3",
+      "42.8",
+      "40.8",
+      "41.8"
     ],
     "answer": 3,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "3.4×21의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "question": "1.7×98의 값은?",
     "options": [
-      "71.4",
-      "71.9",
-      "70.4",
-      "72.4"
-    ],
-    "answer": 0,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "0.5×93의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "45.5",
-      "47",
-      "47.5",
-      "46.5"
+      "167.1",
+      "165.6",
+      "166.8",
+      "166.6"
     ],
     "answer": 3,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "1.2×67의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "question": "1.6×82의 값은?",
     "options": [
-      "79.4",
-      "80.9",
-      "80.4",
-      "81.4"
+      "132.2",
+      "131",
+      "131.4",
+      "131.2"
     ],
-    "answer": 2,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "0.4×87의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "question": "3.9×76의 값은?",
     "options": [
-      "35.8",
-      "35.3",
-      "34.8",
-      "33.8"
-    ],
-    "answer": 2,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "2.6×34의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "87.4",
-      "89.4",
-      "88.4",
-      "88.9"
-    ],
-    "answer": 2,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
-  },
-  {
-    "question": "3.7×18의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
-    "options": [
-      "66.6",
-      "65.6",
-      "67.1",
-      "67.6"
+      "296.4",
+      "296.6",
+      "295.4",
+      "296.2"
     ],
     "answer": 0,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "2.2×41의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "question": "2.2×38의 값은?",
     "options": [
-      "90.2",
-      "89.2",
-      "90.7",
-      "91.2"
+      "83.8",
+      "83.4",
+      "83.6",
+      "82.6"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.3×47의 값은?",
+    "options": [
+      "107.9",
+      "109.1",
+      "107.1",
+      "108.1"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3.3×88의 값은?",
+    "options": [
+      "290.2",
+      "289.4",
+      "290.4",
+      "291.4"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.2×79의 값은?",
+    "options": [
+      "15.6",
+      "15.3",
+      "15.8",
+      "14.8"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1.4×86의 값은?",
+    "options": [
+      "120.4",
+      "121.4",
+      "119.9",
+      "120.2"
     ],
     "answer": 0,
-    "difficulty": "hard",
-    "reward": 150,
-    "time": 20
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3.1×85의 값은?",
+    "options": [
+      "263.5",
+      "263",
+      "262.5",
+      "263.7"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.7×56의 값은?",
+    "options": [
+      "150.7",
+      "151.4",
+      "151.2",
+      "151"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3.3×74의 값은?",
+    "options": [
+      "244.2",
+      "243.2",
+      "243.7",
+      "244.4"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3.1×44의 값은?",
+    "options": [
+      "136.2",
+      "135.9",
+      "136.4",
+      "135.4"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.1×88의 값은?",
+    "options": [
+      "184.8",
+      "183.8",
+      "184.6",
+      "184.3"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.4×26의 값은?",
+    "options": [
+      "9.4",
+      "10.9",
+      "9.9",
+      "10.4"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1.7×38의 값은?",
+    "options": [
+      "64.1",
+      "64.4",
+      "64.6",
+      "65.6"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.8×98의 값은?",
+    "options": [
+      "273.4",
+      "274.6",
+      "274.2",
+      "274.4"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.8×72의 값은?",
+    "options": [
+      "202.6",
+      "201.4",
+      "201.6",
+      "202.1"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.2×67의 값은?",
+    "options": [
+      "147.6",
+      "147.2",
+      "146.9",
+      "147.4"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.4×23의 값은?",
+    "options": [
+      "55.2",
+      "54.2",
+      "54.7",
+      "55.4"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1.1×67의 값은?",
+    "options": [
+      "74.2",
+      "72.7",
+      "74.7",
+      "73.7"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.9×13의 값은?",
+    "options": [
+      "11.7",
+      "11.9",
+      "10.7",
+      "12.2"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1.2×46의 값은?",
+    "options": [
+      "55.2",
+      "56.2",
+      "55.7",
+      "54.2"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3.8×64의 값은?",
+    "options": [
+      "243.4",
+      "243",
+      "242.7",
+      "243.2"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.1×88의 값은?",
+    "options": [
+      "185.3",
+      "184.8",
+      "185.8",
+      "183.8"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.7×46의 값은?",
+    "options": [
+      "125.2",
+      "124.4",
+      "124.2",
+      "124"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.3×87의 값은?",
+    "options": [
+      "25.6",
+      "25.1",
+      "26.1",
+      "26.3"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.2×63의 값은?",
+    "options": [
+      "11.6",
+      "13.6",
+      "12.4",
+      "12.6"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3.6×96의 값은?",
+    "options": [
+      "344.6",
+      "345.1",
+      "346.1",
+      "345.6"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.9×64의 값은?",
+    "options": [
+      "57.6",
+      "58.6",
+      "57.8",
+      "56.6"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.2×28의 값은?",
+    "options": [
+      "61.6",
+      "61.1",
+      "62.1",
+      "62.6"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   }
 ]
