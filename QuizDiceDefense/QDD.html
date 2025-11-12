@@ -911,8 +911,8 @@
     let damageNumbers = [];
 
     let diceUpgrades = {};
-    const UPGRADE_COST_SCALING = 1.5;
-    const UPGRADE_COST_START = 100;
+    const UPGRADE_COST_START = 10;
+    const UPGRADE_COST_STEP  = 5;
 
     let totalKnowledgePoints = 0;
     let rogueliteUpgrades = {};
@@ -1104,7 +1104,8 @@
         if (resources >= upgrade.cost) {
             resources -= upgrade.cost;
             upgrade.level++;
-            upgrade.cost = Math.floor(upgrade.cost * UPGRADE_COST_SCALING);
+            // 곱셈 스케일 대신 고정 증가(+5)
+            upgrade.cost += UPGRADE_COST_STEP;
             updateUI();
         }
     }
@@ -1959,14 +1960,14 @@
             };
         }
 
-        /* 4) 인게임 강화 시작가 반값 */
+        /* 4) 인게임 강화 시작가/증가 고정: 10 시작, 이후 +5 (반값 보정 제거) */
         if (typeof initInGameUpgrades === 'function') {
             const __initIG = initInGameUpgrades;
             initInGameUpgrades = function(){
                 __initIG();
                 try {
                     Object.values(diceUpgrades || {}).forEach(u => {
-                        if (u && typeof u.cost === 'number') u.cost = Math.max(1, Math.round(u.cost * 0.5));
+                        if (u) u.cost = Math.max(10, u.cost); // 시작가를 10 이상으로 고정
                     });
                     if (typeof updateUI === 'function') updateUI();
                 } catch(_) {}
