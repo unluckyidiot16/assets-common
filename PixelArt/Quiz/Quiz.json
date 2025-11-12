@@ -1690,5 +1690,1790 @@
       "difficulty": "보통",
       "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
     }
+  },
+  {
+    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
+    "choices": [
+      "열심히 앞장서서 나서다",
+      "신발을 벗고 쉬다",
+      "급히 도망가다",
+      "춤을 추다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q101",
+      "subject": "국어",
+      "standard_code": "5국-어휘-관용표현",
+      "difficulty": "보통",
+      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q102",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "띄어쓰기가 바른 문장은?",
+    "choices": [
+      "학교에 가요.",
+      "학교 에가요.",
+      "학교 에 가요.",
+      "학교에가요."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q103",
+      "subject": "국어",
+      "standard_code": "5국-문장-띄어쓰기",
+      "difficulty": "보통",
+      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
+    }
+  },
+  {
+    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
+    "choices": [
+      "사실과 자료 제시",
+      "글쓴이의 기분",
+      "문장의 길이",
+      "글자체의 멋"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q104",
+      "subject": "국어",
+      "standard_code": "5국-읽기-주장근거",
+      "difficulty": "보통",
+      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
+    }
+  },
+  {
+    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
+    "choices": [
+      "열심히 앞장서서 나서다",
+      "신발을 벗고 쉬다",
+      "급히 도망가다",
+      "춤을 추다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q105",
+      "subject": "국어",
+      "standard_code": "5국-어휘-관용표현",
+      "difficulty": "보통",
+      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q106",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "매체 자료의 신뢰도를 판단할 때 가장 중요한 요소는?",
+    "choices": [
+      "출처와 제작자의 전문성",
+      "광고 색상",
+      "영상 길이",
+      "조회수"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q107",
+      "subject": "국어",
+      "standard_code": "5국-매체-신뢰도",
+      "difficulty": "보통",
+      "explanation": "출처·전문성·근거의 정확성과 최신성을 봅니다."
+    }
+  },
+  {
+    "question": "띄어쓰기가 바른 문장은?",
+    "choices": [
+      "학교에 가요.",
+      "학교 에가요.",
+      "학교 에 가요.",
+      "학교에가요."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q108",
+      "subject": "국어",
+      "standard_code": "5국-문장-띄어쓰기",
+      "difficulty": "보통",
+      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
+    }
+  },
+  {
+    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
+    "choices": [
+      "열심히 앞장서서 나서다",
+      "신발을 벗고 쉬다",
+      "급히 도망가다",
+      "춤을 추다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q109",
+      "subject": "국어",
+      "standard_code": "5국-어휘-관용표현",
+      "difficulty": "보통",
+      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
+    }
+  },
+  {
+    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
+    "choices": [
+      "사실과 자료 제시",
+      "글쓴이의 기분",
+      "문장의 길이",
+      "글자체의 멋"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q110",
+      "subject": "국어",
+      "standard_code": "5국-읽기-주장근거",
+      "difficulty": "보통",
+      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q111",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "띄어쓰기가 바른 문장은?",
+    "choices": [
+      "학교에 가요.",
+      "학교 에가요.",
+      "학교 에 가요.",
+      "학교에가요."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q112",
+      "subject": "국어",
+      "standard_code": "5국-문장-띄어쓰기",
+      "difficulty": "보통",
+      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
+    }
+  },
+  {
+    "question": "띄어쓰기가 바른 문장은?",
+    "choices": [
+      "학교에 가요.",
+      "학교 에가요.",
+      "학교 에 가요.",
+      "학교에가요."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q113",
+      "subject": "국어",
+      "standard_code": "5국-문장-띄어쓰기",
+      "difficulty": "보통",
+      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q114",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q115",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q116",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
+    "choices": [
+      "사실과 자료 제시",
+      "글쓴이의 기분",
+      "문장의 길이",
+      "글자체의 멋"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q117",
+      "subject": "국어",
+      "standard_code": "5국-읽기-주장근거",
+      "difficulty": "보통",
+      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
+    }
+  },
+  {
+    "question": "띄어쓰기가 바른 문장은?",
+    "choices": [
+      "학교에 가요.",
+      "학교 에가요.",
+      "학교 에 가요.",
+      "학교에가요."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q118",
+      "subject": "국어",
+      "standard_code": "5국-문장-띄어쓰기",
+      "difficulty": "보통",
+      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q119",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "띄어쓰기가 바른 문장은?",
+    "choices": [
+      "학교에 가요.",
+      "학교 에가요.",
+      "학교 에 가요.",
+      "학교에가요."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q120",
+      "subject": "국어",
+      "standard_code": "5국-문장-띄어쓰기",
+      "difficulty": "보통",
+      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q121",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
+    "choices": [
+      "열심히 앞장서서 나서다",
+      "신발을 벗고 쉬다",
+      "급히 도망가다",
+      "춤을 추다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q122",
+      "subject": "국어",
+      "standard_code": "5국-어휘-관용표현",
+      "difficulty": "보통",
+      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q123",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
+    "choices": [
+      "열심히 앞장서서 나서다",
+      "신발을 벗고 쉬다",
+      "급히 도망가다",
+      "춤을 추다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q124",
+      "subject": "국어",
+      "standard_code": "5국-어휘-관용표현",
+      "difficulty": "보통",
+      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
+    }
+  },
+  {
+    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
+    "choices": [
+      "열심히 앞장서서 나서다",
+      "신발을 벗고 쉬다",
+      "급히 도망가다",
+      "춤을 추다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q125",
+      "subject": "국어",
+      "standard_code": "5국-어휘-관용표현",
+      "difficulty": "보통",
+      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q126",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
+    "choices": [
+      "사실과 자료 제시",
+      "글쓴이의 기분",
+      "문장의 길이",
+      "글자체의 멋"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q127",
+      "subject": "국어",
+      "standard_code": "5국-읽기-주장근거",
+      "difficulty": "보통",
+      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
+    }
+  },
+  {
+    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
+    "choices": [
+      "사실과 자료 제시",
+      "글쓴이의 기분",
+      "문장의 길이",
+      "글자체의 멋"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q128",
+      "subject": "국어",
+      "standard_code": "5국-읽기-주장근거",
+      "difficulty": "보통",
+      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q129",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
+    "choices": [
+      "사실과 자료 제시",
+      "글쓴이의 기분",
+      "문장의 길이",
+      "글자체의 멋"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q130",
+      "subject": "국어",
+      "standard_code": "5국-읽기-주장근거",
+      "difficulty": "보통",
+      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
+    }
+  },
+  {
+    "question": "띄어쓰기가 바른 문장은?",
+    "choices": [
+      "학교에 가요.",
+      "학교 에가요.",
+      "학교 에 가요.",
+      "학교에가요."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q131",
+      "subject": "국어",
+      "standard_code": "5국-문장-띄어쓰기",
+      "difficulty": "보통",
+      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
+    }
+  },
+  {
+    "question": "띄어쓰기가 바른 문장은?",
+    "choices": [
+      "학교에 가요.",
+      "학교 에가요.",
+      "학교 에 가요.",
+      "학교에가요."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q132",
+      "subject": "국어",
+      "standard_code": "5국-문장-띄어쓰기",
+      "difficulty": "보통",
+      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
+    }
+  },
+  {
+    "question": "매체 자료의 신뢰도를 판단할 때 가장 중요한 요소는?",
+    "choices": [
+      "출처와 제작자의 전문성",
+      "광고 색상",
+      "영상 길이",
+      "조회수"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q133",
+      "subject": "국어",
+      "standard_code": "5국-매체-신뢰도",
+      "difficulty": "보통",
+      "explanation": "출처·전문성·근거의 정확성과 최신성을 봅니다."
+    }
+  },
+  {
+    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
+    "choices": [
+      "열심히 앞장서서 나서다",
+      "신발을 벗고 쉬다",
+      "급히 도망가다",
+      "춤을 추다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q134",
+      "subject": "국어",
+      "standard_code": "5국-어휘-관용표현",
+      "difficulty": "보통",
+      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
+    }
+  },
+  {
+    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
+    "choices": [
+      "글의 중심 생각",
+      "글의 글자 수",
+      "글쓴이의 나이",
+      "그림의 해상도"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q135",
+      "subject": "국어",
+      "standard_code": "5국-읽기-중심내용",
+      "difficulty": "보통",
+      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q136",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "길을 물을 때 알맞은 표현은?",
+    "choices": [
+      "Excuse me, how can I get to the museum?",
+      "What color is it?",
+      "I have two pencils.",
+      "This is my mother."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q137",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-길묻기",
+      "difficulty": "보통",
+      "explanation": "공손한 표현 + how can I get to ~?"
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q138",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "‘함께 놀자’에 알맞은 표현은?",
+    "choices": [
+      "Let's play together.",
+      "Please be quiet.",
+      "How old are you?",
+      "I am hungry."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q139",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-제안",
+      "difficulty": "보통",
+      "explanation": "Let's + 동사원형으로 제안합니다."
+    }
+  },
+  {
+    "question": "‘함께 놀자’에 알맞은 표현은?",
+    "choices": [
+      "Let's play together.",
+      "Please be quiet.",
+      "How old are you?",
+      "I am hungry."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q140",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-제안",
+      "difficulty": "보통",
+      "explanation": "Let's + 동사원형으로 제안합니다."
+    }
+  },
+  {
+    "question": "길을 물을 때 알맞은 표현은?",
+    "choices": [
+      "Excuse me, how can I get to the museum?",
+      "What color is it?",
+      "I have two pencils.",
+      "This is my mother."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q141",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-길묻기",
+      "difficulty": "보통",
+      "explanation": "공손한 표현 + how can I get to ~?"
+    }
+  },
+  {
+    "question": "‘함께 놀자’에 알맞은 표현은?",
+    "choices": [
+      "Let's play together.",
+      "Please be quiet.",
+      "How old are you?",
+      "I am hungry."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q142",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-제안",
+      "difficulty": "보통",
+      "explanation": "Let's + 동사원형으로 제안합니다."
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q143",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "길을 물을 때 알맞은 표현은?",
+    "choices": [
+      "Excuse me, how can I get to the museum?",
+      "What color is it?",
+      "I have two pencils.",
+      "This is my mother."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q144",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-길묻기",
+      "difficulty": "보통",
+      "explanation": "공손한 표현 + how can I get to ~?"
+    }
+  },
+  {
+    "question": "길을 물을 때 알맞은 표현은?",
+    "choices": [
+      "Excuse me, how can I get to the museum?",
+      "What color is it?",
+      "I have two pencils.",
+      "This is my mother."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q145",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-길묻기",
+      "difficulty": "보통",
+      "explanation": "공손한 표현 + how can I get to ~?"
+    }
+  },
+  {
+    "question": "‘함께 놀자’에 알맞은 표현은?",
+    "choices": [
+      "Let's play together.",
+      "Please be quiet.",
+      "How old are you?",
+      "I am hungry."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q146",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-제안",
+      "difficulty": "보통",
+      "explanation": "Let's + 동사원형으로 제안합니다."
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q147",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "시간을 묻는 표현으로 알맞은 것은?",
+    "choices": [
+      "What time is it?",
+      "How old are you?",
+      "Where are you from?",
+      "What's this?"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q148",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-시간",
+      "difficulty": "보통",
+      "explanation": "시간 묻기: What time is it?"
+    }
+  },
+  {
+    "question": "길을 물을 때 알맞은 표현은?",
+    "choices": [
+      "Excuse me, how can I get to the museum?",
+      "What color is it?",
+      "I have two pencils.",
+      "This is my mother."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q149",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-길묻기",
+      "difficulty": "보통",
+      "explanation": "공손한 표현 + how can I get to ~?"
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q150",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
+    "choices": [
+      "You're welcome.",
+      "See you.",
+      "Good luck.",
+      "Me too."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q151",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-감사",
+      "difficulty": "보통",
+      "explanation": "감사에 대한 기본 응답: You're welcome."
+    }
+  },
+  {
+    "question": "시간을 묻는 표현으로 알맞은 것은?",
+    "choices": [
+      "What time is it?",
+      "How old are you?",
+      "Where are you from?",
+      "What's this?"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q152",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-시간",
+      "difficulty": "보통",
+      "explanation": "시간 묻기: What time is it?"
+    }
+  },
+  {
+    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
+    "choices": [
+      "You're welcome.",
+      "See you.",
+      "Good luck.",
+      "Me too."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q153",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-감사",
+      "difficulty": "보통",
+      "explanation": "감사에 대한 기본 응답: You're welcome."
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q154",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "‘함께 놀자’에 알맞은 표현은?",
+    "choices": [
+      "Let's play together.",
+      "Please be quiet.",
+      "How old are you?",
+      "I am hungry."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q155",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-제안",
+      "difficulty": "보통",
+      "explanation": "Let's + 동사원형으로 제안합니다."
+    }
+  },
+  {
+    "question": "시간을 묻는 표현으로 알맞은 것은?",
+    "choices": [
+      "What time is it?",
+      "How old are you?",
+      "Where are you from?",
+      "What's this?"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q156",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-시간",
+      "difficulty": "보통",
+      "explanation": "시간 묻기: What time is it?"
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q157",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
+    "choices": [
+      "You're welcome.",
+      "See you.",
+      "Good luck.",
+      "Me too."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q158",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-감사",
+      "difficulty": "보통",
+      "explanation": "감사에 대한 기본 응답: You're welcome."
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q159",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
+    "choices": [
+      "You're welcome.",
+      "See you.",
+      "Good luck.",
+      "Me too."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q160",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-감사",
+      "difficulty": "보통",
+      "explanation": "감사에 대한 기본 응답: You're welcome."
+    }
+  },
+  {
+    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
+    "choices": [
+      "You're welcome.",
+      "See you.",
+      "Good luck.",
+      "Me too."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q161",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-감사",
+      "difficulty": "보통",
+      "explanation": "감사에 대한 기본 응답: You're welcome."
+    }
+  },
+  {
+    "question": "길을 물을 때 알맞은 표현은?",
+    "choices": [
+      "Excuse me, how can I get to the museum?",
+      "What color is it?",
+      "I have two pencils.",
+      "This is my mother."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q162",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-길묻기",
+      "difficulty": "보통",
+      "explanation": "공손한 표현 + how can I get to ~?"
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q163",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
+    "choices": [
+      "You're welcome.",
+      "See you.",
+      "Good luck.",
+      "Me too."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q164",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-감사",
+      "difficulty": "보통",
+      "explanation": "감사에 대한 기본 응답: You're welcome."
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q165",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "길을 물을 때 알맞은 표현은?",
+    "choices": [
+      "Excuse me, how can I get to the museum?",
+      "What color is it?",
+      "I have two pencils.",
+      "This is my mother."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q166",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-길묻기",
+      "difficulty": "보통",
+      "explanation": "공손한 표현 + how can I get to ~?"
+    }
+  },
+  {
+    "question": "시간을 묻는 표현으로 알맞은 것은?",
+    "choices": [
+      "What time is it?",
+      "How old are you?",
+      "Where are you from?",
+      "What's this?"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q167",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-시간",
+      "difficulty": "보통",
+      "explanation": "시간 묻기: What time is it?"
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q168",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "‘함께 놀자’에 알맞은 표현은?",
+    "choices": [
+      "Let's play together.",
+      "Please be quiet.",
+      "How old are you?",
+      "I am hungry."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q169",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-제안",
+      "difficulty": "보통",
+      "explanation": "Let's + 동사원형으로 제안합니다."
+    }
+  },
+  {
+    "question": "시간을 묻는 표현으로 알맞은 것은?",
+    "choices": [
+      "What time is it?",
+      "How old are you?",
+      "Where are you from?",
+      "What's this?"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q170",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-시간",
+      "difficulty": "보통",
+      "explanation": "시간 묻기: What time is it?"
+    }
+  },
+  {
+    "question": "‘함께 놀자’에 알맞은 표현은?",
+    "choices": [
+      "Let's play together.",
+      "Please be quiet.",
+      "How old are you?",
+      "I am hungry."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q171",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-제안",
+      "difficulty": "보통",
+      "explanation": "Let's + 동사원형으로 제안합니다."
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q172",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q173",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "다음 중 위치를 설명하는 말은?",
+    "choices": [
+      "It's between the bank and the park.",
+      "It's delicious.",
+      "I'm from Korea.",
+      "I can swim."
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q174",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-위치",
+      "difficulty": "보통",
+      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
+    }
+  },
+  {
+    "question": "시간을 묻는 표현으로 알맞은 것은?",
+    "choices": [
+      "What time is it?",
+      "How old are you?",
+      "Where are you from?",
+      "What's this?"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q175",
+      "subject": "영어",
+      "standard_code": "5영-의사소통-시간",
+      "difficulty": "보통",
+      "explanation": "시간 묻기: What time is it?"
+    }
+  },
+  {
+    "question": "다음 중 ‘축척’에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "실제 거리를 일정한 비율로 줄여 표시한 것",
+      "방위를 나타내는 기호",
+      "고도를 나타내는 등고선의 간격",
+      "지도에서 사용한 색깔의 의미"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q176",
+      "subject": "사회",
+      "standard_code": "5사-지도-축척",
+      "difficulty": "보통",
+      "explanation": "축척=지도 거리 : 실제 거리의 비율"
+    }
+  },
+  {
+    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
+    "choices": [
+      "해안선이 비교적 단순하고 모래사장이 발달",
+      "리아스식 해안이 매우 발달",
+      "큰 사막 지형이 분포",
+      "높은 산맥이 전혀 없다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q177",
+      "subject": "사회",
+      "standard_code": "5사-국토-지형",
+      "difficulty": "보통",
+      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
+    }
+  },
+  {
+    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
+    "choices": [
+      "해안선이 비교적 단순하고 모래사장이 발달",
+      "리아스식 해안이 매우 발달",
+      "큰 사막 지형이 분포",
+      "높은 산맥이 전혀 없다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q178",
+      "subject": "사회",
+      "standard_code": "5사-국토-지형",
+      "difficulty": "보통",
+      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
+    }
+  },
+  {
+    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
+    "choices": [
+      "해안선이 비교적 단순하고 모래사장이 발달",
+      "리아스식 해안이 매우 발달",
+      "큰 사막 지형이 분포",
+      "높은 산맥이 전혀 없다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q179",
+      "subject": "사회",
+      "standard_code": "5사-국토-지형",
+      "difficulty": "보통",
+      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
+    }
+  },
+  {
+    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
+    "choices": [
+      "해안선이 비교적 단순하고 모래사장이 발달",
+      "리아스식 해안이 매우 발달",
+      "큰 사막 지형이 분포",
+      "높은 산맥이 전혀 없다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q180",
+      "subject": "사회",
+      "standard_code": "5사-국토-지형",
+      "difficulty": "보통",
+      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
+    }
+  },
+  {
+    "question": "지도의 기본 요소로 알맞지 않은 것은?",
+    "choices": [
+      "지도 기호",
+      "방위",
+      "축척",
+      "날씨 예보"
+    ],
+    "correctIndex": 3,
+    "meta": {
+      "id": "q181",
+      "subject": "사회",
+      "standard_code": "5사-지도-기본요소",
+      "difficulty": "보통",
+      "explanation": "범례·방위·축척 등은 지도를 이해하는 핵심 요소입니다."
+    }
+  },
+  {
+    "question": "환경 보호 실천으로 가장 적절한 것은?",
+    "choices": [
+      "분리배출과 재활용",
+      "일회용품 더 사용",
+      "가까운 거리 자동차 이용",
+      "불필요한 전기 계속 켜 두기"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q182",
+      "subject": "사회",
+      "standard_code": "5사-환경-실천",
+      "difficulty": "보통",
+      "explanation": "생활 속 절약·재활용·대중교통 이용 등"
+    }
+  },
+  {
+    "question": "다음 중 ‘축척’에 대한 설명으로 옳은 것은?",
+    "choices": [
+      "실제 거리를 일정한 비율로 줄여 표시한 것",
+      "방위를 나타내는 기호",
+      "고도를 나타내는 등고선의 간격",
+      "지도에서 사용한 색깔의 의미"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q183",
+      "subject": "사회",
+      "standard_code": "5사-지도-축척",
+      "difficulty": "보통",
+      "explanation": "축척=지도 거리 : 실제 거리의 비율"
+    }
+  },
+  {
+    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
+    "choices": [
+      "해안선이 비교적 단순하고 모래사장이 발달",
+      "리아스식 해안이 매우 발달",
+      "큰 사막 지형이 분포",
+      "높은 산맥이 전혀 없다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q184",
+      "subject": "사회",
+      "standard_code": "5사-국토-지형",
+      "difficulty": "보통",
+      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
+    }
+  },
+  {
+    "question": "환경 보호 실천으로 가장 적절한 것은?",
+    "choices": [
+      "분리배출과 재활용",
+      "일회용품 더 사용",
+      "가까운 거리 자동차 이용",
+      "불필요한 전기 계속 켜 두기"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q185",
+      "subject": "사회",
+      "standard_code": "5사-환경-실천",
+      "difficulty": "보통",
+      "explanation": "생활 속 절약·재활용·대중교통 이용 등"
+    }
+  },
+  {
+    "question": "다음 중 마찰력을 ‘줄이는’ 방법은?",
+    "choices": [
+      "기름칠을 한다",
+      "표면을 더 거칠게 한다",
+      "물체를 더 세게 누른다",
+      "고무패드를 붙인다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q186",
+      "subject": "과학",
+      "standard_code": "5과-힘과운동-마찰",
+      "difficulty": "보통",
+      "explanation": "윤활·매끈한 표면 등은 마찰을 줄입니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q187",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "소금물에서 소금을 다시 얻는 데 알맞은 방법은?",
+    "choices": [
+      "증발",
+      "여과",
+      "자기장 분리",
+      "융해"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q188",
+      "subject": "과학",
+      "standard_code": "5과-물질-용액분리",
+      "difficulty": "보통",
+      "explanation": "소금물은 ‘증발’로 용질을 분리합니다."
+    }
+  },
+  {
+    "question": "물의 상태 변화에서 ‘기체 → 액체’로 바뀌는 현상은?",
+    "choices": [
+      "응결",
+      "증발",
+      "승화",
+      "녹는 것"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q189",
+      "subject": "과학",
+      "standard_code": "5과-물질-상태변화",
+      "difficulty": "보통",
+      "explanation": "기체가 식어 액체가 되는 것은 ‘응결’입니다."
+    }
+  },
+  {
+    "question": "다음 중 마찰력을 ‘줄이는’ 방법은?",
+    "choices": [
+      "기름칠을 한다",
+      "표면을 더 거칠게 한다",
+      "물체를 더 세게 누른다",
+      "고무패드를 붙인다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q190",
+      "subject": "과학",
+      "standard_code": "5과-힘과운동-마찰",
+      "difficulty": "보통",
+      "explanation": "윤활·매끈한 표면 등은 마찰을 줄입니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q191",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q192",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q193",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q194",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q195",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q196",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "소금물에서 소금을 다시 얻는 데 알맞은 방법은?",
+    "choices": [
+      "증발",
+      "여과",
+      "자기장 분리",
+      "융해"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q197",
+      "subject": "과학",
+      "standard_code": "5과-물질-용액분리",
+      "difficulty": "보통",
+      "explanation": "소금물은 ‘증발’로 용질을 분리합니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q198",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "먹이사슬의 설명으로 옳은 것은?",
+    "choices": [
+      "생산자→소비자→분해자 순으로 에너지가 흐른다",
+      "분해자는 에너지를 만든다",
+      "소비자는 광합성을 한다",
+      "생산자는 동물만을 뜻한다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q199",
+      "subject": "과학",
+      "standard_code": "5과-생태계-먹이사슬",
+      "difficulty": "보통",
+      "explanation": "식물(생산자) → 동물(소비자) → 분해자로 에너지가 전달됩니다."
+    }
+  },
+  {
+    "question": "다음 중 마찰력을 ‘줄이는’ 방법은?",
+    "choices": [
+      "기름칠을 한다",
+      "표면을 더 거칠게 한다",
+      "물체를 더 세게 누른다",
+      "고무패드를 붙인다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q200",
+      "subject": "과학",
+      "standard_code": "5과-힘과운동-마찰",
+      "difficulty": "보통",
+      "explanation": "윤활·매끈한 표면 등은 마찰을 줄입니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q201",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "소금물에서 소금을 다시 얻는 데 알맞은 방법은?",
+    "choices": [
+      "증발",
+      "여과",
+      "자기장 분리",
+      "융해"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q202",
+      "subject": "과학",
+      "standard_code": "5과-물질-용액분리",
+      "difficulty": "보통",
+      "explanation": "소금물은 ‘증발’로 용질을 분리합니다."
+    }
+  },
+  {
+    "question": "다음 중 마찰력을 ‘줄이는’ 방법은?",
+    "choices": [
+      "기름칠을 한다",
+      "표면을 더 거칠게 한다",
+      "물체를 더 세게 누른다",
+      "고무패드를 붙인다"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q203",
+      "subject": "과학",
+      "standard_code": "5과-힘과운동-마찰",
+      "difficulty": "보통",
+      "explanation": "윤활·매끈한 표면 등은 마찰을 줄입니다."
+    }
+  },
+  {
+    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
+    "choices": [
+      "여과",
+      "증발",
+      "승화",
+      "증류"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q204",
+      "subject": "과학",
+      "standard_code": "5과-물질-혼합물분리",
+      "difficulty": "보통",
+      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
+    }
+  },
+  {
+    "question": "물의 상태 변화에서 ‘기체 → 액체’로 바뀌는 현상은?",
+    "choices": [
+      "응결",
+      "증발",
+      "승화",
+      "녹는 것"
+    ],
+    "correctIndex": 0,
+    "meta": {
+      "id": "q205",
+      "subject": "과학",
+      "standard_code": "5과-물질-상태변화",
+      "difficulty": "보통",
+      "explanation": "기체가 식어 액체가 되는 것은 ‘응결’입니다."
+    }
   }
 ]
