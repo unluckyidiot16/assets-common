@@ -1,3479 +1,2602 @@
 [
   {
-    "question": "수 x가 44 이상 47 미만일 때, 다음 중 올바른 표기는?",
-    "choices": [
-      "44 ≤ x < 47",
-      "44 < x ≤ 47",
-      "44 ≥ x > 47",
-      "44 < x < 47"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q001",
-      "subject": "수학",
-      "standard_code": "6수01-02",
-      "difficulty": "보통",
-      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
-    }
-  },
-  {
-    "question": "수 x가 65 이상 71 미만일 때, 다음 중 올바른 표기는?",
-    "choices": [
-      "65 ≤ x < 71",
-      "65 < x ≤ 71",
-      "65 ≥ x > 71",
-      "65 < x < 71"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q002",
-      "subject": "수학",
-      "standard_code": "6수01-02",
-      "difficulty": "보통",
-      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
-    }
-  },
-  {
-    "question": "수 x가 58 이상 63 미만일 때, 다음 중 올바른 표기는?",
-    "choices": [
-      "58 ≤ x < 63",
-      "58 < x ≤ 63",
-      "58 ≥ x > 63",
-      "58 < x < 63"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q003",
-      "subject": "수학",
-      "standard_code": "6수01-02",
-      "difficulty": "보통",
-      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
-    }
-  },
-  {
-    "question": "수 x가 43 이상 54 미만일 때, 다음 중 올바른 표기는?",
-    "choices": [
-      "43 ≤ x < 54",
-      "43 < x ≤ 54",
-      "43 ≥ x > 54",
-      "43 < x < 54"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q004",
-      "subject": "수학",
-      "standard_code": "6수01-02",
-      "difficulty": "보통",
-      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
-    }
-  },
-  {
-    "question": "수 x가 41 이상 53 미만일 때, 다음 중 올바른 표기는?",
-    "choices": [
-      "41 ≤ x < 53",
-      "41 < x ≤ 53",
-      "41 ≥ x > 53",
-      "41 < x < 53"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q005",
-      "subject": "수학",
-      "standard_code": "6수01-02",
-      "difficulty": "보통",
-      "explanation": "‘이상’은 ≤, ‘미만’은 < 를 사용합니다."
-    }
-  },
-  {
-    "question": "427.3을(를) 1의 자리에서 반올림한 값은?",
-    "choices": [
-      "428",
-      "427"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q006",
-      "subject": "수학",
-      "standard_code": "6수01-03",
-      "difficulty": "보통",
-      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
-    }
-  },
-  {
-    "question": "226.2을(를) 100의 자리에서 반올림한 값은?",
-    "choices": [
-      "300",
-      "200"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q007",
-      "subject": "수학",
-      "standard_code": "6수01-03",
-      "difficulty": "보통",
-      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
-    }
-  },
-  {
-    "question": "565.1을(를) 100의 자리에서 반올림한 값은?",
-    "choices": [
+    "question": "287을 백의 자리에서 반올림하면?",
+    "options": [
       "500",
+      "200",
+      "300",
+      "400"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "941을 백의 자리에서 반올림하면?",
+    "options": [
+      "1000",
+      "800",
+      "900",
+      "700"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "125을 백의 자리에서 반올림하면?",
+    "options": [
+      "200",
+      "100",
+      "-100",
+      "0"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "368을 십의 자리에서 반올림하면?",
+    "options": [
+      "380",
+      "370",
+      "350",
+      "360"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "749을 백의 자리에서 반올림하면?",
+    "options": [
+      "900",
+      "800",
       "600",
       "700"
     ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q008",
-      "subject": "수학",
-      "standard_code": "6수01-03",
-      "difficulty": "보통",
-      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
-    }
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "228.0을(를) 100의 자리에서 반올림한 값은?",
-    "choices": [
-      "200",
+    "question": "150을 백의 자리에서 반올림하면?",
+    "options": [
+      "300",
+      "100",
+      "0",
+      "200"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "999을 백의 자리에서 반올림하면?",
+    "options": [
+      "1100",
+      "1050",
+      "900",
+      "1000"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "430을 백의 자리에서 반올림하면?",
+    "options": [
+      "400",
+      "450",
+      "500",
       "300"
     ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q009",
-      "subject": "수학",
-      "standard_code": "6수01-03",
-      "difficulty": "보통",
-      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
-    }
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "810.5을(를) 1의 자리에서 반올림한 값은?",
-    "choices": [
-      "812",
-      "811",
-      "810"
+    "question": "512을 십의 자리에서 반올림하면?",
+    "options": [
+      "500",
+      "510",
+      "520",
+      "490"
     ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q010",
-      "subject": "수학",
-      "standard_code": "6수01-03",
-      "difficulty": "보통",
-      "explanation": "반올림은 기준 자릿수에서 5 이상이면 올리고, 미만이면 버립니다."
-    }
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
   },
   {
-    "question": "42와 28의 최대공약수(GCD)는?",
-    "choices": [
-      "14",
-      "7",
-      "15",
-      "13"
+    "question": "675을 백의 자리에서 반올림하면?",
+    "options": [
+      "700",
+      "800",
+      "500",
+      "600"
     ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q011",
-      "subject": "수학",
-      "standard_code": "6수01-04",
-      "difficulty": "보통",
-      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
-    }
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "24와 9의 최대공약수(GCD)는?",
-    "choices": [
-      "2",
-      "6",
+    "question": "832을 백의 자리에서 반올림하면?",
+    "options": [
+      "700",
+      "800",
+      "900",
+      "1000"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "219을 십의 자리에서 반올림하면?",
+    "options": [
+      "210",
+      "230",
+      "220",
+      "200"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "450을 십의 자리에서 반올림하면?",
+    "options": [
+      "455",
+      "450",
+      "440",
+      "460"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "481을 백의 자리에서 반올림하면?",
+    "options": [
+      "600",
+      "550",
+      "400",
+      "500"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "731을 백의 자리에서 반올림하면?",
+    "options": [
+      "700",
+      "750",
+      "800",
+      "600"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "다음 중 300 이상 400 미만인 수는?",
+    "options": [
+      "250",
+      "325",
+      "405",
+      "450"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 500 이상 600 미만인 수는?",
+    "options": [
+      "490",
+      "450",
+      "700",
+      "519"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 700 이상 800 미만인 수는?",
+    "options": [
+      "800",
+      "600",
+      "708",
+      "699"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 100 이상 200 미만인 수는?",
+    "options": [
+      "0",
+      "50",
+      "200",
+      "149"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 900 이상 1000 미만인 수는?",
+    "options": [
+      "1050",
+      "975",
+      "800",
+      "1005"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 1200 이상 1300 미만인 수는?",
+    "options": [
+      "1190",
+      "1100",
+      "1400",
+      "1250"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 150 이상 160 미만인 수는?",
+    "options": [
+      "153",
+      "210",
+      "140",
+      "149"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 430 이상 460 미만인 수는?",
+    "options": [
+      "330",
+      "455",
+      "420",
+      "560"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 800 이상 850 미만인 수는?",
+    "options": [
+      "790",
+      "700",
+      "855",
+      "824"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "다음 중 250 이상 300 미만인 수는?",
+    "options": [
+      "150",
+      "350",
+      "255",
+      "300"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "198×5의 값을 어림한 값으로 가장 알맞은 것은?",
+    "options": [
+      "1190",
+      "890",
+      "940",
+      "1000"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "49×19의 값을 어림한 값으로 가장 알맞은 것은?",
+    "options": [
+      "1900",
+      "1031",
+      "980",
+      "1000"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "102×29의 값을 어림한 값으로 가장 알맞은 것은?",
+    "options": [
+      "3060",
+      "2900",
+      "5800",
+      "2000"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "305×21의 값을 어림한 값으로 가장 알맞은 것은?",
+    "options": [
+      "6000",
+      "8400",
+      "6300",
+      "6100"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "678×9의 값을 어림한 값으로 가장 알맞은 것은?",
+    "options": [
+      "6800",
+      "6780",
+      "6300",
+      "6052"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "399×22의 값을 어림한 값으로 가장 알맞은 것은?",
+    "options": [
+      "8000",
+      "6000",
+      "8800",
+      "7980"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/3 × 6의 값은?",
+    "options": [
       "3",
-      "4"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q012",
-      "subject": "수학",
-      "standard_code": "6수01-04",
-      "difficulty": "보통",
-      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
-    }
-  },
-  {
-    "question": "18와 6의 최대공약수(GCD)는?",
-    "choices": [
-      "6",
       "5",
-      "3",
-      "7"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q013",
-      "subject": "수학",
-      "standard_code": "6수01-04",
-      "difficulty": "보통",
-      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
-    }
-  },
-  {
-    "question": "35와 21의 최대공약수(GCD)는?",
-    "choices": [
-      "7",
-      "14",
-      "8",
+      "4",
       "6"
     ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q014",
-      "subject": "수학",
-      "standard_code": "6수01-04",
-      "difficulty": "보통",
-      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
-    }
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
   },
   {
-    "question": "18와 30의 최대공약수(GCD)는?",
-    "choices": [
+    "question": "3/4 × 8의 값은?",
+    "options": [
+      "8",
       "7",
+      "6",
+      "5"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "5/6 × 12의 값은?",
+    "options": [
+      "11",
+      "12",
+      "9",
+      "10"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "4/5 × 25의 값은?",
+    "options": [
+      "20",
+      "19",
+      "21",
+      "22"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/8 × 16의 값은?",
+    "options": [
+      "6",
+      "8",
+      "5",
+      "7"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "7/9 × 18의 값은?",
+    "options": [
+      "16",
+      "14",
+      "13",
+      "15"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "5/12 × 24의 값은?",
+    "options": [
+      "11",
+      "10",
+      "9",
+      "12"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/5 × 20의 값은?",
+    "options": [
+      "12",
+      "11",
+      "13",
+      "14"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "9/10 × 20의 값은?",
+    "options": [
+      "20",
+      "18",
+      "19",
+      "17"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/7 × 14의 값은?",
+    "options": [
+      "4",
       "6",
       "5",
       "3"
     ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q015",
-      "subject": "수학",
-      "standard_code": "6수01-04",
-      "difficulty": "보통",
-      "explanation": "두 수를 소인수분해하지 않고도 gcd 함수를 적용해도 됩니다."
-    }
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "54와 40의 최소공배수(LCM)는?",
-    "choices": [
-      "54",
-      "1080",
-      "540",
-      "1082"
+    "question": "4/7 × 21의 값은?",
+    "options": [
+      "11",
+      "13",
+      "12",
+      "14"
     ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q016",
-      "subject": "수학",
-      "standard_code": "6수01-05",
-      "difficulty": "보통",
-      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
-    }
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "64와 40의 최소공배수(LCM)는?",
-    "choices": [
-      "64",
-      "320",
-      "321",
-      "160"
+    "question": "5/8 × 16의 값은?",
+    "options": [
+      "11",
+      "10",
+      "9",
+      "12"
     ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q017",
-      "subject": "수학",
-      "standard_code": "6수01-05",
-      "difficulty": "보통",
-      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
-    }
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "24와 30의 최소공배수(LCM)는?",
-    "choices": [
-      "120",
-      "30",
-      "125",
-      "60"
+    "question": "3/11 × 22의 값은?",
+    "options": [
+      "8",
+      "5",
+      "6",
+      "7"
     ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q018",
-      "subject": "수학",
-      "standard_code": "6수01-05",
-      "difficulty": "보통",
-      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
-    }
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "81와 27의 최소공배수(LCM)는?",
-    "choices": [
-      "81",
-      "83",
-      "162",
-      "81"
+    "question": "7/8 × 16의 값은?",
+    "options": [
+      "16",
+      "13",
+      "15",
+      "14"
     ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q019",
-      "subject": "수학",
-      "standard_code": "6수01-05",
-      "difficulty": "보통",
-      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
-    }
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "20와 21의 최소공배수(LCM)는?",
-    "choices": [
-      "420",
-      "21",
-      "423",
-      "210"
+    "question": "9/12 × 24의 값은?",
+    "options": [
+      "18",
+      "20",
+      "19",
+      "17"
     ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q020",
-      "subject": "수학",
-      "standard_code": "6수01-05",
-      "difficulty": "보통",
-      "explanation": "LCM은 A×B / GCD(A,B)로 구합니다."
-    }
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "3/10 + 5/10 = ? (기약분수)",
-    "choices": [
-      "4/10",
-      "5/5",
-      "4/5",
-      "8/10"
+    "question": "5/9 × 18의 값은?",
+    "options": [
+      "11",
+      "10",
+      "12",
+      "9"
     ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q021",
-      "subject": "수학",
-      "standard_code": "6수01-08",
-      "difficulty": "보통",
-      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
-    }
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "10/12 + 7/10 = ? (기약분수)",
-    "choices": [
-      "17/12",
-      "24/15",
-      "23/15",
-      "23/30"
+    "question": "8/15 × 30의 값은?",
+    "options": [
+      "15",
+      "16",
+      "18",
+      "17"
     ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q022",
-      "subject": "수학",
-      "standard_code": "6수01-08",
-      "difficulty": "보통",
-      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
-    }
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "2/12 + 1/10 = ? (기약분수)",
-    "choices": [
-      "3/12",
-      "4/30",
-      "5/15",
-      "4/15"
+    "question": "6/25 × 50의 값은?",
+    "options": [
+      "11",
+      "14",
+      "12",
+      "13"
     ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q023",
-      "subject": "수학",
-      "standard_code": "6수01-08",
-      "difficulty": "보통",
-      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
-    }
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "2/10 + 7/12 = ? (기약분수)",
-    "choices": [
-      "47/60",
-      "9/12",
-      "47/120",
-      "48/60"
+    "question": "7/12 × 24의 값은?",
+    "options": [
+      "14",
+      "16",
+      "15",
+      "13"
     ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q024",
-      "subject": "수학",
-      "standard_code": "6수01-08",
-      "difficulty": "보통",
-      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
-    }
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
   },
   {
-    "question": "9/12 + 1/9 = ? (기약분수)",
-    "choices": [
-      "32/36",
-      "10/12",
-      "31/72",
-      "31/36"
+    "question": "2/5 × 15의 값은?",
+    "options": [
+      "7",
+      "6",
+      "5",
+      "8"
     ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q025",
-      "subject": "수학",
-      "standard_code": "6수01-08",
-      "difficulty": "보통",
-      "explanation": "통분 후 분자를 더하고, 기약분수로 만듭니다."
-    }
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
   },
   {
-    "question": "6/3 × 5/8 = ? (기약분수)",
-    "choices": [
-      "5/5",
-      "5/4",
-      "10/8",
-      "6/4"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q026",
-      "subject": "수학",
-      "standard_code": "6수01-09",
-      "difficulty": "보통",
-      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
-    }
-  },
-  {
-    "question": "5/4 × 2/6 = ? (기약분수)",
-    "choices": [
-      "5/13",
-      "10/24",
-      "5/12",
-      "6/12"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q027",
-      "subject": "수학",
-      "standard_code": "6수01-09",
-      "difficulty": "보통",
-      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
-    }
-  },
-  {
-    "question": "3/2 × 6/9 = ? (기약분수)",
-    "choices": [
-      "1/2",
-      "2/1",
-      "2/2",
-      "1/1"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q028",
-      "subject": "수학",
-      "standard_code": "6수01-09",
-      "difficulty": "보통",
-      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
-    }
-  },
-  {
-    "question": "5/5 × 1/5 = ? (기약분수)",
-    "choices": [
-      "1/6",
-      "2/5",
-      "2/10",
-      "1/5"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q029",
-      "subject": "수학",
-      "standard_code": "6수01-09",
-      "difficulty": "보통",
-      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
-    }
-  },
-  {
-    "question": "2/4 × 3/9 = ? (기약분수)",
-    "choices": [
-      "1/6",
-      "1/7",
-      "2/12",
-      "2/6"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q030",
-      "subject": "수학",
-      "standard_code": "6수01-09",
-      "difficulty": "보통",
-      "explanation": "분수의 곱셈은 분자×분자, 분모×분모 후 기약화합니다."
-    }
-  },
-  {
-    "question": "5÷5를 분수로 나타내면? (기약분수)",
-    "choices": [
-      "1/1",
-      "1/5",
-      "5/5",
-      "5/5"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q031",
-      "subject": "수학",
-      "standard_code": "6수01-10",
-      "difficulty": "보통",
-      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
-    }
-  },
-  {
-    "question": "9÷9를 분수로 나타내면? (기약분수)",
-    "choices": [
-      "9/9",
-      "9/9",
-      "1/9",
-      "1/1"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q032",
-      "subject": "수학",
-      "standard_code": "6수01-10",
-      "difficulty": "보통",
-      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
-    }
-  },
-  {
-    "question": "3÷7를 분수로 나타내면? (기약분수)",
-    "choices": [
-      "7/3",
-      "3/7",
-      "3/7",
-      "3/7"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q033",
-      "subject": "수학",
-      "standard_code": "6수01-10",
-      "difficulty": "보통",
-      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
-    }
-  },
-  {
-    "question": "5÷2를 분수로 나타내면? (기약분수)",
-    "choices": [
-      "2/5",
-      "5/2",
-      "5/2",
-      "5/2"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q034",
-      "subject": "수학",
-      "standard_code": "6수01-10",
-      "difficulty": "보통",
-      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
-    }
-  },
-  {
-    "question": "5÷3를 분수로 나타내면? (기약분수)",
-    "choices": [
-      "5/3",
-      "5/3",
-      "3/5",
-      "5/3"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q035",
-      "subject": "수학",
-      "standard_code": "6수01-10",
-      "difficulty": "보통",
-      "explanation": "‘자연수÷자연수’의 몫을 분수로 나타냅니다."
-    }
-  },
-  {
-    "question": "9/8와 같은 값을 나타내는 소수는?",
-    "choices": [
-      "0.11",
-      "11.25",
-      "1.125",
-      "2.25"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q036",
-      "subject": "수학",
-      "standard_code": "6수01-12",
-      "difficulty": "보통",
-      "explanation": "분수의 분자÷분모로 소수를 구합니다."
-    }
-  },
-  {
-    "question": "4/100와 같은 값을 나타내는 소수는?",
-    "choices": [
-      "0.40",
-      "0.04",
-      "0.08",
-      "0.00"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q037",
-      "subject": "수학",
-      "standard_code": "6수01-12",
-      "difficulty": "보통",
-      "explanation": "분수의 분자÷분모로 소수를 구합니다."
-    }
-  },
-  {
-    "question": "4/50와 같은 값을 나타내는 소수는?",
-    "choices": [
-      "0.08",
-      "0.80",
-      "0.01",
-      "0.16"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q038",
-      "subject": "수학",
-      "standard_code": "6수01-12",
-      "difficulty": "보통",
-      "explanation": "분수의 분자÷분모로 소수를 구합니다."
-    }
-  },
-  {
-    "question": "2/25와 같은 값을 나타내는 소수는?",
-    "choices": [
-      "0.01",
-      "0.16",
-      "0.08",
-      "0.80"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q039",
-      "subject": "수학",
-      "standard_code": "6수01-12",
-      "difficulty": "보통",
-      "explanation": "분수의 분자÷분모로 소수를 구합니다."
-    }
-  },
-  {
-    "question": "8/2와 같은 값을 나타내는 소수는?",
-    "choices": [
+    "question": "1/3 × 12의 값은?",
+    "options": [
+      "6",
+      "3",
       "4",
-      "40.00",
-      "8.00",
-      "0.40"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q040",
-      "subject": "수학",
-      "standard_code": "6수01-12",
-      "difficulty": "보통",
-      "explanation": "분수의 분자÷분모로 소수를 구합니다."
-    }
-  },
-  {
-    "question": "7.3 × 8.0 = ? (소수 둘째 자리까지)",
-    "choices": [
-      "58.50",
-      "58.30",
-      "59.40",
-      "58.40"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q041",
-      "subject": "수학",
-      "standard_code": "6수01-13",
-      "difficulty": "보통",
-      "explanation": "소수점 자릿수를 고려해 계산합니다."
-    }
-  },
-  {
-    "question": "2.0 × 4.6 = ? (소수 둘째 자리까지)",
-    "choices": [
-      "9.10",
-      "9.30",
-      "9.20",
-      "10.20"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q042",
-      "subject": "수학",
-      "standard_code": "6수01-13",
-      "difficulty": "보통",
-      "explanation": "소수점 자릿수를 고려해 계산합니다."
-    }
-  },
-  {
-    "question": "4.7 × 8.7 = ? (소수 둘째 자리까지)",
-    "choices": [
-      "40.79",
-      "41.89",
-      "40.99",
-      "40.89"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q043",
-      "subject": "수학",
-      "standard_code": "6수01-13",
-      "difficulty": "보통",
-      "explanation": "소수점 자릿수를 고려해 계산합니다."
-    }
-  },
-  {
-    "question": "0.7 × 9.9 = ? (소수 둘째 자리까지)",
-    "choices": [
-      "7.03",
-      "6.83",
-      "7.93",
-      "6.93"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q044",
-      "subject": "수학",
-      "standard_code": "6수01-13",
-      "difficulty": "보통",
-      "explanation": "소수점 자릿수를 고려해 계산합니다."
-    }
-  },
-  {
-    "question": "1.8 × 4.9 = ? (소수 둘째 자리까지)",
-    "choices": [
-      "8.72",
-      "8.82",
-      "9.82",
-      "8.92"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q045",
-      "subject": "수학",
-      "standard_code": "6수01-13",
-      "difficulty": "보통",
-      "explanation": "소수점 자릿수를 고려해 계산합니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
-    "choices": [
-      "남중 고도는 낮고 낮의 길이는 짧다",
-      "계절에 따라 태양 고도 측정값은 항상 같다",
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "지구의 자전축이 수직이어서 계절이 생긴다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q046",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (가을)",
-    "choices": [
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "남중 고도와 낮의 길이가 점차 짧아진다",
-      "지구의 자전축이 수직이어서 계절이 생긴다",
-      "계절에 따라 태양 고도 측정값은 항상 같다"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q047",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (여름)",
-    "choices": [
-      "지구의 자전축이 수직이어서 계절이 생긴다",
-      "계절에 따라 태양 고도 측정값은 항상 같다",
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "남중 고도는 높고 낮은 길이는 길다"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q048",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
-    "choices": [
-      "지구의 자전축이 수직이어서 계절이 생긴다",
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "계절에 따라 태양 고도 측정값은 항상 같다",
-      "남중 고도는 낮고 낮의 길이는 짧다"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q049",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
-    "choices": [
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "계절에 따라 태양 고도 측정값은 항상 같다",
-      "지구의 자전축이 수직이어서 계절이 생긴다",
-      "남중 고도는 낮고 낮의 길이는 짧다"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q050",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (가을)",
-    "choices": [
-      "남중 고도와 낮의 길이가 점차 짧아진다",
-      "지구의 자전축이 수직이어서 계절이 생긴다",
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "계절에 따라 태양 고도 측정값은 항상 같다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q051",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
-    "choices": [
-      "남중 고도는 낮고 낮의 길이는 짧다",
-      "지구의 자전축이 수직이어서 계절이 생긴다",
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "계절에 따라 태양 고도 측정값은 항상 같다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q052",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (여름)",
-    "choices": [
-      "지구의 자전축이 수직이어서 계절이 생긴다",
-      "계절에 따라 태양 고도 측정값은 항상 같다",
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "남중 고도는 높고 낮은 길이는 길다"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q053",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (봄)",
-    "choices": [
-      "남중 고도와 낮의 길이가 점차 길어진다",
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "계절에 따라 태양 고도 측정값은 항상 같다",
-      "지구의 자전축이 수직이어서 계절이 생긴다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q054",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "계절의 변화에 대한 설명으로 옳은 것은? (겨울)",
-    "choices": [
-      "남중 고도와 낮의 길이는 계절과 무관하다",
-      "남중 고도는 낮고 낮의 길이는 짧다",
-      "지구의 자전축이 수직이어서 계절이 생긴다",
-      "계절에 따라 태양 고도 측정값은 항상 같다"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q055",
-      "subject": "과학",
-      "standard_code": "6과13-03",
-      "difficulty": "보통",
-      "explanation": "지구 자전축이 기울어진 채 공전하여 계절에 따라 남중 고도와 낮 길이가 달라집니다."
-    }
-  },
-  {
-    "question": "식초에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q056",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "베이킹소다 용액에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q057",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "레몬즙에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q058",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "레몬즙에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q059",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "탄산음료에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q060",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "식초에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q061",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "베이킹소다 용액에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q062",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "베이킹소다 용액에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q063",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "탄산음료에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q064",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "식초에 지시약을 떨어뜨렸더니 어떤 용액으로 분류되는가?",
-    "choices": [
-      "산성",
-      "염기성",
-      "중성",
-      "모름"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q065",
-      "subject": "과학",
-      "standard_code": "6과09-01",
-      "difficulty": "보통",
-      "explanation": "여러 용액을 지시약 변화로 산성과 염기성으로 분류합니다."
-    }
-  },
-  {
-    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
-    "choices": [
-      "불교 사원 권력 확대",
-      "서원과 향교 중심의 교육",
-      "효와 예를 중시하는 생활 규범",
-      "성리학을 바탕으로 한 정치 이념"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q066",
-      "subject": "사회",
-      "standard_code": "6사05-01",
-      "difficulty": "보통",
-      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
-    }
-  },
-  {
-    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
-    "choices": [
-      "성리학을 바탕으로 한 정치 이념",
-      "효와 예를 중시하는 생활 규범",
-      "서원과 향교 중심의 교육",
-      "불교 사원 권력 확대"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q067",
-      "subject": "사회",
-      "standard_code": "6사05-01",
-      "difficulty": "보통",
-      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
-    }
-  },
-  {
-    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
-    "choices": [
-      "불교 사원 권력 확대",
-      "서원과 향교 중심의 교육",
-      "성리학을 바탕으로 한 정치 이념",
-      "효와 예를 중시하는 생활 규범"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q068",
-      "subject": "사회",
-      "standard_code": "6사05-01",
-      "difficulty": "보통",
-      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
-    }
-  },
-  {
-    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
-    "choices": [
-      "서원과 향교 중심의 교육",
-      "불교 사원 권력 확대",
-      "효와 예를 중시하는 생활 규범",
-      "성리학을 바탕으로 한 정치 이념"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q069",
-      "subject": "사회",
-      "standard_code": "6사05-01",
-      "difficulty": "보통",
-      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
-    }
-  },
-  {
-    "question": "조선 시대 유교 문화의 영향으로 볼 수 있는 것으로 알맞지 않은 것은?",
-    "choices": [
-      "불교 사원 권력 확대",
-      "서원과 향교 중심의 교육",
-      "효와 예를 중시하는 생활 규범",
-      "성리학을 바탕으로 한 정치 이념"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q070",
-      "subject": "사회",
-      "standard_code": "6사05-01",
-      "difficulty": "보통",
-      "explanation": "조선은 성리학을 바탕으로 유교 문화가 생활 전반에 큰 영향을 미쳤습니다."
-    }
-  },
-  {
-    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
-    "choices": [
-      "전차와 전등의 도입",
-      "훈민정음 창제",
-      "활과 창 군사훈련 강화",
-      "삼국 시대 고분 축조"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q071",
-      "subject": "사회",
-      "standard_code": "6사05-02",
-      "difficulty": "보통",
-      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
-    }
-  },
-  {
-    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
-    "choices": [
-      "삼국 시대 고분 축조",
-      "전차와 전등의 도입",
-      "활과 창 군사훈련 강화",
-      "훈민정음 창제"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q072",
-      "subject": "사회",
-      "standard_code": "6사05-02",
-      "difficulty": "보통",
-      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
-    }
-  },
-  {
-    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
-    "choices": [
-      "삼국 시대 고분 축조",
-      "활과 창 군사훈련 강화",
-      "훈민정음 창제",
-      "전차와 전등의 도입"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q073",
-      "subject": "사회",
-      "standard_code": "6사05-02",
-      "difficulty": "보통",
-      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
-    }
-  },
-  {
-    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
-    "choices": [
-      "활과 창 군사훈련 강화",
-      "훈민정음 창제",
-      "삼국 시대 고분 축조",
-      "전차와 전등의 도입"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q074",
-      "subject": "사회",
-      "standard_code": "6사05-02",
-      "difficulty": "보통",
-      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
-    }
-  },
-  {
-    "question": "개항기 근대 문물 수용으로 달라진 생활 모습으로 적절한 것은?",
-    "choices": [
-      "삼국 시대 고분 축조",
-      "활과 창 군사훈련 강화",
-      "전차와 전등의 도입",
-      "훈민정음 창제"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q075",
-      "subject": "사회",
-      "standard_code": "6사05-02",
-      "difficulty": "보통",
-      "explanation": "개항기에는 전차, 전등 등 근대 문물이 도입되어 생활이 변화했습니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대륙이 아닌 것은?",
-    "choices": [
-      "남극",
-      "발트해",
-      "아프리카",
-      "아시아"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q076",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대륙이 아닌 것은?",
-    "choices": [
-      "아시아",
-      "오세아니아",
-      "아프리카",
-      "발트해"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q077",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대륙이 아닌 것은?",
-    "choices": [
-      "남극",
-      "오세아니아",
-      "유럽",
-      "발트해"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q078",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대륙이 아닌 것은?",
-    "choices": [
-      "북아메리카",
-      "오세아니아",
-      "발트해",
-      "아프리카"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q079",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대륙이 아닌 것은?",
-    "choices": [
-      "아시아",
-      "오세아니아",
-      "남극",
-      "발트해"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q080",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "발트해는 바다 이름이며 대륙이 아닙니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대양에 해당하는 것은?",
-    "choices": [
-      "황해",
-      "발틱해",
-      "대서양",
-      "카스피해"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q081",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대양에 해당하는 것은?",
-    "choices": [
-      "발틱해",
-      "황해",
-      "태평양",
-      "카스피해"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q082",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대양에 해당하는 것은?",
-    "choices": [
-      "발틱해",
-      "카스피해",
-      "황해",
-      "인도양"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q083",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대양에 해당하는 것은?",
-    "choices": [
-      "대서양",
-      "지중해",
-      "발틱해",
-      "카스피해"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q084",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
-    }
-  },
-  {
-    "question": "다음 중 세계의 대양에 해당하는 것은?",
-    "choices": [
-      "카스피해",
-      "지중해",
-      "남극해",
-      "황해"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q085",
-      "subject": "사회",
-      "standard_code": "6사09-02",
-      "difficulty": "보통",
-      "explanation": "세계의 대양에는 태평양, 대서양, 인도양, 남극해, 북극해가 있습니다."
-    }
-  },
-  {
-    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
-    "choices": [
-      "상품을 생산하고 이윤을 극대화함",
-      "통화를 발행함",
-      "관세를 부과함",
-      "생산요소를 제공하고 소비를 함"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q086",
-      "subject": "사회",
-      "standard_code": "6사11-01",
-      "difficulty": "보통",
-      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
-    }
-  },
-  {
-    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
-    "choices": [
-      "통화를 발행함",
-      "생산요소를 제공하고 소비를 함",
-      "상품을 생산하고 이윤을 극대화함",
-      "관세를 부과함"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q087",
-      "subject": "사회",
-      "standard_code": "6사11-01",
-      "difficulty": "보통",
-      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
-    }
-  },
-  {
-    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
-    "choices": [
-      "생산요소를 제공하고 소비를 함",
-      "상품을 생산하고 이윤을 극대화함",
-      "통화를 발행함",
-      "관세를 부과함"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q088",
-      "subject": "사회",
-      "standard_code": "6사11-01",
-      "difficulty": "보통",
-      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
-    }
-  },
-  {
-    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
-    "choices": [
-      "통화를 발행함",
-      "상품을 생산하고 이윤을 극대화함",
-      "관세를 부과함",
-      "생산요소를 제공하고 소비를 함"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q089",
-      "subject": "사회",
-      "standard_code": "6사11-01",
-      "difficulty": "보통",
-      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
-    }
-  },
-  {
-    "question": "시장경제에서 ‘가계’의 역할로 알맞은 것은?",
-    "choices": [
-      "생산요소를 제공하고 소비를 함",
-      "상품을 생산하고 이윤을 극대화함",
-      "통화를 발행함",
-      "관세를 부과함"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q090",
-      "subject": "사회",
-      "standard_code": "6사11-01",
-      "difficulty": "보통",
-      "explanation": "가계는 노동 등 생산요소를 제공하고 재화를 소비합니다."
-    }
-  },
-  {
-    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
-    "choices": [
-      "자원의 분포와 생산품의 차이",
-      "언어의 차이",
-      "국가 간 인구수 차이",
-      "영토 면적 차이"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q091",
-      "subject": "사회",
-      "standard_code": "6사11-03",
-      "difficulty": "보통",
-      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
-    }
-  },
-  {
-    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
-    "choices": [
-      "영토 면적 차이",
-      "언어의 차이",
-      "자원의 분포와 생산품의 차이",
-      "국가 간 인구수 차이"
-    ],
-    "correctIndex": 2,
-    "meta": {
-      "id": "q092",
-      "subject": "사회",
-      "standard_code": "6사11-03",
-      "difficulty": "보통",
-      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
-    }
-  },
-  {
-    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
-    "choices": [
-      "국가 간 인구수 차이",
-      "자원의 분포와 생산품의 차이",
-      "영토 면적 차이",
-      "언어의 차이"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q093",
-      "subject": "사회",
-      "standard_code": "6사11-03",
-      "difficulty": "보통",
-      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
-    }
-  },
-  {
-    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
-    "choices": [
-      "언어의 차이",
-      "자원의 분포와 생산품의 차이",
-      "국가 간 인구수 차이",
-      "영토 면적 차이"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q094",
-      "subject": "사회",
-      "standard_code": "6사11-03",
-      "difficulty": "보통",
-      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
-    }
-  },
-  {
-    "question": "무역이 발생하는 가장 큰 이유로 알맞은 것은?",
-    "choices": [
-      "언어의 차이",
-      "자원의 분포와 생산품의 차이",
-      "국가 간 인구수 차이",
-      "영토 면적 차이"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q095",
-      "subject": "사회",
-      "standard_code": "6사11-03",
-      "difficulty": "보통",
-      "explanation": "각 나라의 자원과 생산품이 달라 상호 교환(무역)의 필요가 생깁니다."
-    }
-  },
-  {
-    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
-    "choices": [
-      "글의 제목과 결론",
-      "글쓴이의 나이",
-      "글의 글자 수",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q096",
-      "subject": "국어",
-      "standard_code": "6국02-01",
-      "difficulty": "보통",
-      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
-    }
-  },
-  {
-    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
-    "choices": [
-      "글의 제목과 결론",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q097",
-      "subject": "국어",
-      "standard_code": "6국02-01",
-      "difficulty": "보통",
-      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
-    }
-  },
-  {
-    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
-    "choices": [
-      "글의 제목과 결론",
-      "그림의 해상도",
-      "글의 글자 수",
-      "글쓴이의 나이"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q098",
-      "subject": "국어",
-      "standard_code": "6국02-01",
-      "difficulty": "보통",
-      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
-    }
-  },
-  {
-    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
-    "choices": [
-      "그림의 해상도",
-      "글의 제목과 결론",
-      "글의 글자 수",
-      "글쓴이의 나이"
-    ],
-    "correctIndex": 1,
-    "meta": {
-      "id": "q099",
-      "subject": "국어",
-      "standard_code": "6국02-01",
-      "difficulty": "보통",
-      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
-    }
-  },
-  {
-    "question": "글의 주장을 파악하는 데 가장 도움이 되는 것은?",
-    "choices": [
-      "글의 제목과 결론",
-      "글쓴이의 나이",
-      "그림의 해상도",
-      "글의 글자 수"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q100",
-      "subject": "국어",
-      "standard_code": "6국02-01",
-      "difficulty": "보통",
-      "explanation": "글의 구조(서론-본론-결론)와 중심 내용을 통해 주장을 파악합니다."
-    }
-  },
-  {
-    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
-    "choices": [
-      "열심히 앞장서서 나서다",
-      "신발을 벗고 쉬다",
-      "급히 도망가다",
-      "춤을 추다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q101",
-      "subject": "국어",
-      "standard_code": "5국-어휘-관용표현",
-      "difficulty": "보통",
-      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q102",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "띄어쓰기가 바른 문장은?",
-    "choices": [
-      "학교에 가요.",
-      "학교 에가요.",
-      "학교 에 가요.",
-      "학교에가요."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q103",
-      "subject": "국어",
-      "standard_code": "5국-문장-띄어쓰기",
-      "difficulty": "보통",
-      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
-    }
-  },
-  {
-    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
-    "choices": [
-      "사실과 자료 제시",
-      "글쓴이의 기분",
-      "문장의 길이",
-      "글자체의 멋"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q104",
-      "subject": "국어",
-      "standard_code": "5국-읽기-주장근거",
-      "difficulty": "보통",
-      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
-    }
-  },
-  {
-    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
-    "choices": [
-      "열심히 앞장서서 나서다",
-      "신발을 벗고 쉬다",
-      "급히 도망가다",
-      "춤을 추다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q105",
-      "subject": "국어",
-      "standard_code": "5국-어휘-관용표현",
-      "difficulty": "보통",
-      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q106",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "매체 자료의 신뢰도를 판단할 때 가장 중요한 요소는?",
-    "choices": [
-      "출처와 제작자의 전문성",
-      "광고 색상",
-      "영상 길이",
-      "조회수"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q107",
-      "subject": "국어",
-      "standard_code": "5국-매체-신뢰도",
-      "difficulty": "보통",
-      "explanation": "출처·전문성·근거의 정확성과 최신성을 봅니다."
-    }
-  },
-  {
-    "question": "띄어쓰기가 바른 문장은?",
-    "choices": [
-      "학교에 가요.",
-      "학교 에가요.",
-      "학교 에 가요.",
-      "학교에가요."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q108",
-      "subject": "국어",
-      "standard_code": "5국-문장-띄어쓰기",
-      "difficulty": "보통",
-      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
-    }
-  },
-  {
-    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
-    "choices": [
-      "열심히 앞장서서 나서다",
-      "신발을 벗고 쉬다",
-      "급히 도망가다",
-      "춤을 추다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q109",
-      "subject": "국어",
-      "standard_code": "5국-어휘-관용표현",
-      "difficulty": "보통",
-      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
-    }
-  },
-  {
-    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
-    "choices": [
-      "사실과 자료 제시",
-      "글쓴이의 기분",
-      "문장의 길이",
-      "글자체의 멋"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q110",
-      "subject": "국어",
-      "standard_code": "5국-읽기-주장근거",
-      "difficulty": "보통",
-      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q111",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "띄어쓰기가 바른 문장은?",
-    "choices": [
-      "학교에 가요.",
-      "학교 에가요.",
-      "학교 에 가요.",
-      "학교에가요."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q112",
-      "subject": "국어",
-      "standard_code": "5국-문장-띄어쓰기",
-      "difficulty": "보통",
-      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
-    }
-  },
-  {
-    "question": "띄어쓰기가 바른 문장은?",
-    "choices": [
-      "학교에 가요.",
-      "학교 에가요.",
-      "학교 에 가요.",
-      "학교에가요."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q113",
-      "subject": "국어",
-      "standard_code": "5국-문장-띄어쓰기",
-      "difficulty": "보통",
-      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q114",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q115",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q116",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
-    "choices": [
-      "사실과 자료 제시",
-      "글쓴이의 기분",
-      "문장의 길이",
-      "글자체의 멋"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q117",
-      "subject": "국어",
-      "standard_code": "5국-읽기-주장근거",
-      "difficulty": "보통",
-      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
-    }
-  },
-  {
-    "question": "띄어쓰기가 바른 문장은?",
-    "choices": [
-      "학교에 가요.",
-      "학교 에가요.",
-      "학교 에 가요.",
-      "학교에가요."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q118",
-      "subject": "국어",
-      "standard_code": "5국-문장-띄어쓰기",
-      "difficulty": "보통",
-      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q119",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "띄어쓰기가 바른 문장은?",
-    "choices": [
-      "학교에 가요.",
-      "학교 에가요.",
-      "학교 에 가요.",
-      "학교에가요."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q120",
-      "subject": "국어",
-      "standard_code": "5국-문장-띄어쓰기",
-      "difficulty": "보통",
-      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q121",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
-    "choices": [
-      "열심히 앞장서서 나서다",
-      "신발을 벗고 쉬다",
-      "급히 도망가다",
-      "춤을 추다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q122",
-      "subject": "국어",
-      "standard_code": "5국-어휘-관용표현",
-      "difficulty": "보통",
-      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q123",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
-    "choices": [
-      "열심히 앞장서서 나서다",
-      "신발을 벗고 쉬다",
-      "급히 도망가다",
-      "춤을 추다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q124",
-      "subject": "국어",
-      "standard_code": "5국-어휘-관용표현",
-      "difficulty": "보통",
-      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
-    }
-  },
-  {
-    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
-    "choices": [
-      "열심히 앞장서서 나서다",
-      "신발을 벗고 쉬다",
-      "급히 도망가다",
-      "춤을 추다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q125",
-      "subject": "국어",
-      "standard_code": "5국-어휘-관용표현",
-      "difficulty": "보통",
-      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q126",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
-    "choices": [
-      "사실과 자료 제시",
-      "글쓴이의 기분",
-      "문장의 길이",
-      "글자체의 멋"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q127",
-      "subject": "국어",
-      "standard_code": "5국-읽기-주장근거",
-      "difficulty": "보통",
-      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
-    }
-  },
-  {
-    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
-    "choices": [
-      "사실과 자료 제시",
-      "글쓴이의 기분",
-      "문장의 길이",
-      "글자체의 멋"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q128",
-      "subject": "국어",
-      "standard_code": "5국-읽기-주장근거",
-      "difficulty": "보통",
-      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q129",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "다음 중 주장을 뒷받침하는 '근거'로 가장 적절한 것은?",
-    "choices": [
-      "사실과 자료 제시",
-      "글쓴이의 기분",
-      "문장의 길이",
-      "글자체의 멋"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q130",
-      "subject": "국어",
-      "standard_code": "5국-읽기-주장근거",
-      "difficulty": "보통",
-      "explanation": "주장에는 타당한 근거(사실·자료)가 필요합니다."
-    }
-  },
-  {
-    "question": "띄어쓰기가 바른 문장은?",
-    "choices": [
-      "학교에 가요.",
-      "학교 에가요.",
-      "학교 에 가요.",
-      "학교에가요."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q131",
-      "subject": "국어",
-      "standard_code": "5국-문장-띄어쓰기",
-      "difficulty": "보통",
-      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
-    }
-  },
-  {
-    "question": "띄어쓰기가 바른 문장은?",
-    "choices": [
-      "학교에 가요.",
-      "학교 에가요.",
-      "학교 에 가요.",
-      "학교에가요."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q132",
-      "subject": "국어",
-      "standard_code": "5국-문장-띄어쓰기",
-      "difficulty": "보통",
-      "explanation": "조사와 용언의 활용에 맞춰 바르게 띄어 씁니다."
-    }
-  },
-  {
-    "question": "매체 자료의 신뢰도를 판단할 때 가장 중요한 요소는?",
-    "choices": [
-      "출처와 제작자의 전문성",
-      "광고 색상",
-      "영상 길이",
-      "조회수"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q133",
-      "subject": "국어",
-      "standard_code": "5국-매체-신뢰도",
-      "difficulty": "보통",
-      "explanation": "출처·전문성·근거의 정확성과 최신성을 봅니다."
-    }
-  },
-  {
-    "question": "다음 중 관용 표현의 뜻으로 맞는 것은? ‘발 벗고 나서다’",
-    "choices": [
-      "열심히 앞장서서 나서다",
-      "신발을 벗고 쉬다",
-      "급히 도망가다",
-      "춤을 추다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q134",
-      "subject": "국어",
-      "standard_code": "5국-어휘-관용표현",
-      "difficulty": "보통",
-      "explanation": "관용 표현은 비유적 의미로 쓰입니다."
-    }
-  },
-  {
-    "question": "글의 핵심 내용을 가장 잘 나타내는 것은?",
-    "choices": [
-      "글의 중심 생각",
-      "글의 글자 수",
-      "글쓴이의 나이",
-      "그림의 해상도"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q135",
-      "subject": "국어",
-      "standard_code": "5국-읽기-중심내용",
-      "difficulty": "보통",
-      "explanation": "제목·주제문·결론을 통해 중심 내용을 파악합니다."
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q136",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "길을 물을 때 알맞은 표현은?",
-    "choices": [
-      "Excuse me, how can I get to the museum?",
-      "What color is it?",
-      "I have two pencils.",
-      "This is my mother."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q137",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-길묻기",
-      "difficulty": "보통",
-      "explanation": "공손한 표현 + how can I get to ~?"
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q138",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "‘함께 놀자’에 알맞은 표현은?",
-    "choices": [
-      "Let's play together.",
-      "Please be quiet.",
-      "How old are you?",
-      "I am hungry."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q139",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-제안",
-      "difficulty": "보통",
-      "explanation": "Let's + 동사원형으로 제안합니다."
-    }
-  },
-  {
-    "question": "‘함께 놀자’에 알맞은 표현은?",
-    "choices": [
-      "Let's play together.",
-      "Please be quiet.",
-      "How old are you?",
-      "I am hungry."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q140",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-제안",
-      "difficulty": "보통",
-      "explanation": "Let's + 동사원형으로 제안합니다."
-    }
-  },
-  {
-    "question": "길을 물을 때 알맞은 표현은?",
-    "choices": [
-      "Excuse me, how can I get to the museum?",
-      "What color is it?",
-      "I have two pencils.",
-      "This is my mother."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q141",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-길묻기",
-      "difficulty": "보통",
-      "explanation": "공손한 표현 + how can I get to ~?"
-    }
-  },
-  {
-    "question": "‘함께 놀자’에 알맞은 표현은?",
-    "choices": [
-      "Let's play together.",
-      "Please be quiet.",
-      "How old are you?",
-      "I am hungry."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q142",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-제안",
-      "difficulty": "보통",
-      "explanation": "Let's + 동사원형으로 제안합니다."
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q143",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "길을 물을 때 알맞은 표현은?",
-    "choices": [
-      "Excuse me, how can I get to the museum?",
-      "What color is it?",
-      "I have two pencils.",
-      "This is my mother."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q144",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-길묻기",
-      "difficulty": "보통",
-      "explanation": "공손한 표현 + how can I get to ~?"
-    }
-  },
-  {
-    "question": "길을 물을 때 알맞은 표현은?",
-    "choices": [
-      "Excuse me, how can I get to the museum?",
-      "What color is it?",
-      "I have two pencils.",
-      "This is my mother."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q145",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-길묻기",
-      "difficulty": "보통",
-      "explanation": "공손한 표현 + how can I get to ~?"
-    }
-  },
-  {
-    "question": "‘함께 놀자’에 알맞은 표현은?",
-    "choices": [
-      "Let's play together.",
-      "Please be quiet.",
-      "How old are you?",
-      "I am hungry."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q146",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-제안",
-      "difficulty": "보통",
-      "explanation": "Let's + 동사원형으로 제안합니다."
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q147",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "시간을 묻는 표현으로 알맞은 것은?",
-    "choices": [
-      "What time is it?",
-      "How old are you?",
-      "Where are you from?",
-      "What's this?"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q148",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-시간",
-      "difficulty": "보통",
-      "explanation": "시간 묻기: What time is it?"
-    }
-  },
-  {
-    "question": "길을 물을 때 알맞은 표현은?",
-    "choices": [
-      "Excuse me, how can I get to the museum?",
-      "What color is it?",
-      "I have two pencils.",
-      "This is my mother."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q149",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-길묻기",
-      "difficulty": "보통",
-      "explanation": "공손한 표현 + how can I get to ~?"
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q150",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
-    "choices": [
-      "You're welcome.",
-      "See you.",
-      "Good luck.",
-      "Me too."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q151",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-감사",
-      "difficulty": "보통",
-      "explanation": "감사에 대한 기본 응답: You're welcome."
-    }
-  },
-  {
-    "question": "시간을 묻는 표현으로 알맞은 것은?",
-    "choices": [
-      "What time is it?",
-      "How old are you?",
-      "Where are you from?",
-      "What's this?"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q152",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-시간",
-      "difficulty": "보통",
-      "explanation": "시간 묻기: What time is it?"
-    }
-  },
-  {
-    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
-    "choices": [
-      "You're welcome.",
-      "See you.",
-      "Good luck.",
-      "Me too."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q153",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-감사",
-      "difficulty": "보통",
-      "explanation": "감사에 대한 기본 응답: You're welcome."
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q154",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "‘함께 놀자’에 알맞은 표현은?",
-    "choices": [
-      "Let's play together.",
-      "Please be quiet.",
-      "How old are you?",
-      "I am hungry."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q155",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-제안",
-      "difficulty": "보통",
-      "explanation": "Let's + 동사원형으로 제안합니다."
-    }
-  },
-  {
-    "question": "시간을 묻는 표현으로 알맞은 것은?",
-    "choices": [
-      "What time is it?",
-      "How old are you?",
-      "Where are you from?",
-      "What's this?"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q156",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-시간",
-      "difficulty": "보통",
-      "explanation": "시간 묻기: What time is it?"
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q157",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
-    "choices": [
-      "You're welcome.",
-      "See you.",
-      "Good luck.",
-      "Me too."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q158",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-감사",
-      "difficulty": "보통",
-      "explanation": "감사에 대한 기본 응답: You're welcome."
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q159",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
-    "choices": [
-      "You're welcome.",
-      "See you.",
-      "Good luck.",
-      "Me too."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q160",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-감사",
-      "difficulty": "보통",
-      "explanation": "감사에 대한 기본 응답: You're welcome."
-    }
-  },
-  {
-    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
-    "choices": [
-      "You're welcome.",
-      "See you.",
-      "Good luck.",
-      "Me too."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q161",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-감사",
-      "difficulty": "보통",
-      "explanation": "감사에 대한 기본 응답: You're welcome."
-    }
-  },
-  {
-    "question": "길을 물을 때 알맞은 표현은?",
-    "choices": [
-      "Excuse me, how can I get to the museum?",
-      "What color is it?",
-      "I have two pencils.",
-      "This is my mother."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q162",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-길묻기",
-      "difficulty": "보통",
-      "explanation": "공손한 표현 + how can I get to ~?"
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q163",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "감사를 표현하는 말에 대한 알맞은 응답은? 'Thank you.'",
-    "choices": [
-      "You're welcome.",
-      "See you.",
-      "Good luck.",
-      "Me too."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q164",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-감사",
-      "difficulty": "보통",
-      "explanation": "감사에 대한 기본 응답: You're welcome."
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q165",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "길을 물을 때 알맞은 표현은?",
-    "choices": [
-      "Excuse me, how can I get to the museum?",
-      "What color is it?",
-      "I have two pencils.",
-      "This is my mother."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q166",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-길묻기",
-      "difficulty": "보통",
-      "explanation": "공손한 표현 + how can I get to ~?"
-    }
-  },
-  {
-    "question": "시간을 묻는 표현으로 알맞은 것은?",
-    "choices": [
-      "What time is it?",
-      "How old are you?",
-      "Where are you from?",
-      "What's this?"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q167",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-시간",
-      "difficulty": "보통",
-      "explanation": "시간 묻기: What time is it?"
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q168",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "‘함께 놀자’에 알맞은 표현은?",
-    "choices": [
-      "Let's play together.",
-      "Please be quiet.",
-      "How old are you?",
-      "I am hungry."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q169",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-제안",
-      "difficulty": "보통",
-      "explanation": "Let's + 동사원형으로 제안합니다."
-    }
-  },
-  {
-    "question": "시간을 묻는 표현으로 알맞은 것은?",
-    "choices": [
-      "What time is it?",
-      "How old are you?",
-      "Where are you from?",
-      "What's this?"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q170",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-시간",
-      "difficulty": "보통",
-      "explanation": "시간 묻기: What time is it?"
-    }
-  },
-  {
-    "question": "‘함께 놀자’에 알맞은 표현은?",
-    "choices": [
-      "Let's play together.",
-      "Please be quiet.",
-      "How old are you?",
-      "I am hungry."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q171",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-제안",
-      "difficulty": "보통",
-      "explanation": "Let's + 동사원형으로 제안합니다."
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q172",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q173",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "다음 중 위치를 설명하는 말은?",
-    "choices": [
-      "It's between the bank and the park.",
-      "It's delicious.",
-      "I'm from Korea.",
-      "I can swim."
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q174",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-위치",
-      "difficulty": "보통",
-      "explanation": "전치사구(next to, between, in front of 등)를 사용합니다."
-    }
-  },
-  {
-    "question": "시간을 묻는 표현으로 알맞은 것은?",
-    "choices": [
-      "What time is it?",
-      "How old are you?",
-      "Where are you from?",
-      "What's this?"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q175",
-      "subject": "영어",
-      "standard_code": "5영-의사소통-시간",
-      "difficulty": "보통",
-      "explanation": "시간 묻기: What time is it?"
-    }
-  },
-  {
-    "question": "다음 중 ‘축척’에 대한 설명으로 옳은 것은?",
-    "choices": [
-      "실제 거리를 일정한 비율로 줄여 표시한 것",
-      "방위를 나타내는 기호",
-      "고도를 나타내는 등고선의 간격",
-      "지도에서 사용한 색깔의 의미"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q176",
-      "subject": "사회",
-      "standard_code": "5사-지도-축척",
-      "difficulty": "보통",
-      "explanation": "축척=지도 거리 : 실제 거리의 비율"
-    }
-  },
-  {
-    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
-    "choices": [
-      "해안선이 비교적 단순하고 모래사장이 발달",
-      "리아스식 해안이 매우 발달",
-      "큰 사막 지형이 분포",
-      "높은 산맥이 전혀 없다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q177",
-      "subject": "사회",
-      "standard_code": "5사-국토-지형",
-      "difficulty": "보통",
-      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
-    }
-  },
-  {
-    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
-    "choices": [
-      "해안선이 비교적 단순하고 모래사장이 발달",
-      "리아스식 해안이 매우 발달",
-      "큰 사막 지형이 분포",
-      "높은 산맥이 전혀 없다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q178",
-      "subject": "사회",
-      "standard_code": "5사-국토-지형",
-      "difficulty": "보통",
-      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
-    }
-  },
-  {
-    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
-    "choices": [
-      "해안선이 비교적 단순하고 모래사장이 발달",
-      "리아스식 해안이 매우 발달",
-      "큰 사막 지형이 분포",
-      "높은 산맥이 전혀 없다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q179",
-      "subject": "사회",
-      "standard_code": "5사-국토-지형",
-      "difficulty": "보통",
-      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
-    }
-  },
-  {
-    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
-    "choices": [
-      "해안선이 비교적 단순하고 모래사장이 발달",
-      "리아스식 해안이 매우 발달",
-      "큰 사막 지형이 분포",
-      "높은 산맥이 전혀 없다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q180",
-      "subject": "사회",
-      "standard_code": "5사-국토-지형",
-      "difficulty": "보통",
-      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
-    }
-  },
-  {
-    "question": "지도의 기본 요소로 알맞지 않은 것은?",
-    "choices": [
-      "지도 기호",
-      "방위",
-      "축척",
-      "날씨 예보"
-    ],
-    "correctIndex": 3,
-    "meta": {
-      "id": "q181",
-      "subject": "사회",
-      "standard_code": "5사-지도-기본요소",
-      "difficulty": "보통",
-      "explanation": "범례·방위·축척 등은 지도를 이해하는 핵심 요소입니다."
-    }
-  },
-  {
-    "question": "환경 보호 실천으로 가장 적절한 것은?",
-    "choices": [
-      "분리배출과 재활용",
-      "일회용품 더 사용",
-      "가까운 거리 자동차 이용",
-      "불필요한 전기 계속 켜 두기"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q182",
-      "subject": "사회",
-      "standard_code": "5사-환경-실천",
-      "difficulty": "보통",
-      "explanation": "생활 속 절약·재활용·대중교통 이용 등"
-    }
-  },
-  {
-    "question": "다음 중 ‘축척’에 대한 설명으로 옳은 것은?",
-    "choices": [
-      "실제 거리를 일정한 비율로 줄여 표시한 것",
-      "방위를 나타내는 기호",
-      "고도를 나타내는 등고선의 간격",
-      "지도에서 사용한 색깔의 의미"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q183",
-      "subject": "사회",
-      "standard_code": "5사-지도-축척",
-      "difficulty": "보통",
-      "explanation": "축척=지도 거리 : 실제 거리의 비율"
-    }
-  },
-  {
-    "question": "우리나라 동해안의 지형 특징으로 알맞은 것은?",
-    "choices": [
-      "해안선이 비교적 단순하고 모래사장이 발달",
-      "리아스식 해안이 매우 발달",
-      "큰 사막 지형이 분포",
-      "높은 산맥이 전혀 없다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q184",
-      "subject": "사회",
-      "standard_code": "5사-국토-지형",
-      "difficulty": "보통",
-      "explanation": "동해안은 해안선이 단순하고 사구·사빈이 발달합니다."
-    }
-  },
-  {
-    "question": "환경 보호 실천으로 가장 적절한 것은?",
-    "choices": [
-      "분리배출과 재활용",
-      "일회용품 더 사용",
-      "가까운 거리 자동차 이용",
-      "불필요한 전기 계속 켜 두기"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q185",
-      "subject": "사회",
-      "standard_code": "5사-환경-실천",
-      "difficulty": "보통",
-      "explanation": "생활 속 절약·재활용·대중교통 이용 등"
-    }
-  },
-  {
-    "question": "다음 중 마찰력을 ‘줄이는’ 방법은?",
-    "choices": [
-      "기름칠을 한다",
-      "표면을 더 거칠게 한다",
-      "물체를 더 세게 누른다",
-      "고무패드를 붙인다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q186",
-      "subject": "과학",
-      "standard_code": "5과-힘과운동-마찰",
-      "difficulty": "보통",
-      "explanation": "윤활·매끈한 표면 등은 마찰을 줄입니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q187",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "소금물에서 소금을 다시 얻는 데 알맞은 방법은?",
-    "choices": [
-      "증발",
-      "여과",
-      "자기장 분리",
-      "융해"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q188",
-      "subject": "과학",
-      "standard_code": "5과-물질-용액분리",
-      "difficulty": "보통",
-      "explanation": "소금물은 ‘증발’로 용질을 분리합니다."
-    }
-  },
-  {
-    "question": "물의 상태 변화에서 ‘기체 → 액체’로 바뀌는 현상은?",
-    "choices": [
-      "응결",
-      "증발",
-      "승화",
-      "녹는 것"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q189",
-      "subject": "과학",
-      "standard_code": "5과-물질-상태변화",
-      "difficulty": "보통",
-      "explanation": "기체가 식어 액체가 되는 것은 ‘응결’입니다."
-    }
-  },
-  {
-    "question": "다음 중 마찰력을 ‘줄이는’ 방법은?",
-    "choices": [
-      "기름칠을 한다",
-      "표면을 더 거칠게 한다",
-      "물체를 더 세게 누른다",
-      "고무패드를 붙인다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q190",
-      "subject": "과학",
-      "standard_code": "5과-힘과운동-마찰",
-      "difficulty": "보통",
-      "explanation": "윤활·매끈한 표면 등은 마찰을 줄입니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q191",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q192",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q193",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q194",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q195",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q196",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "소금물에서 소금을 다시 얻는 데 알맞은 방법은?",
-    "choices": [
-      "증발",
-      "여과",
-      "자기장 분리",
-      "융해"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q197",
-      "subject": "과학",
-      "standard_code": "5과-물질-용액분리",
-      "difficulty": "보통",
-      "explanation": "소금물은 ‘증발’로 용질을 분리합니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q198",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "먹이사슬의 설명으로 옳은 것은?",
-    "choices": [
-      "생산자→소비자→분해자 순으로 에너지가 흐른다",
-      "분해자는 에너지를 만든다",
-      "소비자는 광합성을 한다",
-      "생산자는 동물만을 뜻한다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q199",
-      "subject": "과학",
-      "standard_code": "5과-생태계-먹이사슬",
-      "difficulty": "보통",
-      "explanation": "식물(생산자) → 동물(소비자) → 분해자로 에너지가 전달됩니다."
-    }
-  },
-  {
-    "question": "다음 중 마찰력을 ‘줄이는’ 방법은?",
-    "choices": [
-      "기름칠을 한다",
-      "표면을 더 거칠게 한다",
-      "물체를 더 세게 누른다",
-      "고무패드를 붙인다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q200",
-      "subject": "과학",
-      "standard_code": "5과-힘과운동-마찰",
-      "difficulty": "보통",
-      "explanation": "윤활·매끈한 표면 등은 마찰을 줄입니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q201",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "소금물에서 소금을 다시 얻는 데 알맞은 방법은?",
-    "choices": [
-      "증발",
-      "여과",
-      "자기장 분리",
-      "융해"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q202",
-      "subject": "과학",
-      "standard_code": "5과-물질-용액분리",
-      "difficulty": "보통",
-      "explanation": "소금물은 ‘증발’로 용질을 분리합니다."
-    }
-  },
-  {
-    "question": "다음 중 마찰력을 ‘줄이는’ 방법은?",
-    "choices": [
-      "기름칠을 한다",
-      "표면을 더 거칠게 한다",
-      "물체를 더 세게 누른다",
-      "고무패드를 붙인다"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q203",
-      "subject": "과학",
-      "standard_code": "5과-힘과운동-마찰",
-      "difficulty": "보통",
-      "explanation": "윤활·매끈한 표면 등은 마찰을 줄입니다."
-    }
-  },
-  {
-    "question": "혼합물 ‘모래+물’을 분리하는 데 가장 알맞은 방법은?",
-    "choices": [
-      "여과",
-      "증발",
-      "승화",
-      "증류"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q204",
-      "subject": "과학",
-      "standard_code": "5과-물질-혼합물분리",
-      "difficulty": "보통",
-      "explanation": "거름종이로 여과하면 모래와 물을 분리할 수 있습니다."
-    }
-  },
-  {
-    "question": "물의 상태 변화에서 ‘기체 → 액체’로 바뀌는 현상은?",
-    "choices": [
-      "응결",
-      "증발",
-      "승화",
-      "녹는 것"
-    ],
-    "correctIndex": 0,
-    "meta": {
-      "id": "q205",
-      "subject": "과학",
-      "standard_code": "5과-물질-상태변화",
-      "difficulty": "보통",
-      "explanation": "기체가 식어 액체가 되는 것은 ‘응결’입니다."
-    }
+      "5"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3/4 × 12의 값은?",
+    "options": [
+      "8",
+      "9",
+      "11",
+      "10"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "5/6 × 18의 값은?",
+    "options": [
+      "15",
+      "17",
+      "16",
+      "14"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "7/10 × 20의 값은?",
+    "options": [
+      "16",
+      "15",
+      "13",
+      "14"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/3 × 6/2의 값은?",
+    "options": [
+      "2",
+      "1",
+      "4",
+      "3"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/5 × 10/3의 값은?",
+    "options": [
+      "3",
+      "1",
+      "2",
+      "4"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "4/7 × 14/4의 값은?",
+    "options": [
+      "1",
+      "4",
+      "2",
+      "3"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "5/8 × 16/5의 값은?",
+    "options": [
+      "2",
+      "3",
+      "1",
+      "4"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "6/11 × 22/6의 값은?",
+    "options": [
+      "3",
+      "4",
+      "2",
+      "1"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "7/12 × 24/7의 값은?",
+    "options": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "9/10 × 10/9의 값은?",
+    "options": [
+      "1",
+      "2",
+      "3",
+      "3"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/4 × 8/3의 값은?",
+    "options": [
+      "2",
+      "3",
+      "1",
+      "4"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/9 × 9/2의 값은?",
+    "options": [
+      "3",
+      "1",
+      "3",
+      "2"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "5/6 × 12/5의 값은?",
+    "options": [
+      "4",
+      "3",
+      "2",
+      "1"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "7/15 × 15/7의 값은?",
+    "options": [
+      "3",
+      "3",
+      "2",
+      "1"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "8/9 × 9/8의 값은?",
+    "options": [
+      "2",
+      "3",
+      "3",
+      "1"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "11/12 × 12/11의 값은?",
+    "options": [
+      "1",
+      "3",
+      "3",
+      "2"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "4/9 × 9/4의 값은?",
+    "options": [
+      "2",
+      "3",
+      "3",
+      "1"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "5/7 × 14/5의 값은?",
+    "options": [
+      "1",
+      "4",
+      "3",
+      "2"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/8 × 16/3의 값은?",
+    "options": [
+      "2",
+      "3",
+      "1",
+      "4"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/11 × 22/2의 값은?",
+    "options": [
+      "2",
+      "4",
+      "1",
+      "3"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "9/14 × 14/9의 값은?",
+    "options": [
+      "3",
+      "1",
+      "2",
+      "3"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "10/11 × 11/10의 값은?",
+    "options": [
+      "3",
+      "2",
+      "1",
+      "3"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "6/13 × 13/6의 값은?",
+    "options": [
+      "3",
+      "1",
+      "2",
+      "3"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "5/9 × 9/5의 값은?",
+    "options": [
+      "1",
+      "3",
+      "3",
+      "2"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "6/7 × 28의 값은?",
+    "options": [
+      "24",
+      "26",
+      "23",
+      "25"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/5 × 15의 값은?",
+    "options": [
+      "11",
+      "8",
+      "10",
+      "9"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1/2 × 10의 값은?",
+    "options": [
+      "4",
+      "7",
+      "5",
+      "6"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1/6 × 12의 값은?",
+    "options": [
+      "1",
+      "3",
+      "4",
+      "2"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "5/9 × 27의 값은?",
+    "options": [
+      "14",
+      "16",
+      "15",
+      "17"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "7/12 × 36의 값은?",
+    "options": [
+      "20",
+      "23",
+      "22",
+      "21"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/6 × 24의 값은?",
+    "options": [
+      "13",
+      "14",
+      "12",
+      "11"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3/4 × 20의 값은?",
+    "options": [
+      "14",
+      "15",
+      "17",
+      "16"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "5/7 × 28의 값은?",
+    "options": [
+      "21",
+      "20",
+      "22",
+      "19"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "4/5 × 15의 값은?",
+    "options": [
+      "12",
+      "11",
+      "14",
+      "13"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "2/5 × 15의 값은?",
+    "options": [
+      "5",
+      "8",
+      "6",
+      "7"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3/5 × 25의 값은?",
+    "options": [
+      "16",
+      "14",
+      "17",
+      "15"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "5/6 × 30의 값은?",
+    "options": [
+      "26",
+      "25",
+      "24",
+      "27"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1/6 × 30의 값은?",
+    "options": [
+      "5",
+      "4",
+      "6",
+      "7"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "4/9 × 36의 값은?",
+    "options": [
+      "18",
+      "16",
+      "17",
+      "15"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "4/7 × 28의 값은?",
+    "options": [
+      "15",
+      "16",
+      "18",
+      "17"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/8 × 40의 값은?",
+    "options": [
+      "10",
+      "12",
+      "11",
+      "9"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "4/12 × 48의 값은?",
+    "options": [
+      "16",
+      "18",
+      "17",
+      "15"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/5 × 25의 값은?",
+    "options": [
+      "17",
+      "15",
+      "16",
+      "14"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/7 × 14의 값은?",
+    "options": [
+      "3",
+      "6",
+      "4",
+      "5"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1/2 × 10의 값은?",
+    "options": [
+      "5",
+      "7",
+      "4",
+      "6"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "8/12 × 60의 값은?",
+    "options": [
+      "42",
+      "39",
+      "41",
+      "40"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1/2 × 6의 값은?",
+    "options": [
+      "3",
+      "4",
+      "5",
+      "2"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3/8 × 24의 값은?",
+    "options": [
+      "10",
+      "8",
+      "11",
+      "9"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/12 × 60의 값은?",
+    "options": [
+      "14",
+      "17",
+      "15",
+      "16"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "5/7 × 28의 값은?",
+    "options": [
+      "21",
+      "19",
+      "20",
+      "22"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/7 × 28의 값은?",
+    "options": [
+      "9",
+      "10",
+      "7",
+      "8"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3/9 × 36의 값은?",
+    "options": [
+      "11",
+      "14",
+      "13",
+      "12"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1/5 × 25의 값은?",
+    "options": [
+      "7",
+      "6",
+      "5",
+      "4"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1/2 × 8의 값은?",
+    "options": [
+      "3",
+      "5",
+      "6",
+      "4"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "5/7 × 28의 값은?",
+    "options": [
+      "20",
+      "21",
+      "19",
+      "22"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1/9 × 27의 값은?",
+    "options": [
+      "3",
+      "5",
+      "2",
+      "4"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "4/5 × 10의 값은?",
+    "options": [
+      "7",
+      "8",
+      "10",
+      "9"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3/4 × 16의 값은?",
+    "options": [
+      "12",
+      "11",
+      "13",
+      "14"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3/4 × 12의 값은?",
+    "options": [
+      "11",
+      "8",
+      "9",
+      "10"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3/4 × 20의 값은?",
+    "options": [
+      "15",
+      "16",
+      "14",
+      "17"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "4/9 × 27의 값은?",
+    "options": [
+      "14",
+      "11",
+      "13",
+      "12"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "6/7 × 35의 값은?",
+    "options": [
+      "29",
+      "32",
+      "30",
+      "31"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "4/6 × 18의 값은?",
+    "options": [
+      "11",
+      "13",
+      "12",
+      "14"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3/9 × 45의 값은?",
+    "options": [
+      "16",
+      "14",
+      "15",
+      "17"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/6 × 12의 값은?",
+    "options": [
+      "5",
+      "4",
+      "3",
+      "6"
+    ],
+    "answer": 1,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1/2 × 4의 값은?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "1"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1/2 × 6의 값은?",
+    "options": [
+      "3",
+      "2",
+      "4",
+      "5"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "10/12 × 36의 값은?",
+    "options": [
+      "30",
+      "31",
+      "32",
+      "29"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1/6 × 18의 값은?",
+    "options": [
+      "5",
+      "2",
+      "3",
+      "4"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1/4 × 20의 값은?",
+    "options": [
+      "5",
+      "6",
+      "4",
+      "7"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "3/5 × 25의 값은?",
+    "options": [
+      "17",
+      "16",
+      "15",
+      "14"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/9 × 18의 값은?",
+    "options": [
+      "4",
+      "6",
+      "3",
+      "5"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1/2 × 10의 값은?",
+    "options": [
+      "6",
+      "7",
+      "5",
+      "4"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1/2 × 10의 값은?",
+    "options": [
+      "5",
+      "7",
+      "4",
+      "6"
+    ],
+    "answer": 0,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "6/8 × 32의 값은?",
+    "options": [
+      "24",
+      "25",
+      "26",
+      "23"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2/4 × 8의 값은?",
+    "options": [
+      "6",
+      "3",
+      "5",
+      "4"
+    ],
+    "answer": 3,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1/8 × 16의 값은?",
+    "options": [
+      "2",
+      "1",
+      "4",
+      "3"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "6/12 × 36의 값은?",
+    "options": [
+      "17",
+      "19",
+      "20",
+      "18"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "다음 중 서로 합동인 도형 쌍은?",
+    "options": [
+      "밑변 5cm, 높이 4cm 삼각형과 밑변 4cm, 높이 5cm 삼각형",
+      "한 변 6cm 정사각형과 한 변 6cm 정사각형",
+      "반지름 3cm 원과 반지름 4cm 원",
+      "가로 3cm, 세로 5cm 직사각형과 가로 5cm, 세로 3cm 직사각형"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "다음 도형 가운데 대칭축이 4개인 것은?",
+    "options": [
+      "정사각형",
+      "정삼각형",
+      "직사각형(가로≠세로)",
+      "원"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "평행이동, 대칭이동, 회전이동은 어떤 공통점을 가지나요?",
+    "options": [
+      "도형의 넓이가 변한다",
+      "길이와 각을 보존한다",
+      "도형의 색만 바뀐다",
+      "도형이 작아진다"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "직사각형(가로≠세로)의 대칭축의 개수는?",
+    "options": [
+      "0개",
+      "1개",
+      "2개",
+      "4개"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "정삼각형의 대칭축의 개수는?",
+    "options": [
+      "1개",
+      "2개",
+      "3개",
+      "6개"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "두 도형이 합동이면 반드시 같은 것은?",
+    "options": [
+      "넓이",
+      "둘레",
+      "각도와 변의 길이",
+      "색"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "원의 대칭축의 개수는?",
+    "options": [
+      "0개",
+      "1개",
+      "무수히 많다",
+      "2개"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "대칭이동에서 선대칭의 '축'을 무엇이라 하나요?",
+    "options": [
+      "대칭선",
+      "대칭축",
+      "회전축",
+      "중심선"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "점대칭 도형의 중심을 무엇이라 하나요?",
+    "options": [
+      "대칭선",
+      "대칭축",
+      "대칭중심",
+      "회전중심"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "좌표평면에서 점 (3, -2)를 가로축(수평축)에 대칭이동하면?",
+    "options": [
+      "(3, 2)",
+      "(-3, -2)",
+      "(-3, 2)",
+      "(3, -2)"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "두 정사각형이 합동이려면 필요한 조건은?",
+    "options": [
+      "각이 모두 같으면 된다",
+      "변의 길이가 모두 같으면 된다",
+      "둘레만 같으면 된다",
+      "색이 같으면 된다"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "정오각형의 대칭축 개수는?",
+    "options": [
+      "1개",
+      "2개",
+      "3개",
+      "5개"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "평행이동만으로 포개지면 두 도형은?",
+    "options": [
+      "닮음",
+      "합동",
+      "대칭",
+      "무관"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "회전이동에서 도형을 돌리는 기준점은?",
+    "options": [
+      "무게중심",
+      "회전중심",
+      "대칭중심",
+      "도형의 꼭짓점"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "한 변의 길이가 같은 두 정삼각형은?",
+    "options": [
+      "항상 합동",
+      "항상 닮음이지만 합동 아님",
+      "항상 서로 다름",
+      "항상 대칭"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "사다리꼴은 보통 대칭축이?",
+    "options": [
+      "0개일 수도 있다",
+      "반드시 1개",
+      "반드시 2개",
+      "무한"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "마름모의 대칭축 개수는?",
+    "options": [
+      "0개",
+      "1개",
+      "2개",
+      "4개"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "정육각형의 대칭축 개수는?",
+    "options": [
+      "3개",
+      "6개",
+      "12개",
+      "무한"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "선대칭 도형을 대칭축에 대해 접으면?",
+    "options": [
+      "겹치지 않는다",
+      "완전히 겹친다",
+      "모양만 같고 위치는 다르다",
+      "넓이가 달라진다"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "점대칭 도형을 대칭중심에 대해 180° 돌리면?",
+    "options": [
+      "겹친다",
+      "겹치지 않는다",
+      "넓이가 변한다",
+      "둘레가 변한다"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "직사각형을 180° 회전했을 때의 모습은?",
+    "options": [
+      "합동",
+      "닮음",
+      "다르다",
+      "변형된다"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "정사각형을 90° 회전했을 때의 모습은?",
+    "options": [
+      "합동",
+      "닮음",
+      "다르다",
+      "변형된다"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "직각삼각형 두 개가 합동이려면 필요한 정보가 충분한 것은?",
+    "options": [
+      "한 각만 같다",
+      "밑변과 높이가 같다",
+      "둘레만 같다",
+      "넓이만 같다"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "다음 중 선대칭 도형이 아닌 것은?",
+    "options": [
+      "나비",
+      "하트(좌우 균형)",
+      "글자 A(표준 서체)",
+      "글자 T(표준 서체)"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "정사각형의 대각선은 무엇의 역할을 하나요?",
+    "options": [
+      "대칭축",
+      "회전축",
+      "둘레",
+      "넓이"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "원의 지름은 무엇의 역할을 하나요?",
+    "options": [
+      "대칭축",
+      "회전축",
+      "둘레",
+      "넓이"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "정사각형의 회전대칭 차수(1~)?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "무한"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "정삼각형의 회전대칭 차수는?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "6"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "정오각형의 회전대칭 차수는?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "직사각형의 회전대칭 차수는?",
+    "options": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.4×9의 값은?",
+    "options": [
+      "4.6",
+      "3.1",
+      "3.6",
+      "4.1"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1.5×7의 값은?",
+    "options": [
+      "11.5",
+      "10",
+      "11",
+      "10.5"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.3×30의 값은?",
+    "options": [
+      "70",
+      "68.5",
+      "69",
+      "69.5"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3.8×5의 값은?",
+    "options": [
+      "20",
+      "18.5",
+      "19",
+      "19.5"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.6×50의 값은?",
+    "options": [
+      "30.5",
+      "29.5",
+      "30",
+      "31"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1.2×8의 값은?",
+    "options": [
+      "10.6",
+      "9.1",
+      "9.6",
+      "10.1"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.5×12의 값은?",
+    "options": [
+      "29.5",
+      "31",
+      "30",
+      "30.5"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.7×6의 값은?",
+    "options": [
+      "5.2",
+      "4.7",
+      "4.2",
+      "3.7"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1.8×9의 값은?",
+    "options": [
+      "15.7",
+      "17.2",
+      "16.7",
+      "16.2"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.9×7의 값은?",
+    "options": [
+      "6.8",
+      "7.3",
+      "6.3",
+      "5.8"
+    ],
+    "answer": 2,
+    "difficulty": "easy",
+    "reward": 50,
+    "time": 10
+  },
+  {
+    "question": "1.1×11의 값은?",
+    "options": [
+      "12.1",
+      "12.6",
+      "13.1",
+      "11.6"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.3×40의 값은?",
+    "options": [
+      "12.5",
+      "12",
+      "11.5",
+      "13"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.5×14의 값은?",
+    "options": [
+      "8",
+      "6.5",
+      "7.5",
+      "7"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.8×25의 값은?",
+    "options": [
+      "21",
+      "19.5",
+      "20",
+      "20.5"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1.6×6의 값은?",
+    "options": [
+      "9.6",
+      "9.1",
+      "10.1",
+      "10.6"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "2.4×5의 값은?",
+    "options": [
+      "11.5",
+      "13",
+      "12.5",
+      "12"
+    ],
+    "answer": 3,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "3.2×4의 값은?",
+    "options": [
+      "13.3",
+      "12.8",
+      "13.8",
+      "12.3"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "1.9×3의 값은?",
+    "options": [
+      "6.2",
+      "5.2",
+      "5.7",
+      "6.7"
+    ],
+    "answer": 2,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.2×60의 값은?",
+    "options": [
+      "11.5",
+      "12",
+      "13",
+      "12.5"
+    ],
+    "answer": 1,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.4×35의 값은?",
+    "options": [
+      "14",
+      "14.5",
+      "13.5",
+      "15"
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  },
+  {
+    "question": "0.7×49의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "34.8",
+      "33.3",
+      "35.3",
+      "34.3"
+    ],
+    "answer": 3,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "1.9×27의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "52.3",
+      "51.8",
+      "51.3",
+      "50.3"
+    ],
+    "answer": 2,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "2.7×38의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "103.6",
+      "101.6",
+      "102.6",
+      "103.1"
+    ],
+    "answer": 2,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "3.6×19의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "68.9",
+      "67.4",
+      "68.4",
+      "69.4"
+    ],
+    "answer": 2,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "0.8×47의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "36.6",
+      "38.6",
+      "37.6",
+      "38.1"
+    ],
+    "answer": 2,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "1.4×39의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "55.6",
+      "53.6",
+      "54.6",
+      "55.1"
+    ],
+    "answer": 2,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "2.9×24의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "70.1",
+      "69.6",
+      "70.6",
+      "68.6"
+    ],
+    "answer": 1,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "0.6×73의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "44.8",
+      "42.8",
+      "44.3",
+      "43.8"
+    ],
+    "answer": 3,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "1.3×58의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "74.4",
+      "75.4",
+      "76.4",
+      "75.9"
+    ],
+    "answer": 1,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "0.9×64의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "58.6",
+      "58.1",
+      "56.6",
+      "57.6"
+    ],
+    "answer": 3,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "1.7×43의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "73.6",
+      "74.1",
+      "73.1",
+      "72.1"
+    ],
+    "answer": 2,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "1.5×37의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "54.5",
+      "55.5",
+      "56.5",
+      "56"
+    ],
+    "answer": 1,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "2.8×29의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "82.2",
+      "81.7",
+      "80.2",
+      "81.2"
+    ],
+    "answer": 3,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "3.4×21의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "71.4",
+      "71.9",
+      "70.4",
+      "72.4"
+    ],
+    "answer": 0,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "0.5×93의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "45.5",
+      "47",
+      "47.5",
+      "46.5"
+    ],
+    "answer": 3,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "1.2×67의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "79.4",
+      "80.9",
+      "80.4",
+      "81.4"
+    ],
+    "answer": 2,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "0.4×87의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "35.8",
+      "35.3",
+      "34.8",
+      "33.8"
+    ],
+    "answer": 2,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "2.6×34의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "87.4",
+      "89.4",
+      "88.4",
+      "88.9"
+    ],
+    "answer": 2,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "3.7×18의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "66.6",
+      "65.6",
+      "67.1",
+      "67.6"
+    ],
+    "answer": 0,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
+  },
+  {
+    "question": "2.2×41의 값을 구하세요. (어림셈으로 자리수를 먼저 판단해 보세요)",
+    "options": [
+      "90.2",
+      "89.2",
+      "90.7",
+      "91.2"
+    ],
+    "answer": 0,
+    "difficulty": "hard",
+    "reward": 150,
+    "time": 20
   }
 ]
