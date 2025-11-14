@@ -569,6 +569,8 @@
 
     </style>
     <link rel="icon" href="data:,">
+    <script src="../../ClassGame/LineBattle/src/gfx/assetPath.ts"></script>
+    <script src="../../ClassGame/LineBattle/src/gfx/unitAnims.ts"></script>
     <!-- removed: invalid TypeScript include (supaRpc.ts) -->
 </head>
 <body>
@@ -2153,7 +2155,7 @@
         // 퍼크 굴림 기본 확률(눈금당). 외부에서 window.PERK_ROLL_PER_PIP 로 재정의 가능
         const PERK_ROLL_PER_PIP = (typeof window !== 'undefined' && typeof window.PERK_ROLL_PER_PIP === 'number')
             ? window.PERK_ROLL_PER_PIP
-            : 0.15;        const PERK_COLORS = {
+            : 1;        const PERK_COLORS = {
             multishot:'#ff66aa', bounce:'#66ccff', range:'#66ff66',
             selfAS:'#ffaa00', auraAS:'#00ccff', auraATK:'#ffcc00'
         };
@@ -2290,21 +2292,29 @@
                                 createDamageNumber(c.x + 35, c.y + 35, "BONUS!", "#f1c40f");
                             }
 
-                            // 퍼크 굴림: 확률 = 눈금 × 15% (상한 100%)
-                            const pips = diceGrid[dropIndex].pips|0;
+                            // 퍼크 굴림: 확률 = 눈금 × PERK_ROLL_PER_PIP (상한 100%)
+                            const pips = diceGrid[dropIndex].pips | 0;
                             const perkChance = Math.min(1, pips * PERK_ROLL_PER_PIP);
-                            console.log(`[Merge] Pips: ${pips}, Perk chance: ${(perkChance*100).toFixed(0)}%`);
+                            console.log(
+                                `[Merge] Pips: ${pips}, Perk chance: ${(perkChance * 100).toFixed(0)}%`
+                            );
+
                             if (Math.random() < perkChance) {
+                                // diceGrid[dropIndex]에 직접 퍼크 적용
                                 grantRandomPerk(diceGrid[dropIndex]);
-                                console.log(`[Merge] Perk granted: ${diceGrid[dropIndex].perk.type}`);
-                            if (Math.random() < perkChance) {
-                                grantRandomPerk(diceGrid[dropIndex]);  // diceGrid[dropIndex]에 직접 적용
-                                console.log(`[Merge] Perk granted: ${diceGrid[dropIndex].perk.type}`);
+                                console.log(
+                                    `[Merge] Perk granted: ${diceGrid[dropIndex].perk.type}`
+                                );
                                 const c = getGridCoords(dropIndex);
-                                createDamageNumber(c.x + 35, c.y + 15, "PERK!", "#ff00ff");
+                                createDamageNumber(
+                                    c.x + 35,
+                                    c.y + 15,
+                                    "PERK!",
+                                    "#ff00ff"
+                                );
                             }
 
-                            if (diceGrid[dropIndex].pips >= 7) checkAchievements('pip7');
+                            if (diceGrid[dropIndex].pips >= 7) checkAchievements("pip7");
                         } else {
                             // 스왑
                             diceGrid[startIndex] = dropDice;
