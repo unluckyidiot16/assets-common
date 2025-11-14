@@ -383,38 +383,22 @@
         let choices = it.choices ?? it.options ?? it.answers ?? null;
         const answer = it.answer ?? it.correct ?? it.answerText ?? null;
         let ansIndex = (typeof it.answerIndex==='number') ? it.answerIndex : it.correctIndex;
-
-        // 객체형 선택지 → 배열
         if (choices && !Array.isArray(choices)) choices = Object.values(choices);
-
         if (!qtext || !Array.isArray(choices) || choices.length < 2) return null;
-
-        // 텍스트로 정답 찾기
         if (ansIndex == null && answer != null){
             const idx = choices.findIndex(c => String(c).trim().toLowerCase() === String(answer).trim().toLowerCase());
             if (idx >= 0) ansIndex = idx;
         }
-
-        // '1'~'4', 'A'~'D' 형태 처리
         if (ansIndex == null && typeof answer === 'string' && /^[A-D1-9]$/.test(answer)){
-            const n = parseInt(answer,10);
-            ansIndex = Number.isNaN(n) ? 'ABCD'.indexOf(answer.toUpperCase()) : (n-1);
+            const n = parseInt(answer,10); ansIndex = Number.isNaN(n) ? 'ABCD'.indexOf(answer.toUpperCase()) : (n-1);
         }
-
         if (ansIndex == null || ansIndex < 0 || ansIndex >= choices.length) return null;
-
-        // 👉 여기서는 섞지 않고 원본 순서/정답 인덱스만 유지
-        return {
-            question: qtext,
-            choices,
-            correctIndex: ansIndex,
-            meta: {
-                ...(it.meta || {}),
-                subject: (it?.meta?.subject || it?.subject || '기타')
-            }
-        };
+        const order = choices.map((_,i)=>i);
+        for (let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; }
+        const shuffled = order.map(i=>choices[i]);
+        const correct  = order.indexOf(ansIndex);
+        return { question:qtext, choices:shuffled, correctIndex:correct, meta:{...(it.meta||{}), subject:(it?.meta?.subject || it?.subject || '기타')} };
     }
-
     function pullQuestion(){
         if (quizBanks.all.length===0) return generateMathQuestion();
         const i = quizPtr.all % quizBanks.all.length;
@@ -453,21 +437,14 @@
         const totalMult = (nextMult * REWARD_MULTIPLIER).toFixed(1);
         quizSub.textContent = `문제 ${quizSession.idx+1}/${quizSession.total} · 기본 +${QUIZ_REWARD}P · 보너스 x${totalMult} · 오답 ${quizSession.wrong}/${MAX_WRONG}`;
         quizQuestion.textContent = q.question;
-        // 👉 보기 인덱스 배열을 만들어서 매번 섞음
-        const order = q.choices.map((_, i) => i);
-        shuffleInPlace(order);   // 이미 위에 정의되어 있는 함수 사용
-        
         quizChoices.innerHTML = '';
-        order.forEach((c, i)=>{
+        q.choices.forEach((c, i)=>{
             const btn = document.createElement('button');
             btn.className = 'bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow';
             btn.textContent = c;
             btn.addEventListener('click', ()=>{
                 if (!quizSession) return;
-
-                const isCorrect = (choiceIdx === q.correctIndex);
-                
-                if (isCorrect){
+                if (i === q.correctIndex){
                     quizSession.correct++;
                     quizSession.streak++;
                     quizSession.maxStreak = Math.max(quizSession.maxStreak, quizSession.streak);
