@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>다이스 랜덤 퀴즈 디펜스 (v3.3a)</title>
+    <title>다이스 랜덤 퀴즈 디펜스 (v3.3b)</title>
     <link rel="preload"
           href="https://unluckyidiot16.github.io/assets-common/QuizDiceDefense/QuizPack/quizpack.json?v=20251112"
           as="fetch"
@@ -2246,6 +2246,10 @@
             return d;
         }
         function grantRandomPerk(d){
+            if (!d) {
+                console.error('[grantRandomPerk] Die is null or undefined!');
+                return;
+            }
             const types = ['multishot','bounce','range','selfAS','auraAS','auraATK'];
             const pick = types[Math.floor(Math.random()*types.length)];
             const prevPerk = d.perk ? {...d.perk} : null;
@@ -2253,7 +2257,8 @@
             else if (d.perk.type === pick) d.perk.level++;
             else d.perk = { type: pick, level: 1 };
             d.borderColor = PERK_COLORS[d.perk.type] || '#ffffff';
-            console.log(`[Perk] Applied: ${d.perk.type} Lv${d.perk.level}, Previous: ${prevPerk ? `${prevPerk.type} Lv${prevPerk.level}` : 'None'}`);
+            ensureDieFields(d);  // 퍼크 적용 후 필드 확인
+            console.log(`[Perk] Applied: ${d.perk.type} Lv${d.perk.level}, Previous: ${prevPerk ? `${prevPerk.type} Lv${prevPerk.level}` : 'None'}, BorderColor: ${d.borderColor}`);
         }
         if (typeof handleDragEnd==='function') {
             handleDragEnd = function(e){
@@ -2272,12 +2277,13 @@
                     } else {
                         if (dragDice.type === dropDice.type && dragDice.pips === dropDice.pips) {
                             // === 합성! ===
-                            ensureDieFields(dropDice);
+                            ensureDieFields(diceGrid[dropIndex]);  // diceGrid[dropIndex] 직접 사용
                             diceGrid[dropIndex].pips += 1;
                             diceGrid[dropIndex].cooldown = 0;
+                            diceGrid[startIndex] = null;  // 드래그한 주사위 제거 (중요!)
 
                             // +50% 데미지(누적)
-                            dropDice.damageMul = (dropDice.damageMul||1) * 1.5;
+                            diceGrid[dropIndex].damageMul = (diceGrid[dropIndex].damageMul||1) * 1.5;
 
                             // 기존 +2성 보너스(영구강화 영향) 유지
                             const mergeBonusChance = ((rogueliteUpgrades && rogueliteUpgrades.mergeBonus ? rogueliteUpgrades.mergeBonus.level : 1) - 1) * 0.01;
@@ -2289,12 +2295,14 @@
 
                             // 퍼크 굴림: 확률 = 눈금 × 15% (상한 100%)
                             const pips = diceGrid[dropIndex].pips|0;
-                            const PERK_ROLL_PER_PIP = 0.15; // 눈금당 15% 확률
                             const perkChance = Math.min(1, pips * PERK_ROLL_PER_PIP);
                             console.log(`[Merge] Pips: ${pips}, Perk chance: ${(perkChance*100).toFixed(0)}%`);
                             if (Math.random() < perkChance) {
-                                grantRandomPerk(dropDice);
-                                console.log(`[Merge] Perk granted: ${dropDice.perk.type}`);
+                                grantRandomPerk(diceGrid[dropIndex]);
+                                console.log(`[Merge] Perk granted: ${diceGrid[dropIndex].perk.type}`);
+                            if (Math.random() < perkChance) {
+                                grantRandomPerk(diceGrid[dropIndex]);  // diceGrid[dropIndex]에 직접 적용
+                                console.log(`[Merge] Perk granted: ${diceGrid[dropIndex].perk.type}`);
                                 const c = getGridCoords(dropIndex);
                                 createDamageNumber(c.x + 35, c.y + 15, "PERK!", "#ff00ff");
                             }
@@ -2372,13 +2380,17 @@
                     ensureDieFields(die);
                     if (die && die.perk) {
                         ctx.save();
-                        ctx.lineWidth = 4;
-                        const perkColor = (die.perk && PERK_COLORS[die.perk.type]) || die.borderColor || '#ffffff';
+                        ctx.lineWidth = 5;  // 더 두껍게
+                        const perkColor = PERK_COLORS[die.perk.type] || die.borderColor || '#ffffff';
                         ctx.strokeStyle = perkColor;
-                        ctx.strokeRect(x, y, 70, 70); // roundRect 대신 strokeRect 사용
+                        ctx.shadowColor = perkColor;  // 그림자 추가
+                        ctx.shadowBlur = 10;
+                        ctx.strokeRect(x-2, y-2, 74, 74); // 약간 더 크게
                         ctx.restore();
                     }
-                }catch(_){}
+                }catch(e){
+                    console.error('[drawDie] Error:', e);
+                }
             };
         }
 
@@ -2463,8 +2475,8 @@
             };
         }
 
-        console.log('[QDD v3.3a] patch applied - fixed perk probability and HP display');
-        window.__QDD_V33A_ACTIVE__ = true;
+        console.log('[QDD v3.3b] patch applied - fixed merge perk bug and HP display');
+        window.__QDD_V33B_ACTIVE__ = true;
     };
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', __QDD_V33_APPLY__);
