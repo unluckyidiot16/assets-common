@@ -7,10 +7,10 @@
       "bag",
       "socks"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nCool black sunglasses\nGreat for sunny days\nOnly 15 dollars",
@@ -20,10 +20,10 @@
       "sunglasses",
       "pants"
     ],
-    "answer": 2,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 2
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nSoft baseball glove\nCatches every ball\nOnly 12 dollars",
@@ -33,10 +33,10 @@
       "basketball",
       "socks"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nStrong baseball bat\nHit the ball far\nOnly 18 dollars",
@@ -46,10 +46,10 @@
       "socks",
       "skirt"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nOrange bouncing basketball\nBounce and play\nOnly 14 dollars",
@@ -59,10 +59,10 @@
       "shoes",
       "hat"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nComfortable blue pants\nGood for school\nOnly 16 dollars",
@@ -72,10 +72,10 @@
       "skirt",
       "shoes"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nWarm white socks\nNice in winter\nOnly 5 dollars",
@@ -85,10 +85,10 @@
       "cap",
       "watch"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nFast running shoes\nGood for sports\nOnly 25 dollars",
@@ -98,10 +98,10 @@
       "bag",
       "skirt"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nCool red cap\nCovers your head\nOnly 8 dollars",
@@ -111,10 +111,10 @@
       "pants",
       "umbrella"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nWhite star T-shirt\nBig cute star\nOnly 11 dollars",
@@ -124,10 +124,10 @@
       "jacket",
       "skirt"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nSmall school bag\nHolds many books\nOnly 19 dollars",
@@ -137,10 +137,10 @@
       "glove",
       "pencil case"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nDigital sports watch\nTells the right time\nOnly 22 dollars",
@@ -150,10 +150,10 @@
       "socks",
       "cap"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nPink summer skirt\nLight and pretty\nOnly 17 dollars",
@@ -163,10 +163,10 @@
       "cap",
       "pants"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nWarm winter jacket\nVery soft inside\nOnly 30 dollars",
@@ -176,10 +176,10 @@
       "shorts",
       "scarf"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nYellow cute umbrella\nUse on rainy days\nOnly 9 dollars",
@@ -189,10 +189,10 @@
       "cap",
       "bag"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nLong red scarf\nWarm around neck\nOnly 7 dollars",
@@ -202,10 +202,10 @@
       "scarf",
       "socks"
     ],
-    "answer": 2,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 2
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nBlue pencil case\nFor your pencils\nOnly 6 dollars",
@@ -215,10 +215,10 @@
       "bag",
       "ruler"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nMath practice notebook\nMany clean pages\nOnly 3 dollars",
@@ -228,10 +228,10 @@
       "notebook",
       "T-shirt"
     ],
-    "answer": 2,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 2
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nClear plastic ruler\nDraw straight lines\nOnly 2 dollars",
@@ -241,10 +241,10 @@
       "pencil case",
       "cap"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nBlack soccer shoes\nKick the ball well\nOnly 24 dollars",
@@ -254,10 +254,10 @@
       "basketball",
       "gloves"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nPink heart sunglasses\nLook cool outside\nOnly 13 dollars",
@@ -267,10 +267,10 @@
       "cap",
       "shoes"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nWarm ski gloves\nSnow is no problem\nOnly 15 dollars",
@@ -280,10 +280,10 @@
       "scarf",
       "socks"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nFun street basketball\nPlay with your friends\nOnly 21 dollars",
@@ -293,10 +293,10 @@
       "bag",
       "soccer ball"
     ],
-    "answer": 1,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 1
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nBlue jeans pants\nStrong and stylish\nOnly 23 dollars",
@@ -306,10 +306,10 @@
       "socks",
       "shoes"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
   {
     "question": "다음 광고를 읽고, 무엇을 파는 광고인지 고르세요.\n\nFunny animal socks\nDifferent cute faces\nOnly 10 dollars",
@@ -319,12 +319,11 @@
       "watch",
       "bag"
     ],
-    "answer": 0,
     "difficulty": "easy",
     "reward": 50,
-    "time": 10
+    "time": 10,
+    "answerIndex": 0
   },
-
   {
     "question": "다음 낱말을 알맞게 배열한 문장을 고르세요.\n\nshoes / 20 / are / These / dollars",
     "options": [
@@ -333,10 +332,10 @@
       "Shoes these are 20 dollars.",
       "These shoes 20 dollars are."
     ],
-    "answer": 0,
     "difficulty": "medium",
     "reward": 100,
-    "time": 15
+    "time": 15,
+    "answerIndex": 0
   },
   {
     "question": "다음 낱말을 알맞게 배열한 문장을 고르세요.\n\ndollars / cap / This / is / 10",
@@ -346,10 +345,10 @@
       "Cap this is 10 dollars.",
       "This cap 10 dollars is."
     ],
-    "answer": 0,
     "difficulty": "medium",
     "reward": 100,
-    "time": 15
+    "time": 15,
+    "answerIndex": 0
   },
   {
     "question": "다음 낱말을 알맞게 배열한 문장을 고르세요.\n\n25 / are / pants / These / dollars",
@@ -359,10 +358,10 @@
       "Pants these are 25 dollars.",
       "These pants 25 dollars are."
     ],
-    "answer": 0,
     "difficulty": "medium",
     "reward": 100,
-    "time": 15
+    "time": 15,
+    "answerIndex": 0
   },
   {
     "question": "다음 낱말을 알맞게 배열한 문장을 고르세요.\n\n18 / is / this / baseball bat / dollars",
@@ -372,12 +371,12 @@
       "Baseball bat this is 18 dollars.",
       "This baseball bat 18 dollars is."
     ],
-    "answer": 0,
     "difficulty": "medium",
     "reward": 100,
-    "time": 15
+    "time": 15,
+    "answerIndex": 0
   },
-    {
+  {
     "question": "다음 낱말을 알맞게 배열한 문장을 고르세요.\n\nsocks / 5 / These / dollars / are",
     "options": [
       "These socks are 5 dollars.",
@@ -385,10 +384,10 @@
       "Socks these are 5 dollars.",
       "These socks 5 dollars are."
     ],
-    "answer": 0,
     "difficulty": "medium",
     "reward": 100,
-    "time": 15
+    "time": 15,
+    "answerIndex": 0
   },
   {
     "question": "다음 낱말을 알맞게 배열한 문장을 고르세요.\n\nThese / are / sunglasses / dollars / 15",
@@ -398,10 +397,9 @@
       "Sunglasses these are 15 dollars.",
       "These sunglasses 15 dollars are."
     ],
-    "answer": 0,
     "difficulty": "medium",
     "reward": 100,
-    "time": 15
+    "time": 15,
+    "answerIndex": 0
   }
 ]
-
