@@ -377,7 +377,7 @@
     "reward": 100,
     "time": 15
   },
-  {
+    {
     "question": "다음 낱말을 알맞게 배열한 문장을 고르세요.\n\nsocks / 5 / These / dollars / are",
     "options": [
       "These socks are 5 dollars.",
@@ -396,4 +396,12 @@
       "These sunglasses are 15 dollars.",
       "These are sunglasses 15 dollars.",
       "Sunglasses these are 15 dollars.",
-      "These sunglasses 15 dol
+      "These sunglasses 15 dollars are."
+    ],
+    "answer": 0,
+    "difficulty": "medium",
+    "reward": 100,
+    "time": 15
+  }
+]
+
