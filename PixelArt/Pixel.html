@@ -58,29 +58,94 @@
     </button>
 </div>
 
-<!-- 2) 로비 -->
-<div id="lobbyScreen" class="view flex-col items-center p-4 md:p-8">
+<!-- 2) 로비(모드 선택) -->
+<div id="lobbyScreen" class="view flex-col items-center justify-center p-4 md:p-8">
+    <div class="w-full max-w-4xl flex flex-col gap-8">
+        <div class="text-center">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-2">무엇부터 시작할까요?</h1>
+            <p class="text-sm md:text-base text-gray-500">
+                퀴즈로 포인트를 모으고, 가챠로 도감을 해금한 뒤 색칠해 보세요.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- 도감 / 색칠 -->
+            <button id="lobbyCodexBtn"
+                    class="flex flex-col items-center justify-between gap-2 bg-white rounded-2xl shadow-lg border border-slate-200 px-6 py-6 hover:shadow-xl hover:-translate-y-1 transition">
+                <div class="flex flex-col items-center gap-1">
+                    <span class="text-xl font-bold text-gray-800">도감 &amp; 색칠</span>
+                    <span class="text-xs text-gray-500 text-center">
+            해금한 픽셀 이미지를 선택해 색칠을 이어서 할 수 있어요.
+          </span>
+                </div>
+                <span class="mt-2 inline-flex items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold px-4 py-1">
+          도감으로 이동
+        </span>
+            </button>
+
+            <!-- 퀴즈 -->
+            <button id="lobbyQuizBtn"
+                    class="flex flex-col items-center justify-between gap-2 bg-white rounded-2xl shadow-lg border border-emerald-100 px-6 py-6 hover:shadow-xl hover:-translate-y-1 transition">
+                <div class="flex flex-col items-center gap-1">
+                    <span class="text-xl font-bold text-emerald-700">퀴즈 도전</span>
+                    <span class="text-xs text-gray-500 text-center">
+            학습용 퀴즈를 풀고 포인트를 모아 보세요.
+          </span>
+                </div>
+                <span class="mt-2 inline-flex items-center justify-center rounded-full bg-emerald-500 text-white text-sm font-semibold px-4 py-1">
+          퀴즈 시작
+        </span>
+            </button>
+
+            <!-- 가챠 -->
+            <button id="lobbyGachaBtn"
+                    class="flex flex-col items-center justify-between gap-2 bg-white rounded-2xl shadow-lg border border-indigo-100 px-6 py-6 hover:shadow-xl hover:-translate-y-1 transition">
+                <div class="flex flex-col items-center gap-1">
+                    <span class="text-xl font-bold text-indigo-700">가챠 뽑기</span>
+                    <span class="text-xs text-gray-500 text-center">
+            포인트로 새로운 픽셀 도감을 해금할 수 있어요.
+          </span>
+                </div>
+                <span class="mt-2 inline-flex items-center justify-center rounded-full bg-indigo-600 text-white text-sm font-semibold px-4 py-1">
+          10회 뽑기
+        </span>
+            </button>
+        </div>
+
+        <div class="text-center text-xs md:text-sm text-gray-500">
+            보유 포인트: <b id="pointsTextLobby" class="text-sky-600">0P</b>
+        </div>
+    </div>
+</div>
+
+<!-- 2-1) 도감 -->
+<div id="bookScreen" class="view flex-col items-center p-4 md:p-8">
     <div class="w-full max-w-6xl flex flex-col gap-4">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-800">도감</h1>
             <div class="flex flex-wrap items-center gap-2">
-                <span class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">보유 포인트: <b id="pointsText" class="text-sky-600">0P</b></span>
+        <span class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
+          보유 포인트: <b id="pointsText" class="text-sky-600">0P</b>
+        </span>
                 <button id="quizBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow">퀴즈 도전</button>
                 <button id="gacha1Btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow">뽑기 1회</button>
                 <button id="gacha10Btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow">뽑기 10회</button>
                 <button id="resetBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow" title="테스트 초기화">리셋</button>
             </div>
         </div>
-        <p class="text-sm text-gray-500">※ 퀴즈로 포인트를 모아 가챠로 도감을 해금하세요. 해금된 항목만 색칠할 수 있어요. 중복 획득 시 가챠 비용의 절반 환급.</p>
+        <p class="text-sm text-gray-500">
+            ※ 퀴즈로 포인트를 모아 가챠로 도감을 해금하세요. 해금된 항목만 색칠할 수 있어요. 중복 획득 시 가챠 비용의 절반 환급.
+        </p>
         <div id="bookGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4"></div>
     </div>
 </div>
+
 
 <!-- 3) 게임(색칠) -->
 <div id="gameScreen" class="view flex-col items-center p-4">
     <div class="w-full max-w-5xl flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div class="flex items-center gap-2">
-            <button id="backButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">&larr; 로비로</button>
+            <button id="backButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">&larr; 도감으로</button>
             <span class="text-sm text-gray-500">진행은 브라우저에 저장됩니다</span>
         </div>
         <div class="flex items-center gap-3">
@@ -186,14 +251,25 @@
     const startButton = document.getElementById('startButton');
 
     const bookGrid = document.getElementById('bookGrid');
+
+    // 포인트 표시
+    const pointsTextLobby = document.getElementById('pointsTextLobby');
     const pointsText = document.getElementById('pointsText');
     const pointsTextGame = document.getElementById('pointsTextGame');
+
+    // 로비 버튼
+    const lobbyCodexBtn = document.getElementById('lobbyCodexBtn');
+    const lobbyQuizBtn  = document.getElementById('lobbyQuizBtn');
+    const lobbyGachaBtn = document.getElementById('lobbyGachaBtn');
+
+    // 도감 상단 버튼
     const quizBtn   = document.getElementById('quizBtn');
     const gacha1Btn = document.getElementById('gacha1Btn');
     const gacha10Btn= document.getElementById('gacha10Btn');
     const resetBtn  = document.getElementById('resetBtn');
 
     const backButton  = document.getElementById('backButton');
+
     const loadingSpinner = document.getElementById('loadingSpinner');
     const quadGrid = document.getElementById('quadGrid');
     const paletteContainer = document.getElementById('paletteContainer');
@@ -234,7 +310,12 @@
     function getPoints(){ return parseInt(localStorage.getItem(LS_POINTS) || '0', 10); }
     function setPoints(n){ localStorage.setItem(LS_POINTS, String(Math.max(0,n|0))); syncPointsUI(); }
     function addPoints(n){ setPoints(getPoints()+n); }
-    function syncPointsUI(){ const t = `${getPoints()}P`; pointsText.textContent = t; pointsTextGame.textContent = t; }
+    function syncPointsUI(){
+        const t = `${getPoints()}P`;
+        if (pointsTextLobby) pointsTextLobby.textContent = t;
+        if (pointsText)      pointsText.textContent = t;
+        if (pointsTextGame)  pointsTextGame.textContent = t;
+    }
     function getOwnedSet(){ try{ const arr = JSON.parse(localStorage.getItem(LS_OWNED)||'[]'); return new Set(arr.map(Number)); } catch{ return new Set(); } }
     function saveOwnedSet(set){ localStorage.setItem(LS_OWNED, JSON.stringify(Array.from(set))); }
 
@@ -681,7 +762,7 @@
             updateAllQuads(true);
             buildPaletteUI();
         }catch(err){
-            console.error(err); showModal('오류', err.message + ' 로비로 돌아갑니다.'); showView('lobbyScreen');
+            console.error(err); showModal('오류', err.message + ' 도감으로 돌아갑니다.'); showView('bookScreen');
         }
     }
     function buildPaletteUIInto(containerEl){
@@ -760,14 +841,23 @@
         document.getElementById('zoomPalette'); document.getElementById('paletteContainer');
         enableHorizontalWheel(document.getElementById('paletteContainer'));
         enableHorizontalWheel(document.getElementById('zoomPalette'));
-
+        
         document.getElementById('backButton').addEventListener('click', ()=>{
-            saveCurrentProgress(); showView('lobbyScreen'); populateBook(); syncPointsUI();
+            saveCurrentProgress(); showView('bookScreen'); populateBook(); syncPointsUI();
         });
+
+        if (lobbyCodexBtn) lobbyCodexBtn.addEventListener('click', ()=>{
+            showView('bookScreen');
+        });
+
+        if (lobbyQuizBtn) lobbyQuizBtn.addEventListener('click', startQuizSession);
+
+        if (lobbyGachaBtn) lobbyGachaBtn.addEventListener('click', ()=> rollGacha(10));
 
         quizBtn.addEventListener('click', startQuizSession);
         gacha1Btn.addEventListener('click', ()=> rollGacha(1));
         gacha10Btn.addEventListener('click', ()=> rollGacha(10));
+
         resetBtn.addEventListener('click', ()=>{
             if (!confirm('포인트와 도감을 초기화할까요?')) return;
             localStorage.removeItem(LS_POINTS); localStorage.removeItem(LS_OWNED);
