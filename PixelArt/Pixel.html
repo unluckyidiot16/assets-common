@@ -124,17 +124,45 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-800">도감</h1>
             <div class="flex flex-wrap items-center gap-2">
-        <span class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
-          보유 포인트: <b id="pointsText" class="text-sky-600">0P</b>
-        </span>
                 <span class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
-          도전 쿠폰: <b id="couponsTextBook" class="text-rose-500">0장</b>
-        </span>
-                <button id="quizBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow">퀴즈 도전</button>
-                <button id="challengeBtn" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow">도전 퀴즈</button>
-                <button id="gacha1Btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow">뽑기 1회</button>
-                <button id="gacha10Btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow">뽑기 10회</button>
-                <button id="resetBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow" title="테스트 초기화">리셋</button>
+                    보유 포인트: <b id="pointsText" class="text-sky-600">0P</b>
+                </span>
+                <span class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
+                    도전 쿠폰: <b id="couponsTextBook" class="text-rose-500">0장</b>
+                </span>
+                <!-- ✅ 수집률 표시 -->
+                <span id="collectionText"
+                      class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm whitespace-nowrap">
+                    수집률: -
+                </span>
+                <!-- ✅ 로비로 돌아가기 -->
+                <button id="toLobbyBtn"
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">
+                    로비로
+                </button>
+                <!-- 퀴즈 / 도전퀴즈 / 뽑기 -->
+                <button id="quizBtn"
+                        class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow">
+                    퀴즈 도전
+                </button>
+                <button id="challengeBtn"
+                        class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow">
+                    도전 퀴즈
+                </button>
+                <button id="gacha1Btn"
+                        class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow">
+                    뽑기 1회
+                </button>
+                <button id="gacha10Btn"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow">
+                    뽑기 10회
+                </button>
+                <!-- ✅ 100회 뽑기 추가 -->
+                <button id="gacha100Btn"
+                        class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-4 rounded-lg shadow">
+                    뽑기 100회
+                </button>
+                <!-- ❌ 리셋 버튼 제거됨 -->
             </div>
         </div>
         <p class="text-sm text-gray-500">
@@ -291,8 +319,12 @@
     const quizBtn   = document.getElementById('quizBtn');
     const gacha1Btn = document.getElementById('gacha1Btn');
     const gacha10Btn= document.getElementById('gacha10Btn');
-    const resetBtn  = document.getElementById('resetBtn');
-    const challengeBtn = document.getElementById('challengeBtn'); // ✅ 추가
+    const gacha100Btn = document.getElementById('gacha100Btn');   // ✅ 100회 뽑기
+    const resetBtn  = document.getElementById('resetBtn');        // ❌ 버튼은 제거했지만 JS는 null 허용
+    const challengeBtn = document.getElementById('challengeBtn');
+    const collectionText = document.getElementById('collectionText'); // ✅ 수집률
+    const toLobbyBtn = document.getElementById('toLobbyBtn');         // ✅ 로비로
+
 
     const backButton  = document.getElementById('backButton');
 
@@ -395,6 +427,27 @@
         localStorage.setItem(LS_HIDDEN_OWNED, JSON.stringify(Array.from(set)));
     }
 
+    // ✅ 도감 수집률 동기화
+    function syncCollectionRate(){
+        if (!collectionText) return;
+
+        const totalNormal = IMAGE_LIST.length;
+        const totalHidden = HIDDEN_IMAGE_LIST.length;
+
+        const owned = getOwnedSet();
+        const hiddenOwned = getHiddenOwnedSet();
+
+        const normalCount = owned.size;
+        const hiddenCount = hiddenOwned.size;
+
+        const totalAll = totalNormal + totalHidden;
+        const ownedAll = normalCount + hiddenCount;
+        const percentAll = totalAll ? Math.round((ownedAll / totalAll) * 100) : 0;
+
+        collectionText.textContent =
+            `수집률: ${ownedAll}/${totalAll} (${percentAll}%)` +
+            (totalHidden ? ` · 히든 ${hiddenCount}/${totalHidden}` : '');
+    }
 
     /* =========================
        유틸
@@ -548,6 +601,7 @@
             card.appendChild(title);
             bookGrid.appendChild(card);
         });
+        syncCollectionRate();
     }
 
 
@@ -617,16 +671,29 @@
         const q = quizBanks.all[i]; quizPtr.all++;
         return q;
     }
+    // ✅ 기본 풀백: 구구단 2단~9단 곱셈 문제
     function generateMathQuestion(){
-        const a = Math.floor(Math.random()*9)+2;
-        const b = Math.floor(Math.random()*9)+2;
-        const ops = ['+','-','×']; const op = ops[Math.floor(Math.random()*ops.length)];
-        const ans = (op==='+')?a+b:(op==='-')?a-b:a*b;
+        const a = Math.floor(Math.random() * 8) + 2;  // 2~9단
+        const b = Math.floor(Math.random() * 9) + 1;  // ×1~×9
+        const op = '×';
+        const ans = a * b;
+
         const choices = new Set([ans]);
-        while (choices.size<4){ const delta = Math.floor(Math.random()*6)-3; const fake = ans + (delta===0?3:delta); choices.add(fake); }
-        const arr = Array.from(choices); shuffleInPlace(arr);
-        return { question:`${a} ${op} ${b} = ?`, choices:arr, correctIndex:arr.indexOf(ans) };
+        // 정답 주변의 비슷한 값들로 4지선다 구성
+        while (choices.size < 4){
+            const delta = Math.floor(Math.random() * 7) - 3; // -3 ~ +3
+            const fake = ans + (delta === 0 ? 4 : delta);    // 0 피하기
+            if (fake > 0) choices.add(fake);
+        }
+        const arr = Array.from(choices);
+        shuffleInPlace(arr);
+        return {
+            question: `${a} ${op} ${b} = ?`,
+            choices: arr,
+            correctIndex: arr.indexOf(ans),
+        };
     }
+
 
     /* =========================
       퀴즈 세션 (✅ 일반/도전 모드)
@@ -1250,6 +1317,11 @@
             showView('bookScreen');
         });
 
+        // ✅ 도감에서 로비로 돌아가기
+        if (toLobbyBtn) toLobbyBtn.addEventListener('click', ()=>{
+            showView('lobbyScreen');
+        });
+
         if (lobbyQuizBtn) lobbyQuizBtn.addEventListener('click', ()=> startQuizSession('normal'));
         if (lobbyGachaBtn) lobbyGachaBtn.addEventListener('click', ()=> rollGacha(10));
 
@@ -1258,6 +1330,8 @@
 
         gacha1Btn.addEventListener('click', ()=> rollGacha(1));
         gacha10Btn.addEventListener('click', ()=> rollGacha(10));
+        // ✅ 100회 뽑기
+        if (gacha100Btn) gacha100Btn.addEventListener('click', ()=> rollGacha(100));
 
         resetBtn.addEventListener('click', ()=>{
             if (!confirm('포인트, 도감, 쿠폰, 색칠 기록을 모두 초기화할까요?')) return;
