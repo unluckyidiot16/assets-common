@@ -10,8 +10,13 @@
         .view { display: none; width: 100%; min-height: 100vh; }
         .view.active { display: flex; }
         canvas { display:block; image-rendering: pixelated; cursor: pointer; background:#fff; }
-        #bookGrid .card { border:2px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#fff; cursor:pointer; transition:.2s; }
-        #bookGrid .card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+        .card { border:2px solid #e5e7eb; border-radius:10px; overflow:hidden; background:#fff; cursor:pointer; transition:.2s; }
+        /* 도감: 색칠 완료 카드 테두리 강조 (레어도 색) */
+        #bookGrid .card.colored { border-width:3px; }
+        #bookGrid .card.colored.rarity-C { border-color:#9ca3af; }   /* C = 회색 */
+        #bookGrid .card.colored.rarity-R { border-color:#60a5fa; }   /* R = 파랑 */
+        #bookGrid .card.colored.rarity-SR { border-color:#fbbf24; }  /* SR = 금색 */
+        #bookGrid .card.colored.rarity-H { border-color:#ec4899; }   /* Hidden = 핑크 */        #bookGrid .card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
         #bookGrid img { image-rendering:pixelated; width:100%; aspect-ratio:1/1; object-fit:contain; background:#f9fafb; }
         .locked { position:relative; filter:grayscale(1) opacity(.8); }
         .locked::after{
@@ -124,23 +129,24 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-800">도감</h1>
             <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
+          보유 포인트: <b id="pointsText" class="text-sky-600">0P</b>
+        </span>
                 <span class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
-                    보유 포인트: <b id="pointsText" class="text-sky-600">0P</b>
-                </span>
-                <span class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
-                    도전 쿠폰: <b id="couponsTextBook" class="text-rose-500">0장</b>
-                </span>
-                <!-- ✅ 수집률 표시 -->
+          도전 쿠폰: <b id="couponsTextBook" class="text-rose-500">0장</b>
+        </span>
                 <span id="collectionText"
-                      class="text-sm px-3 py-2 bg-white rounded-lg border shadow-sm whitespace-nowrap">
-                    수집률: -
-                </span>
-                <!-- ✅ 로비로 돌아가기 -->
+                      class="text-xs md:text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
+          수집률: 0/0 (0%)
+        </span>
+                <span id="colorRateText"
+                      class="text-xs md:text-sm px-3 py-2 bg-white rounded-lg border shadow-sm">
+          색칠률: 0/0 (0%)
+        </span>
                 <button id="toLobbyBtn"
-                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow">
+                        class="bg-slate-200 hover:bg-slate-300 text-gray-800 text-sm font-semibold py-2 px-3 rounded-lg shadow">
                     로비로
                 </button>
-                <!-- 퀴즈 / 도전퀴즈 / 뽑기 -->
                 <button id="quizBtn"
                         class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow">
                     퀴즈 도전
@@ -150,19 +156,24 @@
                     도전 퀴즈
                 </button>
                 <button id="gacha1Btn"
-                        class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow">
+                        class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg shadow">
                     뽑기 1회
                 </button>
                 <button id="gacha10Btn"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow">
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-lg shadow">
                     뽑기 10회
                 </button>
-                <!-- ✅ 100회 뽑기 추가 -->
                 <button id="gacha100Btn"
-                        class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-4 rounded-lg shadow">
+                        class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-3 rounded-lg shadow">
                     뽑기 100회
                 </button>
-                <!-- ❌ 리셋 버튼 제거됨 -->
+                <!-- 리셋 버튼은 도감에서 제거 (테스트용으로만 쓰고 싶으면 주석 해제해서 사용)
+                <button id="resetBtn"
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg shadow"
+                        title="테스트 초기화">
+                  리셋
+                </button>
+                -->
             </div>
         </div>
         <p class="text-sm text-gray-500">
@@ -257,7 +268,7 @@
     // 도감: 로컬 png/ 먼저 탐색 → 실패 시 원격 폴백
     const CODEX_PNG_BASE = './png/';
     const REMOTE_IMAGE_BASE = 'https://unluckyidiot16.github.io/assets-common/PixelArt/PNG/';
-    const REMOTE_COUNT = 151;
+    const REMOTE_COUNT = 300;
 
     // ✅ 히든 이미지 전용 폴더 (도전 가챠 전용 풀)
     const HIDDEN_IMAGE_BASE = 'https://unluckyidiot16.github.io/WebGames/PixelArt/Hidden/';
@@ -319,11 +330,12 @@
     const quizBtn   = document.getElementById('quizBtn');
     const gacha1Btn = document.getElementById('gacha1Btn');
     const gacha10Btn= document.getElementById('gacha10Btn');
-    const gacha100Btn = document.getElementById('gacha100Btn');   // ✅ 100회 뽑기
-    const resetBtn  = document.getElementById('resetBtn');        // ❌ 버튼은 제거했지만 JS는 null 허용
-    const challengeBtn = document.getElementById('challengeBtn');
-    const collectionText = document.getElementById('collectionText'); // ✅ 수집률
-    const toLobbyBtn = document.getElementById('toLobbyBtn');         // ✅ 로비로
+    const gacha100Btn = document.getElementById('gacha100Btn');
+    const resetBtn  = document.getElementById('resetBtn'); // 없으면 null
+    const challengeBtn = document.getElementById('challengeBtn'); // ✅ 도전 퀴즈
+    const collectionText = document.getElementById('collectionText');
+    const colorRateText  = document.getElementById('colorRateText');
+    const toLobbyBtn     = document.getElementById('toLobbyBtn');
 
 
     const backButton  = document.getElementById('backButton');
@@ -366,6 +378,7 @@
     const LS_PROGRESS_PREFIX = 'pixel.progress.';
     const LS_COUPONS = 'pixel.coupons';                // 도전 쿠폰
     const LS_FULLY_COLORED = 'pixel.fullyColored';     // 색칠 100% 완료 스테이지
+    const LS_PROGRESS_PREFIX = 'pixel.progress.';
     function progressKey(idx){ return `${LS_PROGRESS_PREFIX}${idx}`; }
 
 
@@ -406,6 +419,30 @@
         localStorage.setItem(LS_FULLY_COLORED, JSON.stringify(Array.from(set)));
     }
 
+    // ✅ 도감 수집률 / 색칠률 통계
+    function syncCollectionStats(){
+        if (!collectionText && !colorRateText) return;
+        
+        const total = IMAGE_LIST.length || 0;
+        const owned = getOwnedSet();
+        const fully = getFullyColoredSet();
+        
+        const ownedCount = owned.size;
+        const fullyCount = fully.size;
+        
+        const collectPercent = total ? Math.round((ownedCount / total) * 100) : 0;
+        const colorPercent   = total ? Math.round((fullyCount / total) * 100) : 0;
+        
+        if (collectionText){
+            collectionText.textContent =
+                `수집률: ${ownedCount}/${total} (${collectPercent}%)`;
+        }
+        if (colorRateText){
+            colorRateText.textContent =
+                `색칠률: ${fullyCount}/${total} (${colorPercent}%)`;
+        }
+    }
+    
     function getOwnedSet(){
         try{
             const arr = JSON.parse(localStorage.getItem(LS_OWNED)||'[]');
@@ -470,6 +507,7 @@
     ========================= */
     let IMAGE_LIST = [];           // [{url, name}]
     let indicesByRarity = {C:[], R:[], SR:[]};
+    let rarityByIndex = {}; // idx -> 'C' | 'R' | 'SR' | 'H'
 
     async function loadCodexImages(){
         // 1) manifest.json 또는 index.json
@@ -539,71 +577,102 @@
 
 
     function buildRarityBuckets(n){
+        // 인덱스 기반 희귀도 영역 동적 할당(대략 C:70%, R:24%, SR:6%)
         const sr = Math.max(1, Math.round(n * 0.06));
         const r  = Math.max(1, Math.round(n * 0.24));
         const c  = Math.max(1, n - sr - r);
+        
         indicesByRarity = {C:[], R:[], SR:[]};
+        rarityByIndex = {};
+        
         for (let i=1;i<=n;i++){
             let tier = 'C';
             if (i > c && i <= c+r) tier = 'R';
             if (i > c+r) tier = 'SR';
             indicesByRarity[tier].push(i);
+            rarityByIndex[i] = tier;
+        }
+        
+        // ✅ 히든 카드: 마지막 HIDDEN_COUNT개를 히든으로 지정하고 일반 가챠 풀에서는 제거
+        HIDDEN_INDICES = [];
+        for (let k=0;k<HIDDEN_COUNT;k++){
+            const idx = n - k;
+            if (idx >= 1){
+                HIDDEN_INDICES.push(idx);
+                rarityByIndex[idx] = 'H';
+            }
+        }
+        if (HIDDEN_INDICES.length){
+            for (const tier of Object.keys(indicesByRarity)){
+                indicesByRarity[tier] = indicesByRarity[tier].filter(i => !HIDDEN_INDICES.includes(i));
+            }
         }
     }
-
+    
+    function getRarityOfIndex(idx){
+        return rarityByIndex[idx] || 'C';
+    }
 
     /* =========================
        로비(도감)
     ========================= */
     function populateBook(){
-        const owned = getOwnedSet();
-        const hiddenOwned = getHiddenOwnedSet();
-        bookGrid.innerHTML = '';
-
-        // 1) 일반 도감
-        IMAGE_LIST.forEach((it, i)=>{
-            const idx = i+1;
-            const card = document.createElement('div'); card.className = 'card';
-            const img = document.createElement('img'); img.src = it.url; img.alt = `No.${idx}`; img.loading='lazy';
-            const title = document.createElement('p');
-            title.className='text-center text-sm font-semibold text-gray-700 p-2';
-            title.textContent = `No.${idx}`;
-
-            if (!owned.has(idx)){
-                img.classList.add('locked');
-                card.title='가챠로 해금하세요';
-            } else {
-                card.addEventListener('click', ()=> startGame(it.url, idx));
-            }
-            card.appendChild(img);
-            card.appendChild(title);
-            bookGrid.appendChild(card);
-        });
-
-        // 2) Hidden 도감 (H1, H2, ...)
-        HIDDEN_IMAGE_LIST.forEach((it, i)=>{
-            const hid = i+1;
-            const card = document.createElement('div'); card.className = 'card';
-            const img = document.createElement('img'); img.src = it.url; img.alt = `Hidden ${hid}`; img.loading='lazy';
-            const title = document.createElement('p');
-            title.className='text-center text-sm font-semibold text-gray-700 p-2';
-            title.textContent = `H${hid}`;
-
-            if (!hiddenOwned.has(hid)){
-                img.classList.add('locked');
-                card.title='도전 가챠로 해금하세요';
-            } else {
-                // Hidden은 스테이지 ID를 10000대 영역으로 분리해서 저장/색칠 충돌 방지
-                const stageId = 10000 + hid;
-                card.addEventListener('click', ()=> startGame(it.url, stageId));
-            }
-            card.appendChild(img);
-            card.appendChild(title);
-            bookGrid.appendChild(card);
-        });
-        syncCollectionRate();
+                const owned = getOwnedSet();
+                const fully = getFullyColoredSet();
+                const hiddenSorted = (HIDDEN_INDICES || []).slice().sort((a,b)=>a-b);
+        
+                    bookGrid.innerHTML = '';
+        
+                    IMAGE_LIST.forEach((it, i)=>{
+                            const idx = i + 1;
+                            const isHidden = (HIDDEN_INDICES || []).includes(idx);
+                            const isOwned  = owned.has(idx);
+                
+                                // 🔒 히든은 뽑기 전까지 도감에서 완전히 숨김
+                                    if (isHidden && !isOwned) return;
+                
+                                const card = document.createElement('div');
+                            card.className = 'card';
+                
+                                const img = document.createElement('img');
+                            img.src = it.url;
+                            img.alt = isHidden ? 'Hidden' : `No.${idx}`;
+                            img.loading = 'lazy';
+                
+                                const title = document.createElement('p');
+                            title.className = 'text-center text-sm font-semibold text-gray-700 p-2';
+                
+                               if (isHidden){
+                                    // H1, H2 ... 식으로 표시
+                                        const ord = hiddenSorted.indexOf(idx);
+                                    const hLabel = ord >= 0 ? (ord + 1) : idx;
+                                    title.textContent = `H${hLabel}`;
+                                } else {
+                                    title.textContent = `No.${idx}`;
+                                }
+                
+                                if (!isOwned){
+                                    img.classList.add('locked');
+                                    card.title = isHidden ? '도전 가챠로 해금하세요' : '가챠로 해금하세요';
+                                } else {
+                                    card.addEventListener('click', ()=> startGame(it.url, idx));
+                                }
+                
+                                // ✅ 색칠 완료된 그림: 레어도에 맞는 테두리 색
+                                    if (fully.has(idx)){
+                                    const rarity = getRarityOfIndex(idx);
+                                    card.classList.add('colored');
+                                    card.classList.add(`rarity-${rarity}`);
+                                }
+                
+                                card.appendChild(img);
+                            card.appendChild(title);
+                            bookGrid.appendChild(card);
+                        });
+        
+                    // 수집률 / 색칠률 갱신
+                        syncCollectionStats();
     }
-
 
     /* =========================
        퀴즈 로딩/정상화(과목 섞기 유지)
@@ -1287,71 +1356,97 @@
         messageModal.style.display = 'flex';
     }
     function bootBindings(){
-        // 타이틀 → 로비 진입
-        startButton.addEventListener('click', async ()=>{
-            if (!localStorage.getItem(LS_POINTS)) setPoints(0);
-            if (!localStorage.getItem(LS_OWNED)) saveOwnedSet(new Set());
-            if (!localStorage.getItem(LS_HIDDEN_OWNED)) saveHiddenOwnedSet(new Set());
-            if (!localStorage.getItem(LS_COUPONS)) setCoupons(0);
-
-            syncPointsUI();
-            syncCouponsUI();
-
-            await loadCodexImages();   // 일반 도감 이미지 로딩
-            await loadHiddenImages();  // Hidden 폴더 이미지 로딩
-            populateBook();
-            showView('lobbyScreen');
-        });
-
-        enableHorizontalWheel(document.getElementById('paletteContainer'));
-        enableHorizontalWheel(document.getElementById('zoomPalette'));
-
-        backButton.addEventListener('click', ()=>{
-            saveCurrentProgress();
-            showView('bookScreen');
-            populateBook();
-            syncPointsUI();
-        });
-
-        if (lobbyCodexBtn) lobbyCodexBtn.addEventListener('click', ()=>{
-            showView('bookScreen');
-        });
-
-        // ✅ 도감에서 로비로 돌아가기
-        if (toLobbyBtn) toLobbyBtn.addEventListener('click', ()=>{
-            showView('lobbyScreen');
-        });
-
-        if (lobbyQuizBtn) lobbyQuizBtn.addEventListener('click', ()=> startQuizSession('normal'));
-        if (lobbyGachaBtn) lobbyGachaBtn.addEventListener('click', ()=> rollGacha(10));
-
-        quizBtn.addEventListener('click', ()=> startQuizSession('normal'));
-        if (challengeBtn) challengeBtn.addEventListener('click', startChallengeEntry);
-
-        gacha1Btn.addEventListener('click', ()=> rollGacha(1));
-        gacha10Btn.addEventListener('click', ()=> rollGacha(10));
-        // ✅ 100회 뽑기
-        if (gacha100Btn) gacha100Btn.addEventListener('click', ()=> rollGacha(100));
-
-        resetBtn.addEventListener('click', ()=>{
-            if (!confirm('포인트, 도감, 쿠폰, 색칠 기록을 모두 초기화할까요?')) return;
-            localStorage.removeItem(LS_POINTS);
-            localStorage.removeItem(LS_OWNED);
-            localStorage.removeItem(LS_HIDDEN_OWNED);
-            localStorage.removeItem(LS_COUPONS);
-            localStorage.removeItem(LS_FULLY_COLORED);
-            for (let i=0;i<localStorage.length;){
-                const k = localStorage.key(i);
-                if (k && k.startsWith(LS_PROGRESS_PREFIX)) localStorage.removeItem(k);
-                else i++;
-            }
-            syncPointsUI();
-            syncCouponsUI();
-            populateBook();
-            showModal('초기화 완료', '포인트, 도감, 쿠폰, 색칠 기록을 초기화했습니다.');
-        });
-
+        if (startButton){
+                        startButton.addEventListener('click', async ()=>{
+                                if (!localStorage.getItem(LS_POINTS)) setPoints(0);
+                                if (!localStorage.getItem(LS_OWNED)) saveOwnedSet(new Set());
+                                if (!localStorage.getItem(LS_COUPONS)) setCoupons(0);
+                                syncPointsUI();
+                                syncCouponsUI();
+                                await loadCodexImages(); // ✅ png/ 스캔
+                                populateBook();
+                                showView('lobbyScreen');
+                            });
+                    }
+        
+                    enableHorizontalWheel(document.getElementById('paletteContainer'));
+                enableHorizontalWheel(document.getElementById('zoomPalette'));
+        
+                    const backBtn = document.getElementById('backButton');
+                if (backBtn){
+                        backBtn.addEventListener('click', ()=>{
+                                saveCurrentProgress();
+                                showView('bookScreen');
+                                populateBook();
+                                syncPointsUI();
+                            });
+                    }
+        
+                    if (lobbyCodexBtn){
+                        lobbyCodexBtn.addEventListener('click', ()=>{
+                                showView('bookScreen');
+                            });
+                    }
+        
+                    if (toLobbyBtn){
+                        toLobbyBtn.addEventListener('click', ()=>{
+                                showView('lobbyScreen');
+                            });
+                    }
+        
+                    if (lobbyQuizBtn){
+                        lobbyQuizBtn.addEventListener('click', ()=> startQuizSession('normal'));
+                    }
+        
+                    if (lobbyGachaBtn){
+                        lobbyGachaBtn.addEventListener('click', ()=> rollGacha(10));
+                    }
+        
+                    if (quizBtn){
+                        quizBtn.addEventListener('click', ()=> startQuizSession('normal'));
+                    }
+                if (challengeBtn){
+                        challengeBtn.addEventListener('click', startChallengeEntry);
+                    }
+        
+                    if (gacha1Btn)   gacha1Btn.addEventListener('click', ()=> rollGacha(1));
+                if (gacha10Btn)  gacha10Btn.addEventListener('click', ()=> rollGacha(10));
+                if (gacha100Btn) gacha100Btn.addEventListener('click', ()=> rollGacha(100));
+        
+                    if (resetBtn){
+                        resetBtn.addEventListener('click', ()=>{
+                                if (!confirm('포인트, 도감, 쿠폰, 색칠 기록을 모두 초기화할까요?')) return;
+                               localStorage.removeItem(LS_POINTS);
+                                localStorage.removeItem(LS_OWNED);
+                                localStorage.removeItem(LS_COUPONS);
+                                localStorage.removeItem(LS_FULLY_COLORED);
+                                for (let i=0;i<localStorage.length;){
+                                        const k = localStorage.key(i);
+                                        if (k && k.startsWith(LS_PROGRESS_PREFIX)) localStorage.removeItem(k);
+                                        else i++;
+                                }
+                                syncPointsUI();
+                                syncCouponsUI();
+                                populateBook();
+                                showModal('초기화 완료', '포인트, 도감, 쿠폰, 색칠 기록을 초기화했습니다.');
+                            });
+                    }
+        
         showView('titleScreen');
+    }
+    function checkCompletion(){
+        if (completedCells === totalCells){
+            updateAllQuads(false);
+            let extra = '';
+            const fully = getFullyColoredSet();
+            if (!fully.has(currentStageIndex)){
+                fully.add(currentStageIndex);
+                saveFullyColoredSet(fully);
+                addCoupons(1);  // ✅ 처음 완성한 그림이면 쿠폰 1장 지급
+                extra = '\n\n🎁 처음 완성한 그림이라 도전 쿠폰 1장을 받았습니다!';
+            }
+            showModal('완성!', `No.${currentStageIndex} 그림을 완성했습니다!${extra}`);
+        }
     }
     bootBindings();
 </script>
