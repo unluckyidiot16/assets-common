@@ -256,26 +256,32 @@
         'kkotge': { id: 'kkotge', name: '꽃게', image: IMAGE_BASE_URL + "kkotge.png", unlockCost: 100, startingWeapon: 'W_Kkotge', startingPassive: 'P_Speed' },
         'chilge': { id: 'chilge', name: '칠게', image: IMAGE_BASE_URL + "chilge.png", unlockCost: 150, startingWeapon: 'W02', startingPassive: 'P01' }
     };
+    // ★ 난이도 상향 패치 - WS.html 참조
     const ENEMY_CATALOG = {
-        mudworm: { name: '갯지렁이', hp: 15, dmg: 3, spd: 2.3, size: 18 * GLOBAL_SCALE, xp: 1, imgKey: 'mudworm' },
-        mudSnail: { name: '갯벌 달팽이', hp: 35, dmg: 2, spd: 1.2, size: 22 * GLOBAL_SCALE, xp: 2, imgKey: 'mudSnail' },
-        bajirak: { name: '바지락', hp: 25, dmg: 3, spd: 2.0, size: 20 * GLOBAL_SCALE, xp: 2, imgKey: 'bajirak' },
-        mangdungeo: { name: '망둥어', hp: 28, dmg: 4, spd: 3.2, size: 20 * GLOBAL_SCALE, xp: 3, imgKey: 'mangdungeo' },
-        chilge: { name: '칠게', hp: 55, dmg: 6, spd: 2.6, size: 25 * GLOBAL_SCALE, xp: 5, imgKey: 'chilge' },
-        jjangddungeo: { name: '짱뚱어', hp: 65, dmg: 7, spd: 2.8, size: 26 * GLOBAL_SCALE, xp: 7, imgKey: 'jjangddungeo' },
-        nakji: { name: '낙지', hp: 90, dmg: 8, spd: 2.2, size: 30 * GLOBAL_SCALE, xp: 10, imgKey: 'nakji' }
+        mudworm: { name: '갯지렁이', hp: 22, dmg: 5, spd: 2.8, size: 18 * GLOBAL_SCALE, xp: 1, imgKey: 'mudworm' },
+        mudSnail: { name: '갯벌 달팽이', hp: 45, dmg: 4, spd: 1.8, size: 22 * GLOBAL_SCALE, xp: 2, imgKey: 'mudSnail' },
+        bajirak: { name: '바지락', hp: 38, dmg: 5, spd: 2.5, size: 20 * GLOBAL_SCALE, xp: 2, imgKey: 'bajirak' },
+        mangdungeo: { name: '망둥어', hp: 42, dmg: 6, spd: 3.6, size: 20 * GLOBAL_SCALE, xp: 3, imgKey: 'mangdungeo' },
+        chilge: { name: '칠게', hp: 75, dmg: 8, spd: 3.0, size: 25 * GLOBAL_SCALE, xp: 5, imgKey: 'chilge' },
+        jjangddungeo: { name: '짱뚱어', hp: 95, dmg: 10, spd: 3.2, size: 26 * GLOBAL_SCALE, xp: 7, imgKey: 'jjangddungeo' },
+        nakji: { name: '낙지', hp: 140, dmg: 12, spd: 2.8, size: 30 * GLOBAL_SCALE, xp: 10, imgKey: 'nakji' },
+        // 새로운 강력한 적 추가
+        giantNakji: { name: '대왕낙지', hp: 350, dmg: 15, spd: 2.4, size: 38 * GLOBAL_SCALE, xp: 25, imgKey: 'nakji' }
     };
-    const BOSS_CATALOG = { sandpiper: { hp: 6000, dmg: 40, spd: 2, size: 40 * GLOBAL_SCALE, xp: 1000 } };
+    const BOSS_CATALOG = { sandpiper: { hp: 8000, dmg: 50, spd: 2.5, size: 45 * GLOBAL_SCALE, xp: 1000 } };
+
+    // ★ 스폰 주기 단축 + 스폰 수 대폭 증가
     const SPAWNER_CLIPS = [
-        { start: 0,   end: 60,  enemies: [{ type: "mudworm", every: 1.8, count: [4, 6] }] },
-        { start: 60,  end: 120, enemies: [{ type: "mudworm", every: 2.5, count: [3, 5] }, { type: "mudSnail", every: 4.5, count: [1, 2] }] },
-        { start: 120, end: 180, enemies: [{ type: "mudSnail", every: 4.0, count: [2, 3] }, { type: "bajirak", every: 4.0, count: [2, 4] }] },
-        { start: 180, end: 240, enemies: [{ type: "bajirak", every: 3.5, count: [3, 5] }, { type: "mangdungeo", every: 3.0, count: [2, 4] }] },
-        { start: 240, end: 300, enemies: [{ type: "mangdungeo", every: 2.8, count: [4, 6] }, { type: "chilge", every: 5.0, count: [1, 2] }] },
-        { start: 300, end: 360, enemies: [{ type: "chilge", every: 4.5, count: [2, 3] }, { type: "jjangddungeo", every: 6.0, count: [1, 2] }] },
-        { start: 360, end: 420, enemies: [{ type: "jjangddungeo", every: 5.5, count: [2, 3] }, { type: "nakji", every: 7.0, count: [1, 1] }] },
-        { start: 420, end: 540, enemies: [{ type: "chilge", every: 3.5, count: [2, 4] }, { type: "jjangddungeo", every: 5.0, count: [2, 2] }, { type: "nakji", every: 6.5, count: [1, 2] }] },
-        { start: 540, end: 600, enemies: [{ type: "mudworm", every: 1.2, count: [10, 15] }, { type: "mangdungeo", every: 2.5, count: [5, 8] }] }
+        { start: 0,   end: 45,  enemies: [{ type: "mudworm", every: 1.2, count: [7, 10] }] },
+        { start: 45,  end: 90,  enemies: [{ type: "mudworm", every: 1.3, count: [8, 12] }, { type: "mudSnail", every: 2.8, count: [2, 4] }] },
+        { start: 90,  end: 150, enemies: [{ type: "mudSnail", every: 2.5, count: [3, 5] }, { type: "bajirak", every: 2.5, count: [4, 6] }, { type: "mudworm", every: 1.5, count: [5, 8] }] },
+        { start: 150, end: 210, enemies: [{ type: "bajirak", every: 2.2, count: [5, 8] }, { type: "mangdungeo", every: 2.0, count: [4, 6] }, { type: "mudSnail", every: 3.0, count: [2, 3] }] },
+        { start: 210, end: 270, enemies: [{ type: "mangdungeo", every: 1.8, count: [6, 9] }, { type: "chilge", every: 3.0, count: [2, 4] }, { type: "bajirak", every: 2.5, count: [3, 5] }] },
+        { start: 270, end: 330, enemies: [{ type: "chilge", every: 2.5, count: [4, 6] }, { type: "jjangddungeo", every: 3.5, count: [2, 4] }, { type: "mangdungeo", every: 2.0, count: [4, 6] }] },
+        { start: 330, end: 400, enemies: [{ type: "jjangddungeo", every: 3.0, count: [3, 5] }, { type: "nakji", every: 4.0, count: [2, 3] }, { type: "chilge", every: 2.8, count: [3, 5] }] },
+        { start: 400, end: 480, enemies: [{ type: "chilge", every: 2.0, count: [5, 8] }, { type: "jjangddungeo", every: 2.5, count: [4, 6] }, { type: "nakji", every: 3.5, count: [2, 4] }, { type: "giantNakji", every: 12.0, count: [1, 1] }] },
+        { start: 480, end: 540, enemies: [{ type: "nakji", every: 2.8, count: [4, 6] }, { type: "giantNakji", every: 8.0, count: [1, 2] }, { type: "jjangddungeo", every: 2.0, count: [5, 8] }] },
+        { start: 540, end: 600, enemies: [{ type: "mudworm", every: 0.8, count: [15, 22] }, { type: "mangdungeo", every: 1.5, count: [8, 12] }, { type: "nakji", every: 2.5, count: [3, 5] }, { type: "giantNakji", every: 6.0, count: [1, 2] }] }
     ];
 
     let keys = {}, player, enemies, projectiles, pickups, boss, effects, playerData;
@@ -496,7 +502,7 @@
     draw();
     function drawGrid(){if(!camera)return;ctx.strokeStyle="#c0b4a0";ctx.lineWidth=2;const gridSize=200;const startX=Math.floor(camera.x/gridSize)*gridSize;const startY=Math.floor(camera.y/gridSize)*gridSize;for(let x=startX;x<camera.x+canvas.width;x+=gridSize){ctx.beginPath();ctx.moveTo(x,camera.y);ctx.lineTo(x,camera.y+canvas.height);ctx.stroke();} for(let y=startY;y<camera.y+canvas.height;y+=gridSize){ctx.beginPath();ctx.moveTo(camera.x,y);ctx.lineTo(camera.x+canvas.width,y);ctx.stroke();}}
     function updateEnemy(e,dt){if(e.isHit){e.hitTimer-=dt;if(e.hitTimer<=0)e.isHit=false;} const a=Math.atan2(player.y-e.y,player.x-e.x);e.x+=Math.cos(a)*e.speed*(dt/16.67);e.y+=Math.sin(a)*e.speed*(dt/16.67);const m=200,lB=camera.x-m,rB=camera.x+canvas.width+m,tB=camera.y-m,bB=camera.y+canvas.height+m;if(e.x<lB)e.x=rB;else if(e.x>rB)e.x=lB;if(e.y<tB)e.y=bB;else if(e.y>bB)e.y=tB;}
-    function spawnEnemies(){const s=(600000-gameTime)/1000;if(s>=540&&!boss){} const cC=SPAWNER_CLIPS.find(c=>s>=c.start&&s<c.end);if(!cC)return;const dM=1+(s/60)*0.08;cC.enemies.forEach(sI=>{if(!lastSpawnTimes[sI.type])lastSpawnTimes[sI.type]=0;if(s-lastSpawnTimes[sI.type]>sI.every){lastSpawnTimes[sI.type]=s;const n=Math.floor(Math.random()*(sI.count[1]-sI.count[0]+1))+sI.count[0];for(let i=0;i<n;i++){if(enemies.length>150)break;const a=Math.random()*Math.PI*2,r=Math.max(canvas.width/2,canvas.height/2)+100;const x=player.x+Math.cos(a)*r,y=player.y+Math.sin(a)*r;const eD=ENEMY_CATALOG[sI.type];enemies.push({...eD,x,y,hp:eD.hp*dM,speed:eD.spd*(1+(s/60)*0.02),id:Math.random(),type:sI.type,isHit:false,hitTimer:0});}}});}
+    function spawnEnemies(){const s=(600000-gameTime)/1000;if(s>=540&&!boss){} const cC=SPAWNER_CLIPS.find(c=>s>=c.start&&s<c.end);if(!cC)return;const dM=1+(s/60)*0.18;const spdM=1+(s/60)*0.08;cC.enemies.forEach(sI=>{if(!lastSpawnTimes[sI.type])lastSpawnTimes[sI.type]=0;if(s-lastSpawnTimes[sI.type]>sI.every){lastSpawnTimes[sI.type]=s;const n=Math.floor(Math.random()*(sI.count[1]-sI.count[0]+1))+sI.count[0];for(let i=0;i<n;i++){if(enemies.length>250)break;const a=Math.random()*Math.PI*2,r=Math.max(canvas.width/2,canvas.height/2)+100;const x=player.x+Math.cos(a)*r,y=player.y+Math.sin(a)*r;const eD=ENEMY_CATALOG[sI.type];enemies.push({...eD,x,y,hp:eD.hp*dM,speed:eD.spd*spdM,id:Math.random(),type:sI.type,isHit:false,hitTimer:0});}}});}
     function updateUI(){if(!player)return;hpBar.style.width=`${(player.hp/player.maxHp)*100}%`;hpText.textContent=`${Math.ceil(player.hp)} / ${Math.ceil(player.maxHp)}`;levelDisplay.innerHTML=`레벨: ${player.level} <span class="text-sm">(${player.xp}/${player.xpToNextLevel} XP)</span>`;const m=Math.floor(gameTime/60000),s=Math.floor((gameTime%60000)/1000);timerDisplay.textContent=`${m}:${s.toString().padStart(2,'0')}`;coinDisplay.textContent=`코인: ${player.coins||0}`;weaponUI.innerHTML='<h4 class="font-bold">무기</h4>'+Object.values(player.weapons).map(w=>`<div>${w.name} Lv.${w.level}</div>`).join('');passiveUI.innerHTML='<h4 class="font-bold">패시브</h4>'+Object.values(player.passives).map(p=>`<div>${p.name} Lv.${p.level}</div>`).join('');}
     function updateProjectile(p,dt){p.x+=Math.cos(p.angle)*p.speed*(dt/16.67);p.y+=Math.sin(p.angle)*p.speed*(dt/16.67);p.lived+=dt;}
     function updatePickup(p){if(Math.hypot(p.x-player.x,p.y-player.y)<player.pickupRadius){const a=Math.atan2(player.y-p.y,player.x-p.x);p.x+=Math.cos(a)*8;p.y+=Math.sin(a)*8;}}
